@@ -1,5 +1,5 @@
 /atom
-	var/obj/light/light_obj
+	var/atom/movable/light/light_obj
 	var/light_type = LIGHT_SOFT
 	var/light_power = 1
 	var/light_range = 1
@@ -17,7 +17,7 @@
 	var/turf/T = get_turf(src)
 	if(istype(T))
 		T.blocks_light = -1
-		for(var/obj/light/L in range(get_turf(src), world.view)) //view(world.view, dview_mob))
+		for(var/atom/movable/light/L in range(get_turf(src), world.view)) //view(world.view, dview_mob))
 			L.cast_light()
 
 /atom/proc/copy_light(var/atom/other)
@@ -36,11 +36,11 @@
 	. = ..()
 	update_contained_lights()
 
-/atom/movable/Move()
+/atom/movable/Move(atom/destination,var/no_tp=0, var/harderforce = FALSE, glide_size_override = 0)
 	. = ..()
 	update_contained_lights()
 
-/atom/movable/forceMove()
+/atom/movable/forceMove(atom/destination, no_tp=0, harderforce = FALSE, glide_size_override = 0)
 	. = ..()
 	update_contained_lights()
 

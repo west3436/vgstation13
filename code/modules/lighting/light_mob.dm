@@ -20,10 +20,6 @@
 	if(client)
 		update_darkness()
 
-/mob/Login()
-	. = ..()
-	create_lighting_planes()
-
 /mob/proc/update_darkness()
 	if(seedarkness)
 		master_plane.color = LIGHTING_PLANEMASTER_COLOR

@@ -15,7 +15,7 @@
 			"Z"
 	)
 	var/list/blacklist = list(
-			/obj/light,
+			/atom/movable/light,
 			/obj/effect,
 			/obj/item/projectile,
 			/mob/dview,

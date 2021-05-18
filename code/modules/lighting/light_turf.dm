@@ -12,7 +12,7 @@
 	if(lumcount == -1)
 		lumcount = 0
 		for(var/thing in affecting_lights)
-			var/obj/light/L = thing
+			var/atom/movable/light/L = thing
 			lumcount += max(1,L.current_power - max(0,(get_dist(get_turf(L), src)-2)))
 		lumcount = clamp(lumcount,0,10)
 	return lumcount
@@ -31,7 +31,7 @@
 	return blocks_light
 
 /turf/proc/door_light_update()
-	for(var/obj/light/L in affecting_lights)
+	for(var/atom/movable/light/L in affecting_lights)
 		L.cast_light()
 
 // Returns a list of occluding corners based on the angle of the light to the turf

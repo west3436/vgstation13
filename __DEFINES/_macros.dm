@@ -180,7 +180,7 @@
 
 #define iscamera(A) istype(A, /obj/machinery/camera)
 
-#define islightingoverlay(A) (istype(A, /obj/light))
+#define islightingoverlay(A) (istype(A, /atom/movable/light))
 
 #define ischair(A) (istype(A, /obj/structure/bed/chair))
 

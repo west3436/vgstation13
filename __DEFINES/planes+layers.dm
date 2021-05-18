@@ -190,7 +190,7 @@ What is the naming convention for planes or layers?
 
 	#define GHOST_LAYER 				1
 
-#define LIGHTING_PLANE_MASTER -3
+#define LIGHTING_PLANE_MASTER -2
 
 #define LIGHTING_PLANE 			-2
 

@@ -1,4 +1,4 @@
-/obj/light
+/atom/movable/light
 	mouse_opacity = 0
 	plane = LIGHTING_PLANE_MASTER
 
@@ -24,7 +24,7 @@
 	var/list/affecting_turfs = list()
 	var/list/temp_appearance
 
-/obj/light/New(var/newholder)
+/atom/movable/light/New(var/newholder)
 	holder = newholder
 	if(istype(holder, /atom))
 		var/atom/A = holder
@@ -35,7 +35,7 @@
 		color = light_color
 	..(get_turf(holder))
 
-/obj/light/Destroy()
+/atom/movable/light/Destroy()
 	transform = null
 	appearance = null
 	overlays = null
@@ -52,7 +52,7 @@
 	affecting_turfs.Cut()
 	. = ..()
 
-/obj/light/initialize()
+/atom/movable/light/initialize()
 	..()
 	if(holder)
 		follow_holder()
@@ -60,20 +60,20 @@
 // Applies power value to size (via Scale()) and updates the current rotation (via Turn())
 // angle for directional lights. This is only ever called before cast_light() so affected turfs
 // are updated elsewhere.
-/obj/light/proc/update_transform(var/newrange)
+/atom/movable/light/proc/update_transform(var/newrange)
 	if(!isnull(newrange) && current_power != newrange)
 		current_power = newrange
 
 // Orients the light to the holder's (or the holder's holder) current dir.
 // Also updates rotation for directional lights when appropriate.
-/obj/light/proc/follow_holder_dir()
+/atom/movable/light/proc/follow_holder_dir()
 	if(holder.loc.loc && ismob(holder.loc))
 		set_dir(holder.loc.dir)
 	else
 		set_dir(holder.dir)
 
 // Moves the light overlay to the holder's turf and updates bleeding values accordingly.
-/obj/light/proc/follow_holder()
+/atom/movable/light/proc/follow_holder()
 	if(lighting_update_lights)
 		if(holder && holder.loc)
 			follow_holder_dir()
@@ -89,7 +89,7 @@
 	else
 		init_lights |= src
 
-/obj/light/proc/set_dir(new_dir)
+/atom/movable/light/proc/set_dir(new_dir)
 	if(dir != new_dir)
 		dir = new_dir
 
@@ -108,5 +108,5 @@
 				pixel_x = -(world.icon_size * light_range) - (world.icon_size * light_range) + world.icon_size
 				pixel_y = -(world.icon_size * light_range) + (world.icon_size / 2)
 
-/obj/light/proc/light_off()
+/atom/movable/light/proc/light_off()
 	alpha = 0

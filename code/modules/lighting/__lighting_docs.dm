@@ -30,7 +30,7 @@ atom: (lighting_atom.dm)
   - var/light_power; multiplier for the brightness of lights
   - var/light_color; hex string representing the RGB colour of the light
 
-  - var/obj/light/light_obj; light source object for this atom, only present if light_range && light_power
+  - var/atom/movable/light/light_obj; light source object for this atom, only present if light_range && light_power
   - var/list/light_sources; light sources in contents that are shining through this object, including this object
 
   - proc/set_light(l_range, l_power, l_color):

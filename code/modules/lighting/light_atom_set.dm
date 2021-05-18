@@ -64,5 +64,5 @@
 
 
 
-/obj/light/set_light()
+/atom/movable/light/set_light()
 	return

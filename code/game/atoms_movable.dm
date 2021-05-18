@@ -90,7 +90,7 @@
 
 	break_all_tethers()
 
-	forceMove(null, harderforce = TRUE)
+	forceMove(null)
 
 	if (T)
 		T.check_blocks_light()
@@ -400,7 +400,7 @@
 	sound_override = 0
 
 // harderforce is for things like lighting overlays which should only be moved in EXTREMELY specific sitations.
-/atom/movable/proc/forceMove(atom/destination,var/no_tp=0, var/harderforce = FALSE, glide_size_override = 0)
+/atom/movable/proc/forceMove(atom/destination,var/no_tp=0, var/harderforce = FALSE, var/glide_size_override = 0)
 	if(glide_size_override)
 		glide_size = glide_size_override
 	var/atom/old_loc = loc

@@ -419,7 +419,7 @@
 		. = W
 		if (SSlighting && SSlighting.initialized)
 			if(old_opacity != opacity)
-				for(var/obj/light/L in range(5, src)) //view(world.view, dview_mob))
+				for(var/atom/movable/light/L in range(5, src)) //view(world.view, dview_mob))
 					lighting_update_lights |= L
 
 	else

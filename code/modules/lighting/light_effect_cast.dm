@@ -8,7 +8,7 @@ var/light_power_multiplier = 5
 
 // Casts shadows from occluding objects for a given light.
 
-/obj/light/proc/cast_light()
+/atom/movable/light/proc/cast_light()
 	light_color = null
 
 	temp_appearance = list()
@@ -92,7 +92,7 @@ var/light_power_multiplier = 5
 	overlays = temp_appearance
 	temp_appearance = null
 
-/obj/light/proc/CastShadow(var/turf/target_turf)
+/atom/movable/light/proc/CastShadow(var/turf/target_turf)
 	//get the x and y offsets for how far the target turf is from the light
 	var/x_offset = target_turf.x - x
 	var/y_offset = target_turf.y - y
@@ -209,7 +209,7 @@ var/light_power_multiplier = 5
 
 	temp_appearance += I
 
-/obj/light/proc/CheckOcclusion(var/turf/T)
+/atom/movable/light/proc/CheckOcclusion(var/turf/T)
 	if(!istype(T))
 		return 0
 
