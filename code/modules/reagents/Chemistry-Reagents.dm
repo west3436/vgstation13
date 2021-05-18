@@ -2491,7 +2491,7 @@
 			C.adjustToxLoss(REM) //4 toxic damage per application, doubled for some reason
 		if(isinsectoid(C) || istype(C, /mob/living/carbon/monkey/roach)) //Insecticide being poisonous to bugmen, who'd've thunk
 			M.adjustToxLoss(10 * REM)
-		
+
 /datum/reagent/toxin/insecticide/on_plant_life(obj/machinery/portable_atmospherics/hydroponics/T)
 	..()
 
@@ -6380,7 +6380,7 @@
 		glass_name = "\improper Scientist's Surprise"
 		glass_desc = "There is as yet insufficient data for a meaningful answer."
 		D.origin_tech = ""
-		
+
 	else if(volume < 50)
 		glass_icon_state = "scientists_serendipity"
 		glass_name = "\improper Scientist's Serendipity"
@@ -6392,7 +6392,7 @@
 		glass_name = "\improper Scientist's Sapience"
 		glass_desc = "Why research what has already been catalogued?"
 		D.origin_tech = "materials=10;engineering=5;plasmatech=4;powerstorage=5;bluespace=10;biotech=5;combat=6;magnets=6;programming=5;illegal=1;nanotrasen=1;syndicate=2" //Maxes everything but Illegal and Anomaly
-				
+
 /datum/reagent/ethanol/beepskyclassic
 	name = "Beepsky Classic"
 	id = BEEPSKY_CLASSIC
@@ -6516,7 +6516,7 @@
 /datum/reagent/ethanol/drink/gravsingulo/on_mob_life(var/mob/living/M)
 	if(..())
 		return 1
-	
+
 	switch(data)
 		if(0 to 65)
 			if(prob(5))
@@ -6540,7 +6540,7 @@
 				M.gib()
 	//Will pull items in a range based on time in system
 	for(var/atom/X in orange((data+30)/50, M))
-		if(X.type == /atom/movable/lighting_overlay)//since there's one on every turf
+		if(islightingoverlay(X))//since there's one on every turf
 			continue
 		X.singularity_pull(M, data/50, data/50)
 	data++
@@ -6582,7 +6582,7 @@
 				M.gib()
 	//Will pull items in a range based on time in system
 	for(var/atom/X in orange((data+30)/50, M))
-		if(X.type == /atom/movable/lighting_overlay)//since there's one on every turf
+		if(islightingoverlay(X))//since there's one on every turf
 			continue
 		X.singularity_pull(M, data/50, data/50)
 	data++
@@ -8629,7 +8629,7 @@ var/global/list/tonio_doesnt_remove=list("tonio", "blood")
 		return
 	var/atom/A =  holder.my_atom
 	A.light_color = initial_color
-	A.set_light(0)
+	A.kill_light()
 
 /datum/reagent/anthracene/reaction_mob(var/mob/living/M, var/method = TOUCH, var/volume)
 	if(..())
@@ -8641,7 +8641,7 @@ var/global/list/tonio_doesnt_remove=list("tonio", "blood")
 		M.set_light(light_intensity)
 		spawn(volume * 10)
 			M.light_color = init_color
-			M.set_light(0)
+			M.kill_light()
 
 /datum/reagent/anthracene/reaction_turf(var/turf/simulated/T, var/volume)
 	if(..())
@@ -8652,7 +8652,7 @@ var/global/list/tonio_doesnt_remove=list("tonio", "blood")
 	T.set_light(light_intensity)
 	spawn(volume * 10)
 		T.light_color = init_color
-		T.set_light(0)
+		T.kill_light()
 
 /datum/reagent/anthracene/reaction_obj(var/obj/O, var/volume)
 	if(..())
@@ -8663,7 +8663,7 @@ var/global/list/tonio_doesnt_remove=list("tonio", "blood")
 	O.set_light(light_intensity)
 	spawn(volume * 10)
 		O.light_color = init_color
-		O.set_light(0)
+		O.kill_light()
 
 /datum/reagent/mucus
 	name = "Mucus"

@@ -13,6 +13,7 @@
 	var/cover_hair = 0
 	var/see_invisible = 0
 	var/see_in_dark = 0
+	var/seedarkness = TRUE
 	var/prescription = 0
 	min_harm_label = 12
 	harm_label_examine = list("<span class='info'>A label is covering one lens, but doesn't reach the other.</span>","<span class='warning'>A label covers the lenses!</span>")
@@ -494,7 +495,8 @@ var/list/science_goggles_wearers = list()
 	origin_tech = Tc_MAGNETS + "=3"
 	vision_flags = SEE_MOBS
 	see_invisible = SEE_INVISIBLE_MINIMUM
-	invisa_view = 2 
+	seedarkness = FALSE
+	invisa_view = 2
 	eyeprot = -2 //prepare for your eyes to get shit on
 
 	glasses_fit = TRUE
@@ -510,6 +512,16 @@ var/list/science_goggles_wearers = list()
 			spawn(100)
 				M.disabilities &= ~NEARSIGHTED
 	..()
+
+/obj/item/clothing/glasses/thermal/equipped(mob/user)
+	seedarkness = FALSE
+	..()
+
+/obj/item/clothing/glasses/thermal/unequipped(mob/user, var/from_slot = null)
+	if(from_slot == slot_glasses)
+		seedarkness = TRUE
+	..()
+
 
 /obj/item/clothing/glasses/thermal/syndi	//These are now a traitor item, concealed as mesons.	-Pete
 	name = "optical meson scanner"
@@ -531,10 +543,12 @@ var/list/science_goggles_wearers = list()
 	if(harm_labeled < min_harm_label)
 		vision_flags |= SEE_MOBS
 		see_invisible |= SEE_INVISIBLE_MINIMUM
+		seedarkness = FALSE
 		invisa_view = 2
 	else
 		vision_flags &= ~SEE_MOBS
 		see_invisible &= ~SEE_INVISIBLE_MINIMUM
+		seedarkness = TRUE
 		invisa_view = 0
 
 /obj/item/clothing/glasses/thermal/eyepatch
