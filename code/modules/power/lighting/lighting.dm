@@ -248,28 +248,24 @@ var/global/list/obj/machinery/light/alllights = list()
 
 // update the icon_state and luminosity of the light depending on its state
 /obj/machinery/light/proc/update(var/trigger = 1)
-
-
 	update_icon()
 	if(on)
-		if(light_range != current_bulb.brightness_range || light_power != current_bulb.brightness_power || light_color != current_bulb.brightness_color)
-			current_bulb.switchcount++
-			if(current_bulb.rigged)
-				if(current_bulb.status == LIGHT_OK && trigger)
+		current_bulb.switchcount++
+		if(current_bulb.rigged)
+			if(current_bulb.status == LIGHT_OK && trigger)
 
-					log_admin("LOG: Rigged light explosion, last touched by [fingerprintslast]")
-					message_admins("LOG: Rigged light explosion, last touched by [fingerprintslast]")
-
-					explode()
-			else if( prob( min(60, current_bulb.switchcount*current_bulb.switchcount*0.01) ) )
-				if(current_bulb.status == LIGHT_OK && trigger)
-					current_bulb.status = LIGHT_BURNED
-					icon_state = "l[current_bulb.base_state]-burned"
-					on = 0
-					kill_light()
-			else
-				use_power = 2
-				set_light(current_bulb.brightness_range, current_bulb.brightness_power, current_bulb.brightness_color)
+				log_admin("LOG: Rigged light explosion, last touched by [fingerprintslast]")
+				message_admins("LOG: Rigged light explosion, last touched by [fingerprintslast]")
+				explode()
+		else if( prob( min(60, current_bulb.switchcount*current_bulb.switchcount*0.01) ) )
+			if(current_bulb.status == LIGHT_OK && trigger)
+				current_bulb.status = LIGHT_BURNED
+				icon_state = "l[current_bulb.base_state]-burned"
+				on = 0
+				kill_light()
+		else
+			use_power = 2
+			set_light(current_bulb.brightness_range, current_bulb.brightness_power, current_bulb.brightness_color)
 	else
 		use_power = 1
 		kill_light()
