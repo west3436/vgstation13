@@ -190,9 +190,7 @@ What is the naming convention for planes or layers?
 
 	#define GHOST_LAYER 				1
 
-#define LIGHTING_PLANE_MASTER -3
-
-#define LIGHTING_PLANE 			-2
+#define LIGHTING_PLANE 			-3
 
 	#define LIGHTBULB_LAYER 			0
 	#define POINTER_LAYER 				1
@@ -202,6 +200,8 @@ What is the naming convention for planes or layers?
 	#define SUPERMATTER_WALL_LAYER 		4
 	#define SUPER_PORTAL_LAYER			5
 	#define NARSIE_GLOW 				6
+
+#define LIGHTING_PLANE_MASTER -2
 
 #define ABOVE_LIGHTING_PLANE	-1
 	#define MAPPING_AREA_LAYER			999
