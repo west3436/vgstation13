@@ -5652,7 +5652,7 @@
 	reagents.add_reagent(NUTRIMENT, 8)
 	reagents.add_reagent(TOMATOJUICE, 15)
 
-var/global/list/bomb_like_items = list(/obj/item/device/transfer_valve, /obj/item/toy/bomb, /obj/item/weapon/c4, /obj/item/device/fuse_bomb, /obj/item/weapon/grenade, /obj/item/device/onetankbomb)
+var/global/list/bomb_like_items = list(/obj/item/device/transfer_valve, /obj/item/toy/bomb, /obj/item/weapon/c4, /obj/item/cannonball/fuse_bomb, /obj/item/weapon/grenade, /obj/item/device/onetankbomb)
 
 /obj/item/weapon/reagent_containers/food/snacks/lasagna/can_hold(obj/item/weapon/W) //GREAT SCOTT!
 	if(is_type_in_list(W, bomb_like_items))
@@ -6545,3 +6545,15 @@ obj/item/weapon/reagent_containers/food/snacks/butterfingers_l
 	reagents.add_reagent (NUTRIMENT, 2)
 	bitesize = 2
 
+/obj/item/weapon/reagent_containers/food/snacks/sweetroll
+	name = "sweetroll"
+	desc = "While on the station, the chef gives you a sweetroll. Delighted, you take it into maintenance to enjoy, only to be intercepted by a gang of three assistants your age."
+	icon = 'icons/obj/food.dmi'
+	icon_state = "sweetroll"
+	food_flags = FOOD_ANIMAL | FOOD_SWEET | FOOD_LACTOSE
+
+/obj/item/weapon/reagent_containers/food/snacks/sweetroll/New()
+	..()
+	reagents.add_reagent (NUTRIMENT, 2)
+	reagents.add_reagent (SUGAR, 6)
+	bitesize = 2
