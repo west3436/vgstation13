@@ -64,5 +64,5 @@
 
 
 
-/atom/movable/light/set_light()
+/atom/movable/light/set_light(var/l_range, var/l_power, var/l_color, var/l_type, var/fadeout)
 	return
