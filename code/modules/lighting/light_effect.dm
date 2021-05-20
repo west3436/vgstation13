@@ -79,11 +79,11 @@
 			follow_holder_dir()
 
 			if(isturf(holder))
-				forceMove(holder)
+				forceMove(holder, glide_size_override = holder.glide_size)
 			else if(holder.loc.loc && ismob(holder.loc))
-				forceMove(holder.loc.loc)
+				forceMove(holder.loc.loc, glide_size_override = holder.glide_size)
 			else
-				forceMove(holder.loc)
+				forceMove(holder.loc, glide_size_override = holder.glide_size)
 
 			cast_light() // We don't use the subsystem queue for this since it's too slow to prevent shadows not being updated quickly enough
 	else
