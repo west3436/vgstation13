@@ -79,11 +79,12 @@
 			follow_holder_dir()
 
 			if(isturf(holder))
-				forceMove(holder, glide_size_override = holder.glide_size)
+				forceMove(holder, glide_size_override = WORLD_ICON_SIZE) // Default glide.
 			else if(holder.loc.loc && ismob(holder.loc))
-				forceMove(holder.loc.loc, glide_size_override = holder.glide_size)
+				var/mob/M = holder.loc
+				forceMove(holder.loc.loc, glide_size_override = M.glide_size) // Glide size from our mob.
 			else
-				forceMove(holder.loc, glide_size_override = holder.glide_size)
+				forceMove(holder.loc, glide_size_override = holder.glide_size) // Hopefully whatever we're gliding with has smooth movement.
 
 			cast_light() // We don't use the subsystem queue for this since it's too slow to prevent shadows not being updated quickly enough
 	else
