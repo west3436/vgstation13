@@ -1636,7 +1636,7 @@ Use this proc preferably at the end of an equipment loadout
 			src.callOnEndMove -= atomToCall
 
 
-/mob/forceMove(atom/destination,var/no_tp=0, var/harderforce = FALSE, glide_size_override = 0)
+/mob/forceMove(NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
 	StartMoving()
 	. = ..()
 	EndMoving()
