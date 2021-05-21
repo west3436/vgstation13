@@ -663,8 +663,8 @@ var/global/list/obj/machinery/light/alllights = list()
 	base_state = "bulb"
 	item_state = "contvapour"
 	fitting = "bulb"
-	brightness_range = 3.5
-	brightness_power = 2
+	brightness_range = 4
+	brightness_power = 3
 	brightness_color = LIGHT_COLOR_TUNGSTEN
 	starting_materials = list(MAT_GLASS = 50, MAT_IRON = 30)
 	cost = 5
