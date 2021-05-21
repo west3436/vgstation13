@@ -152,7 +152,7 @@ proc/process_adminbus_teleport_locs()
 	power_light = 0
 	power_environ = 0
 	always_unpowered = 0
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	shuttle_can_crush = TRUE
 
 /area/arrival
@@ -175,7 +175,7 @@ proc/process_adminbus_teleport_locs()
 	name = "\improper Spider Clan Dojo"
 	icon_state = "dojo"
 	requires_power = 0
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	shuttle_can_crush = FALSE
 	flags = NO_PERSISTENCE
 
@@ -185,7 +185,7 @@ proc/process_adminbus_teleport_locs()
 
 /area/shuttle
 	requires_power = 0
-	dynamic_lighting = 1 //Lighting STILL disabled, even with the new bay engine, because lighting doesn't play nice with our shuttles, might just be our shuttle code, or the small changes in the lighting engine we have from bay.
+	dynamic_lighting = 0
 	//haha fuck you we dynamic lights now
 	shuttle_can_crush = FALSE
 	flags = NO_PERSISTENCE
@@ -353,7 +353,7 @@ proc/process_adminbus_teleport_locs()
 	name = "\improper Nuclear Operative Shuttle"
 	icon_state = "yellow"
 	requires_power = 0
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	shuttle_can_crush = FALSE
 	flags = NO_PERSISTENCE
 
@@ -436,14 +436,14 @@ proc/process_adminbus_teleport_locs()
 	name = "\improper Vox Skipjack"
 	icon_state = "yellow"
 	requires_power = 0
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	holomap_draw_override = HOLOMAP_DRAW_EMPTY
 
 /area/shuttle/lightship
 	name = "\improper Lightspeed Ship"
 	requires_power = 1
 	icon_state = "firingrange"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	holomap_draw_override = HOLOMAP_DRAW_EMPTY
 
 /area/shuttle/lightship/start
@@ -563,12 +563,12 @@ proc/process_adminbus_teleport_locs()
 /area/centcom/specops
 	name = "\improper Centcom Special Ops"
 	icon_state = "centcom-specops"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 
 /area/centcom/striketeam
 	name = "\improper Custom Strike Team"
 	icon_state = "centcom-specops"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 
 /area/centcom/creed
 	name = "Creed's Office"
@@ -580,7 +580,7 @@ proc/process_adminbus_teleport_locs()
 /area/centcom/ert
 	name = "\improper ERT Preparation Center"
 	icon_state = "centcom-ert"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 
 //SYNDICATES
 
@@ -588,7 +588,7 @@ proc/process_adminbus_teleport_locs()
 	name = "\improper Syndicate Mothership"
 	icon_state = "syndie-ship"
 	requires_power = 0
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	shuttle_can_crush = FALSE
 
 /area/syndicate_mothership/control
@@ -1141,7 +1141,7 @@ proc/process_adminbus_teleport_locs()
 /area/holodeck
 	name = "\improper Holodeck"
 	icon_state = "Holodeck"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	shuttle_can_crush = FALSE
 	flags = NO_PERSISTENCE
 
@@ -2227,22 +2227,22 @@ proc/process_adminbus_teleport_locs()
 /area/turret_protected/AIsatextFP
 	name = "\improper AI Sat Ext"
 	icon_state = "storage"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 
 /area/turret_protected/AIsatextFS
 	name = "\improper AI Sat Ext"
 	icon_state = "storage"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 
 /area/turret_protected/AIsatextAS
 	name = "\improper AI Sat Ext"
 	icon_state = "storage"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 
 /area/turret_protected/AIsatextAP
 	name = "\improper AI Sat Ext"
 	icon_state = "storage"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 
 /area/turret_protected/NewAIMain
 	name = "\improper AI Main New"
@@ -2676,7 +2676,7 @@ var/list/the_station_areas = list (
 /area/beach/
 	name = "The metaclub's private beach"
 	icon_state = "null"
-	dynamic_lighting = 1
+	dynamic_lighting = 0
 	requires_power = 0
 	var/sound/mysound = null
 	shuttle_can_crush = FALSE
