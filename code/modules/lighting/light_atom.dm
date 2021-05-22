@@ -1,5 +1,6 @@
 /atom
 	var/atom/movable/light/light_obj
+	var/atom/movable/light/shadow/shadow_obj
 	var/light_type = LIGHT_SOFT
 	var/light_power = 1
 	var/light_range = 1
@@ -9,6 +10,9 @@
 	if(light_obj)
 		qdel(light_obj)
 		light_obj = null
+	if(shadow_obj)
+		qdel(shadow_obj)
+		shadow_obj = null
 	return ..()
 
 // Used to change hard BYOND opacity; this means a lot of updates are needed.
@@ -30,6 +34,8 @@
 	spawn()
 		if(light_obj && !light_obj.gcDestroyed)
 			light_obj.follow_holder()
+		if (shadow_obj && !shadow_obj.gcDestroyed)
+			shadow_obj.follow_holder()
 
 /atom/movable/change_dir()
 	. = ..()

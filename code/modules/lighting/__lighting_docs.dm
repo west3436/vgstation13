@@ -31,6 +31,10 @@ atom: (lighting_atom.dm)
   - var/light_color; hex string representing the RGB colour of the light
 
   - var/atom/movable/light/light_obj; light source object for this atom, only present if light_range && light_power
+  - var/atom/movable/light/shadow/shadow_obj; wall shadow source object for this atom, with TILE_BOUND to prevent it from bleeding over other walls
+
+	NB: this means that the object casts its light twice, one for the people who can see it, another for those who can't.
+
   - var/list/light_sources; light sources in contents that are shining through this object, including this object
 
   - proc/set_light(l_range, l_power, l_color):

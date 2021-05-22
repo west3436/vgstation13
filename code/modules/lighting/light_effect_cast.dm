@@ -192,8 +192,15 @@ var/light_power_multiplier = 5
 	//and add it to the lights overlays
 	temp_appearance += I
 
+/atom/movable/light/shadow/CastShadow(var/turf/target_turf)
+	//get the x and y offsets for how far the target turf is from the light
+	var/x_offset = target_turf.x - x
+	var/y_offset = target_turf.y - y
+	
+	. = ..()
 	var/targ_dir = get_dir(target_turf, src)
 
+	// CHECK: may not actually smoothout that well.
 	var/blocking_dirs = 0
 	for(var/d in cardinal)
 		var/turf/T = get_step(target_turf, d)
@@ -201,14 +208,11 @@ var/light_power_multiplier = 5
 			blocking_dirs |= d
 
 	// The "edge" of the light, with images consisting of directional sprites from wall_lighting.dmi "pushed" in the correct direction.
-	// Contrary to what the name suggests, it's not just walls, it's all edges of the light spot.
-
-	I = image('icons/lighting/wall_lighting.dmi', loc = get_turf(src))
+	var/image/I = image('icons/lighting/wall_lighting.dmi', loc = get_turf(src))
 	I.icon_state = "[blocking_dirs]-[targ_dir]"
 	I.pixel_x = (world.icon_size * light_range) + (x_offset * world.icon_size)
 	I.pixel_y = (world.icon_size * light_range) + (y_offset * world.icon_size)
 	I.layer = ABOVE_LIGHTING_LAYER
-
 	temp_appearance += I
 
 /atom/movable/light/proc/CheckOcclusion(var/turf/T)

@@ -8,7 +8,7 @@
 	//layer 3 = wall lighting overlays
 	//layer 4 = light falloff overlay
 
-	appearance_flags = KEEP_TOGETHER | TILE_BOUND
+	appearance_flags = KEEP_TOGETHER
 	icon = null
 	invisibility = INVISIBILITY_LIGHTING
 	pixel_x = -WORLD_ICON_SIZE*2
@@ -23,6 +23,9 @@
 	var/point_angle
 	var/list/affecting_turfs = list()
 	var/list/temp_appearance
+
+/atom/movable/light/shadow
+	appearance_flags = KEEP_TOGETHER | TILE_BOUND
 
 /atom/movable/light/New(var/newholder)
 	holder = newholder
@@ -44,6 +47,8 @@
 	if(holder)
 		if(holder.light_obj == src)
 			holder.light_obj = null
+		if (holder.shadow_obj == src)
+			holder.shadow_obj = null
 		holder = null
 	for(var/thing in affecting_turfs)
 		var/turf/T = thing

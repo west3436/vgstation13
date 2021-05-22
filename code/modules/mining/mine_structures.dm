@@ -102,6 +102,7 @@
 		spawn(duration)
 			light_type = LIGHT_SOFT
 			animate(light_obj)
+			animate(shadow_obj)
 			set_light()
 
 /obj/structure/hanging_lantern/proc/update()
