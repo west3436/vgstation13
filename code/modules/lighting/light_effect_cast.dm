@@ -108,8 +108,7 @@ var/light_power_multiplier = 5
 	if(abs(x_offset) > abs(y_offset))
 		xy_swap = 1
 
-	var/shadowoffset = 16 + 32 * light_range
-
+	var/shadowoffset = WORLD_ICON_SIZE/2 + (WORLD_ICON_SIZE*light_range)
 
 	//due to the way the offsets are named, we can just swap the x and y offsets to "rotate" the icon state
 
@@ -201,7 +200,10 @@ var/light_power_multiplier = 5
 		if(CheckOcclusion(T))
 			blocking_dirs |= d
 
-	I = image('icons/lighting/wall_lighting.dmi')
+	// The "edge" of the light, with images consisting of directional sprites from wall_lighting.dmi "pushed" in the correct direction.
+	// Contrary to what the name suggests, it's not just walls, it's all edges of the light spot.
+
+	I = image('icons/lighting/wall_lighting.dmi', loc = get_turf(src))
 	I.icon_state = "[blocking_dirs]-[targ_dir]"
 	I.pixel_x = (world.icon_size * light_range) + (x_offset * world.icon_size)
 	I.pixel_y = (world.icon_size * light_range) + (y_offset * world.icon_size)

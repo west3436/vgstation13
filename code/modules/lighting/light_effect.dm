@@ -8,7 +8,7 @@
 	//layer 3 = wall lighting overlays
 	//layer 4 = light falloff overlay
 
-	appearance_flags = KEEP_TOGETHER
+	appearance_flags = KEEP_TOGETHER | TILE_BOUND
 	icon = null
 	invisibility = INVISIBILITY_LIGHTING
 	pixel_x = -WORLD_ICON_SIZE*2
