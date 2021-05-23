@@ -9,6 +9,8 @@ var/light_power_multiplier = 5
 // We actually see these "pseudo-light atoms" in order to ensure that wall shadows are only seen by people who can see the light.
 // Yes, this is stupid, but it's one of the limitations of TILE_BOUND, which cannot be chosen on an overlay-per-overlay basis.
 // So the "next best thing" is to divide the light atoms in two parts, one exclusively for wall shadows and one for general purpose.
+// Do note that this mean that everything is twice as bright, and twice as dark.
+// Draw/generate your shadow maks & light spots accordingly!
 
 // cast_light() is "master procs", shared by the two kinds.
 
@@ -17,17 +19,7 @@ var/light_power_multiplier = 5
 	cast_main_light()
 	update_light_dir()
 	cast_shadows()
-	overlays = temp_appearance
-	temp_appearance = null
-
-/atom/movable/light/proc/CastShadow(var/turf/target_turf)
-	//get the x and y offsets for how far the target turf is from the light
-	var/x_offset = target_turf.x - x
-	var/y_offset = target_turf.y - y
-	cast_main_shadow(target_turf, x_offset, y_offset)
-
-	if (is_valid_turf(target_turf))
-		cast_turf_shadow(target_turf, x_offset, y_offset)
+	update_appearance()
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // -- The shared procs between lights and pesudo-lights.
@@ -59,38 +51,6 @@ var/light_power_multiplier = 5
 
 	for(var/turf/T in affecting_turfs)
 		T.affecting_lights |= src
-
-// On how many turfs do we cast a shadow ?
-/atom/movable/light/proc/cast_shadows()
-	//no shadows
-	if(light_range < 2 || light_type == LIGHT_DIRECTIONAL)
-		return
-
-	var/list/visible_turfs = list()
-
-	for(var/turf/T in view(light_range, src))
-		visible_turfs += T
-
-	for(var/turf/T in visible_turfs)
-		if(CheckOcclusion(T))
-			CastShadow(T)
-
-/atom/movable/light/proc/update_light_dir()
-	if(light_type == LIGHT_DIRECTIONAL)
-		follow_holder_dir()
-
-/atom/movable/light/proc/CheckOcclusion(var/turf/T)
-	if(!istype(T))
-		return 0
-
-	if(T.opacity)
-		return 1
-
-	for(var/obj/machinery/door/D in T)
-		if(D.opacity)
-			return 1
-
-	return 0
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // -- The procs related to the sources of lights
@@ -193,12 +153,6 @@ var/light_power_multiplier = 5
 	//and add it to the lights overlays
 	temp_appearance += I
 
-/atom/movable/light/proc/is_valid_turf(var/turf/target_turf)
-	return !(iswallturf(target_turf) || CheckOcclusion(target_turf))
-
-/atom/movable/light/shadow/is_valid_turf(var/turf/target_turf)
-	return TRUE
-
 /atom/movable/light/proc/cast_turf_shadow(var/turf/target_turf, var/x_offset, var/y_offset)
 	var/targ_dir = get_dir(target_turf, src)
 	// CHECK: may not actually smoothout that well.
@@ -215,6 +169,59 @@ var/light_power_multiplier = 5
 	I.pixel_y = (world.icon_size * light_range) + (y_offset * world.icon_size)
 	I.layer = ABOVE_LIGHTING_LAYER
 	temp_appearance += I
+
+/atom/movable/light/proc/update_appearance()
+	overlays = temp_appearance
+	temp_appearance = null
+
+// On how many turfs do we cast a shadow ?
+/atom/movable/light/proc/cast_shadows()
+	//no shadows
+	if(light_range < 2 || light_type == LIGHT_DIRECTIONAL)
+		return
+
+	var/list/visible_turfs = list()
+
+	for(var/turf/T in view(light_range, src))
+		visible_turfs += T
+
+	for(var/turf/T in visible_turfs)
+		if(CheckOcclusion(T))
+			CastShadow(T)
+
+/atom/movable/light/proc/CastShadow(var/turf/target_turf)
+	//get the x and y offsets for how far the target turf is from the light
+	var/x_offset = target_turf.x - x
+	var/y_offset = target_turf.y - y
+	cast_main_shadow(target_turf, x_offset, y_offset)
+
+	if (is_valid_turf(target_turf))
+		cast_turf_shadow(target_turf, x_offset, y_offset)
+
+/atom/movable/light/proc/update_light_dir()
+	if(light_type == LIGHT_DIRECTIONAL)
+		follow_holder_dir()
+
+/atom/movable/light/proc/CheckOcclusion(var/turf/T)
+	if(!istype(T))
+		return 0
+
+	if(T.opacity)
+		return 1
+
+	for(var/obj/machinery/door/D in T)
+		if(D.opacity)
+			return 1
+
+	return 0
+
+// -- This is the UGLY part.
+
+/atom/movable/light/proc/is_valid_turf(var/turf/target_turf)
+	return !(CheckOcclusion(target_turf))
+
+/atom/movable/light/shadow/is_valid_turf(var/turf/target_turf)
+	return TRUE
 
 #undef BASE_PIXEL_OFFSET
 #undef BASE_TURF_OFFSET
