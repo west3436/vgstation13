@@ -6,9 +6,34 @@
 
 var/light_power_multiplier = 5
 
-// Casts shadows from occluding objects for a given light.
+// We actually see these "pseudo-light atoms" in order to ensure that wall shadows are only seen by people who can see the light.
+// Yes, this is stupid, but it's one of the limitations of TILE_BOUND, which cannot be chosen on an overlay-per-overlay basis.
+// So the "next best thing" is to divide the light atoms in two parts, one exclusively for wall shadows and one for general purpose.
+
+// cast_light() is "master procs", shared by the two kinds.
 
 /atom/movable/light/proc/cast_light()
+	cast_light_init()
+	cast_main_light()
+	update_light_dir()
+	cast_shadows()
+	overlays = temp_appearance
+	temp_appearance = null
+
+/atom/movable/light/proc/CastShadow(var/turf/target_turf)
+	//get the x and y offsets for how far the target turf is from the light
+	var/x_offset = target_turf.x - x
+	var/y_offset = target_turf.y - y
+	cast_main_shadow(target_turf, x_offset, y_offset)
+
+	if (is_valid_turf(target_turf))
+		cast_turf_shadow(target_turf, x_offset, y_offset)
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// -- The shared procs between lights and pesudo-lights.
+
+// Initialisation of the cast_light proc.
+/atom/movable/light/proc/cast_light_init()
 	light_color = null
 
 	temp_appearance = list()
@@ -35,26 +60,51 @@ var/light_power_multiplier = 5
 	for(var/turf/T in affecting_turfs)
 		T.affecting_lights |= src
 
+// On how many turfs do we cast a shadow ?
+/atom/movable/light/proc/cast_shadows()
+	//no shadows
+	if(light_range < 2 || light_type == LIGHT_DIRECTIONAL)
+		return
 
+	var/list/visible_turfs = list()
+
+	for(var/turf/T in view(light_range, src))
+		visible_turfs += T
+
+	for(var/turf/T in visible_turfs)
+		if(CheckOcclusion(T))
+			CastShadow(T)
+
+/atom/movable/light/proc/update_light_dir()
+	if(light_type == LIGHT_DIRECTIONAL)
+		follow_holder_dir()
+
+/atom/movable/light/proc/CheckOcclusion(var/turf/T)
+	if(!istype(T))
+		return 0
+
+	if(T.opacity)
+		return 1
+
+	for(var/obj/machinery/door/D in T)
+		if(D.opacity)
+			return 1
+
+	return 0
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+// -- The procs related to the sources of lights
+
+/atom/movable/light/proc/cast_main_light()
 	if(light_type == LIGHT_DIRECTIONAL)
 		icon = 'icons/lighting/directional_overlays.dmi'
 		light_range = 2.5
 	else
 		pixel_x = pixel_y = -(world.icon_size * light_range)
-		switch(light_range)
-			if(1)
-				icon = 'icons/lighting/light_range_1.dmi'
-			if(2)
-				icon = 'icons/lighting/light_range_2.dmi'
-			if(3)
-				icon = 'icons/lighting/light_range_3.dmi'
-			if(4)
-				icon = 'icons/lighting/light_range_4.dmi'
-			if(5)
-				icon = 'icons/lighting/light_range_5.dmi'
-			else
-				qdel(src)
-				return
+		var/icon_path = "icons/lighting/light_range_[light_range].dmi"
+		if (!isfile(file(icon_path)))
+			CRASH("The light file does not exist. Path: [icon_path]")
+		icon = file(icon_path)
 
 	icon_state = "white"
 
@@ -71,36 +121,10 @@ var/light_power_multiplier = 5
 
 	temp_appearance += I
 
-	if(light_type == LIGHT_DIRECTIONAL)
-		follow_holder_dir()
-
-	//no shadows
-	if(light_range < 2 || light_type == LIGHT_DIRECTIONAL)
-		overlays = temp_appearance
-		temp_appearance = null
-		return
-
-	var/list/visible_turfs = list()
-
-	for(var/turf/T in view(light_range, src))
-		visible_turfs += T
-
-	for(var/turf/T in visible_turfs)
-		if(CheckOcclusion(T))
-			CastShadow(T)
-
-	overlays = temp_appearance
-	temp_appearance = null
-
-/atom/movable/light/proc/CastShadow(var/turf/target_turf)
-	//get the x and y offsets for how far the target turf is from the light
-	var/x_offset = target_turf.x - x
-	var/y_offset = target_turf.y - y
-
+/atom/movable/light/proc/cast_main_shadow(var/turf/target_turf, var/x_offset, var/y_offset)
 	var/num = 1
 	if((abs(x_offset) > 0 && !y_offset) || (abs(y_offset) > 0 && !x_offset))
 		num = 2
-
 
 	//due to only having one set of shadow templates, we need to rotate and flip them for up to 8 different directions
 	//first check is to see if we will need to "rotate" the shadow template
@@ -111,37 +135,15 @@ var/light_power_multiplier = 5
 	var/shadowoffset = WORLD_ICON_SIZE/2 + (WORLD_ICON_SIZE*light_range)
 
 	//due to the way the offsets are named, we can just swap the x and y offsets to "rotate" the icon state
-
-	var/shadowicon
-	switch(light_range)
-		if(2)
-			if(num == 1)
-				shadowicon = 'icons/lighting/light_range_2_shadows1.dmi'
-			else
-				shadowicon = 'icons/lighting/light_range_2_shadows2.dmi'
-		if(3)
-			if(num == 1)
-				shadowicon = 'icons/lighting/light_range_3_shadows1.dmi'
-			else
-				shadowicon = 'icons/lighting/light_range_3_shadows2.dmi'
-		if(4)
-			if(num == 1)
-				shadowicon = 'icons/lighting/light_range_4_shadows1.dmi'
-			else
-				shadowicon = 'icons/lighting/light_range_4_shadows2.dmi'
-		if(5)
-			if(num == 1)
-				shadowicon = 'icons/lighting/light_range_5_shadows1.dmi'
-			else
-				shadowicon = 'icons/lighting/light_range_5_shadows2.dmi'
-
-	var/image/I = image(shadowicon)
+	var/shadowicon = "icons/lighting/light_range_[light_range]_shadows[num].dmi"
+	if (!isfile(file(shadowicon)))
+		CRASH("The shadow file does not exist. Path: [shadowicon]")
+	var/image/I = image(file(shadowicon))
 
 	if(xy_swap)
 		I.icon_state = "[abs(y_offset)]_[abs(x_offset)]"
 	else
 		I.icon_state = "[abs(x_offset)]_[abs(y_offset)]"
-
 
 	var/matrix/M = matrix()
 
@@ -188,18 +190,17 @@ var/light_power_multiplier = 5
 	//apply the transform matrix
 	I.transform = M
 	I.layer = LIGHTING_LAYER
-
 	//and add it to the lights overlays
 	temp_appearance += I
 
-/atom/movable/light/shadow/CastShadow(var/turf/target_turf)
-	//get the x and y offsets for how far the target turf is from the light
-	var/x_offset = target_turf.x - x
-	var/y_offset = target_turf.y - y
-	
-	. = ..()
-	var/targ_dir = get_dir(target_turf, src)
+/atom/movable/light/proc/is_valid_turf(var/turf/target_turf)
+	return !(iswallturf(target_turf) || CheckOcclusion(target_turf))
 
+/atom/movable/light/shadow/is_valid_turf(var/turf/target_turf)
+	return TRUE
+
+/atom/movable/light/proc/cast_turf_shadow(var/turf/target_turf, var/x_offset, var/y_offset)
+	var/targ_dir = get_dir(target_turf, src)
 	// CHECK: may not actually smoothout that well.
 	var/blocking_dirs = 0
 	for(var/d in cardinal)
@@ -214,19 +215,6 @@ var/light_power_multiplier = 5
 	I.pixel_y = (world.icon_size * light_range) + (y_offset * world.icon_size)
 	I.layer = ABOVE_LIGHTING_LAYER
 	temp_appearance += I
-
-/atom/movable/light/proc/CheckOcclusion(var/turf/T)
-	if(!istype(T))
-		return 0
-
-	if(T.opacity)
-		return 1
-
-	for(var/obj/machinery/door/D in T)
-		if(D.opacity)
-			return 1
-
-	return 0
 
 #undef BASE_PIXEL_OFFSET
 #undef BASE_TURF_OFFSET
