@@ -96,10 +96,21 @@ var/light_power_multiplier = 5
 		light_range = 2.5
 	else
 		pixel_x = pixel_y = -(world.icon_size * light_range)
-		var/icon_path = "icons/lighting/light_range_[light_range].dmi"
-		if (!isfile(file(icon_path)))
-			CRASH("The light file does not exist. Path: [icon_path]")
-		icon = file(icon_path)
+
+		// An explicit call to file() is easily 1000 times as expensive than this construct, so... yeah.
+		// Setting icon explicitly allows us to use byond rsc instead of fetching the file everytime.
+		// The downside is, of course, that you need to cover all the cases in your switch.
+		switch (light_range)
+			if (1)
+				icon = 'icons/lighting/light_range_1.dmi'
+			if (2)
+				icon = 'icons/lighting/light_range_2.dmi'
+			if (3)
+				icon = 'icons/lighting/light_range_3.dmi'
+			if (4)
+				icon = 'icons/lighting/light_range_4.dmi'
+			if (5)
+				icon = 'icons/lighting/light_range_5.dmi'
 
 	icon_state = "white"
 
@@ -129,12 +140,35 @@ var/light_power_multiplier = 5
 
 	var/shadowoffset = WORLD_ICON_SIZE/2 + (WORLD_ICON_SIZE*light_range)
 
-	//due to the way the offsets are named, we can just swap the x and y offsets to "rotate" the icon state
-	var/shadowicon = "icons/lighting/light_range_[light_range]_shadows[num].dmi"
-	if (!isfile(file(shadowicon)))
-		CRASH("The shadow file does not exist. Path: [shadowicon]")
-	var/image/I = image(file(shadowicon))
+	// An explicit call to file() is easily 1000 times as expensive than this construct, so... yeah.
+	// Setting icon explicitly allows us to use byond rsc instead of fetching the file everytime.
+	// The downside is, of course, that you need to cover all the cases in your switch.
+	var/shadowicon
+	switch(light_range)
+		if(2)
+			if(num == 1)
+				shadowicon = 'icons/lighting/light_range_2_shadows1.dmi'
+			else
+				shadowicon = 'icons/lighting/light_range_2_shadows2.dmi'
+		if(3)
+			if(num == 1)
+				shadowicon = 'icons/lighting/light_range_3_shadows1.dmi'
+			else
+				shadowicon = 'icons/lighting/light_range_3_shadows2.dmi'
+		if(4)
+			if(num == 1)
+				shadowicon = 'icons/lighting/light_range_4_shadows1.dmi'
+			else
+				shadowicon = 'icons/lighting/light_range_4_shadows2.dmi'
+		if(5)
+			if(num == 1)
+				shadowicon = 'icons/lighting/light_range_5_shadows1.dmi'
+			else
+				shadowicon = 'icons/lighting/light_range_5_shadows2.dmi'
 
+	var/image/I = image(shadowicon)
+
+	//due to the way the offsets are named, we can just swap the x and y offsets to "rotate" the icon state
 	if(xy_swap)
 		I.icon_state = "[abs(y_offset)]_[abs(x_offset)]"
 	else
