@@ -52,6 +52,41 @@ var/light_power_multiplier = 5
 	for(var/turf/T in affecting_turfs)
 		T.affecting_lights |= src
 
+/*
+/atom/movable/light/shadow/cast_light_init()
+	. = ..()
+	if (light_range < 2)
+		return
+	if (light_type == LIGHT_DIRECTIONAL)
+		return
+
+	// Basically we check if our cardinals + adjacent tiles are occluded and we adjust our bounds if we are able to.
+	var/occlusion_north = CheckOcclusion(get_step(loc, NORTH))
+	var/occlusion_south = CheckOcclusion(get_step(loc, SOUTH))
+	var/occlusion_east = CheckOcclusion(get_step(loc, EAST))
+	var/occlusion_west = CheckOcclusion(get_step(loc, WEST))
+	var/occlusion_northeast = CheckOcclusion(get_step(loc, NORTHEAST))
+	var/occlusion_northwest = CheckOcclusion(get_step(loc, NORTHWEST))
+	var/occlusion_southeast = CheckOcclusion(get_step(loc, SOUTHEAST))
+	var/occlusion_southwest = CheckOcclusion(get_step(loc, SOUTHWEST))
+
+	var/visible_top = !(occlusion_north && occlusion_northeast && occlusion_northwest)
+	var/visible_bottom = !(occlusion_south && occlusion_southeast && occlusion_southwest)
+	var/visible_left = !(occlusion_east && occlusion_northeast && occlusion_southeast)
+	var/visible_right = !(occlusion_west && occlusion_southwest && occlusion_northwest)
+
+	// If we are visible from the left or right, we have to translate one tile in order for bounds to work
+	if (visible_left || visible_bottom)
+		var/vector/V = new(-visible_left, -visible_left)
+		var/turf/T = loc.get_translated_turf(V)
+		forceMove(T)
+		pixel_x = visible_left*WORLD_ICON_SIZE
+		pixel_y = visible_bottom*WORLD_ICON_SIZE
+
+	bound_width = (visible_left + visible_right)*WORLD_ICON_SIZE
+	bound_height = (visible_top + visible_bottom)*WORLD_ICON_SIZE
+*/
+
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 // -- The procs related to the sources of lights
 
