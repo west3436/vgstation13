@@ -153,6 +153,10 @@ var/light_power_multiplier = 5
 	//and add it to the lights overlays
 	temp_appearance += I
 
+// No direct TILE_BOUND shadow.
+/atom/movable/light/shadow/cast_main_shadow(turf/target_turf, x_offset, y_offset)
+	return
+
 /atom/movable/light/proc/cast_turf_shadow(var/turf/target_turf, var/x_offset, var/y_offset)
 	var/targ_dir = get_dir(target_turf, src)
 	// CHECK: may not actually smoothout that well.
