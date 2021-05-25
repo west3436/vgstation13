@@ -49,9 +49,6 @@ var/light_power_multiplier = 5
 		affecting_turfs.Cut()
 		return
 
-	for(var/turf/T in affecting_turfs)
-		T.affecting_lights |= src
-
 /*
 /atom/movable/light/shadow/cast_light_init()
 	. = ..()
@@ -221,9 +218,10 @@ var/light_power_multiplier = 5
 	I.layer = LIGHTING_LAYER
 	//and add it to the lights overlays
 	temp_appearance += I
+	for(var/turf/T in affecting_turfs)
+		T.affecting_lights |= src
 
-// No direct TILE_BOUND shadow.
-/atom/movable/light/shadow/cast_main_shadow(turf/target_turf, x_offset, y_offset)
+/atom/movable/light/shadow/cast_main_shadow()
 	return
 
 /atom/movable/light/proc/cast_turf_shadow(var/turf/target_turf, var/x_offset, var/y_offset)

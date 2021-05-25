@@ -37,8 +37,19 @@
 /obj/abstract/screen/plane/dark
 	blend_mode = BLEND_ADD
 	plane = LIGHTING_PLANE_MASTER // Just below the master plane.
+	layer = FULL_DARK_LAYER
 	icon = 'icons/lighting/over_dark.dmi'
-	alpha = 10
+	alpha = 0
+	appearance_flags = RESET_TRANSFORM | RESET_COLOR | RESET_ALPHA
+
+/obj/abstract/screen/plane/self_vision
+	blend_mode = BLEND_ADD
+	plane = LIGHTING_PLANE_MASTER
+	layer = SELF_VISION_LAYER
+	icon = 'icons/lighting/self_vision.dmi'
+	icon_state = "default"
+	alpha = 0
+	var/target_alpha = 30
 	appearance_flags = RESET_TRANSFORM | RESET_COLOR | RESET_ALPHA
 
 /obj/abstract/screen/plane/dark/New()

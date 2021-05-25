@@ -236,9 +236,10 @@
 
 	if (see_invisible == SEE_INVISIBLE_OBSERVER_NOLIGHTING)
 		see_invisible = SEE_INVISIBLE_OBSERVER
+		dark_plane.alpha = 255
 	else
 		see_invisible = SEE_INVISIBLE_OBSERVER_NOLIGHTING
-
+		dark_plane.alpha = 0
 
 /mob/dead/observer/verb/analyze_air()
 	set name = "Analyze Air"

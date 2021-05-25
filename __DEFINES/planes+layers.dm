@@ -191,7 +191,7 @@ What is the naming convention for planes or layers?
 	#define GHOST_LAYER 				1
 
 #define LIGHTING_PLANE 			-3
-
+	#define SELF_VISION_LAYER 		   -1
 	#define LIGHTBULB_LAYER 			0
 	#define POINTER_LAYER 				1
 	#define LIGHTING_LAYER 				2
@@ -202,6 +202,7 @@ What is the naming convention for planes or layers?
 	#define NARSIE_GLOW 				6
 
 #define LIGHTING_PLANE_MASTER -2
+	#define FULL_DARK_LAYER 1
 
 #define ABOVE_LIGHTING_PLANE	-1
 	#define MAPPING_AREA_LAYER			999

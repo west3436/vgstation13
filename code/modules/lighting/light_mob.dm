@@ -2,6 +2,7 @@
 	var/obj/abstract/screen/plane/master/master_plane
 	var/obj/abstract/screen/plane/dark/dark_plane
 	var/obj/abstract/screen/backdrop/backdrop
+	var/obj/abstract/screen/plane/self_vision/self_vision
 	var/seedarkness = 1
 
 /mob/proc/create_lighting_planes()
@@ -17,6 +18,10 @@
 		backdrop = new(client)
 	else
 		client.screen |= backdrop
+	if (!self_vision)
+		self_vision = new(client)
+	else
+		client.screen |= self_vision
 	if(client)
 		update_darkness()
 
