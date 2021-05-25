@@ -1,1 +1,0 @@
-/area/luminosity = 1

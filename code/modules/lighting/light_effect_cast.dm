@@ -29,10 +29,10 @@ var/light_power_multiplier = 5
 	light_color = null
 
 	temp_appearance = list()
+	luminosity = 2*light_range
 
 	//cap light range to 5
 	light_range = min(5, light_range)
-	luminosity = clamp(light_range, 0, 6)
 
 	alpha = min(255,max(0,round(light_power*light_power_multiplier*25)))
 
@@ -40,7 +40,7 @@ var/light_power_multiplier = 5
 		alpha = initial(alpha)
 		animate(src, alpha = initial(alpha) - rand(30, 60), time = 2, loop = -1, easing = SINE_EASING)
 
-	for(var/turf/T in view(light_range, src))
+	for(var/turf/T in view(2*light_range, src))
 		affecting_turfs |= T
 
 	if(!isturf(loc))
@@ -208,7 +208,7 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 			M.Translate(shadowoffset, shadowoffset)
 		else if((x_flip == 1 && y_flip == -1 && xy_swap == 0) || (x_flip == 1 && y_flip == 1 && xy_swap == 1))
 			M.Translate(shadowoffset, 0)
-		else if((xy_swap == 1 && x_flip == -1 && y_flip == -1))
+		else if((xy_swap == 0 && x_flip == -y_flip) || (xy_swap == 1 && x_flip == -1 && y_flip == -1))
 			M.Translate(0, shadowoffset)
 	else
 		if(x_flip == 1 && y_flip == 1 && xy_swap == 0)

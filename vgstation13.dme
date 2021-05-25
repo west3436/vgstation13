@@ -1614,7 +1614,6 @@
 #include "code\modules\lighting\_lighting.dm"
 #include "code\modules\lighting\light_atom.dm"
 #include "code\modules\lighting\light_atom_set.dm"
-#include "code\modules\lighting\light_compatibility.dm"
 #include "code\modules\lighting\light_effect.dm"
 #include "code\modules\lighting\light_effect_cast.dm"
 #include "code\modules\lighting\light_mob.dm"

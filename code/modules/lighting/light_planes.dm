@@ -39,7 +39,7 @@
 	plane = LIGHTING_PLANE_MASTER // Just below the master plane.
 	layer = FULL_DARK_LAYER
 	icon = 'icons/lighting/over_dark.dmi'
-	alpha = 0
+	alpha = 10
 	appearance_flags = RESET_TRANSFORM | RESET_COLOR | RESET_ALPHA
 
 /obj/abstract/screen/plane/self_vision
