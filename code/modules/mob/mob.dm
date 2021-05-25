@@ -1644,11 +1644,9 @@ Use this proc preferably at the end of an equipment loadout
 			var/turf/T = loc
 			if (T.get_lumcount() > 2)
 				if (self_vision.alpha == self_vision.target_alpha)
-					animate(self_vision.loc, self_vision, alpha = 0, time = 0.1 SECONDS)
 					self_vision.alpha = 0
 			else
 				if (self_vision.alpha != self_vision.target_alpha)
-					animate(self_vision.loc, self_vision, alpha = self_vision.target_alpha, time = 0.1 SECONDS)
 					self_vision.alpha = self_vision.target_alpha
 
 /mob/forceMove(NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)

@@ -11,9 +11,8 @@
 /turf/proc/get_lumcount()
 	if(lumcount == -1)
 		lumcount = 0
-		for(var/thing in affecting_lights)
-			var/atom/movable/light/L = thing
-			lumcount += max(1,L.current_power - max(0,(get_dist(get_turf(L), src)-2)))
+		for(var/atom/movable/light/thing in affecting_lights)
+			lumcount += thing.light_power - min(get_dist(thing, src) - 2)
 		lumcount = clamp(lumcount,0,10)
 	return lumcount
 

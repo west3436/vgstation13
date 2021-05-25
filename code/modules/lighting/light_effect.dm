@@ -27,7 +27,7 @@
 /atom/movable/light/shadow
 	appearance_flags = KEEP_TOGETHER | TILE_BOUND
 
-/atom/movable/light/New(var/newholder)
+/atom/movable/light/New(..., var/atom/newholder)
 	holder = newholder
 	if(istype(holder, /atom))
 		var/atom/A = holder
@@ -36,7 +36,7 @@
 		light_power = A.light_power
 		light_type	= A.light_type
 		color = light_color
-	..(get_turf(holder))
+	..()
 
 /atom/movable/light/Destroy()
 	transform = null
@@ -116,3 +116,16 @@
 
 /atom/movable/light/proc/light_off()
 	alpha = 0
+
+// -- Does a basic cheap raycast from the light to the turf.
+// Return true if it can see it.
+/atom/movable/light/proc/can_see_turf(var/turf/T)
+	var/vector/V = atoms2vector(src, T)
+	var/list/vector/steps = vector_to_steps(V)
+	var/turf/current_turf = get_turf(src)
+	. = TRUE
+	for (var/vector/step in steps)
+		current_turf = current_turf.get_translated_turf(step)
+		if (CheckOcclusion(current_turf))
+			. = FALSE
+			return
