@@ -16,6 +16,9 @@
 	glide_size = WORLD_ICON_SIZE
 	blend_mode = BLEND_ADD
 
+	// Prevent shadows from jerking over walls when walking with a flashlight.
+	animate_movement = 0
+
 	alpha = 180
 
 	var/current_power = 1
@@ -26,6 +29,7 @@
 
 /atom/movable/light/shadow
 	appearance_flags = KEEP_TOGETHER | TILE_BOUND
+	animate_movement = 1
 
 /atom/movable/light/New(..., var/atom/newholder)
 	holder = newholder
