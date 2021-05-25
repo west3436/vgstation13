@@ -260,8 +260,6 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 	if(light_range < 2 || light_type == LIGHT_DIRECTIONAL)
 		return
 
-	var/list/visible_turfs = list()
-
 	for(var/turf/T in view(light_range, src))
 		if(CheckOcclusion(T))
 			CastShadow(T)
