@@ -46,11 +46,11 @@
 	blend_mode = BLEND_ADD
 	plane = LIGHTING_PLANE_MASTER
 	layer = SELF_VISION_LAYER
-	icon = 'icons/lighting/self_vision.dmi'
+	icon = 'icons/lighting/self_vision_default.dmi'
 	icon_state = "default"
 	alpha = 0
-	var/target_alpha = 30
 	appearance_flags = RESET_TRANSFORM | RESET_COLOR | RESET_ALPHA
+	var/target_alpha = 20
 
 /obj/abstract/screen/plane/dark/New()
 	..()

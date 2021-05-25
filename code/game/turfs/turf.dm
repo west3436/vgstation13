@@ -417,7 +417,7 @@
 		W.levelupdate()
 
 		. = W
-		if (SSlighting && SSlighting.initialized)
+		if (SS_READY(SSlighting))
 			if(old_opacity != opacity)
 				for(var/atom/movable/light/L in range(5, src)) //view(world.view, dview_mob))
 					lighting_update_lights |= L
@@ -447,7 +447,7 @@
 
 		. = W
 
-	if (SSlighting && SSlighting.initialized)
+	if (SS_READY(SSlighting))
 		affecting_lights = old_affecting_lights
 
 	if (!ticker)

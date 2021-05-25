@@ -26,8 +26,6 @@ var/light_power_multiplier = 5
 
 // Initialisation of the cast_light proc.
 /atom/movable/light/proc/cast_light_init()
-	light_color = null
-
 	temp_appearance = list()
 	luminosity = 2*light_range
 
@@ -40,7 +38,11 @@ var/light_power_multiplier = 5
 		alpha = initial(alpha)
 		animate(src, alpha = initial(alpha) - rand(30, 60), time = 2, loop = -1, easing = SINE_EASING)
 
+	for (var/mob/M in view(world.view, src))
+		M.check_dark_vision()
+
 	for(var/turf/T in view(2*light_range, src))
+		T.lumcount = -1
 		affecting_turfs |= T
 
 	if(!isturf(loc))
@@ -249,6 +251,8 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 /atom/movable/light/proc/update_appearance()
 	overlays = temp_appearance
 	temp_appearance = null
+	var/list/RGB = rgb2num(light_color)
+	color = rgb(round(RGB[1]/2), round(RGB[2]/2), round(RGB[3]/2))
 
 // On how many turfs do we cast a shadow ?
 /atom/movable/light/proc/cast_shadows()
@@ -259,9 +263,6 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 	var/list/visible_turfs = list()
 
 	for(var/turf/T in view(light_range, src))
-		visible_turfs += T
-
-	for(var/turf/T in visible_turfs)
 		if(CheckOcclusion(T))
 			CastShadow(T)
 

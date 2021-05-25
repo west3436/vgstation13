@@ -36,7 +36,7 @@
 	if(istype(holder, /atom))
 		var/atom/A = holder
 		light_range = A.light_range
-		light_color = A.light_color
+		light_color = A.light_color || rgb(255, 255, 255)
 		light_power = A.light_power
 		light_type	= A.light_type
 		color = light_color

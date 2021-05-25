@@ -120,7 +120,7 @@
 		L.raise_lance()
 		return
 
-/obj/effect/lance_trigger/forceMove(var/atom/NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
+/obj/effect/lance_trigger/forceMove(atom/NewLoc, Dir = 0, step_x = 0, step_y = 0, glide_size_override = 0)
 	var/old_last_move = last_move //Old direction
 
 	if(amount_of_turfs_charged > 0 && (world.time - last_moved) >= 3) //More than 2/10 of a second since last moved
@@ -141,7 +141,7 @@
 	L.force += L.force_per_turf_traveled
 
 	if(amount_of_turfs_charged > 0)
-		if(!istype(NewLoc, /turf/))
+		if(istype(NewLoc, /turf))
 			for(var/mob/living/victim in NewLoc)
 				if(victim.lying)
 					continue

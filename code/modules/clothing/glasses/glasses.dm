@@ -262,6 +262,16 @@ var/list/science_goggles_wearers = list()
 	eyeprot = 1
 	species_fit = list(VOX_SHAPED, GREY_SHAPED, INSECT_SHAPED)
 
+/obj/item/clothing/glasses/sunglasses/equipped(mob/M, slot)
+	if (M.self_vision)
+		M.self_vision.target_alpha = 5 // You see almost nothing with those on!
+	return ..()
+
+/obj/item/clothing/glasses/sunglasses/unequipped(mob/living/carbon/human/M, from_slot)
+	if (M.self_vision)
+		M.self_vision.target_alpha = initial(M.self_vision.target_alpha)
+	return ..()
+
 /obj/item/clothing/glasses/sunglasses/virus
 
 /obj/item/clothing/glasses/sunglasses/virus/dropped(mob/user)
