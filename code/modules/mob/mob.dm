@@ -1649,7 +1649,7 @@ Use this proc preferably at the end of an equipment loadout
 				if (self_vision.alpha != self_vision.target_alpha)
 					self_vision.alpha = self_vision.target_alpha
 
-/mob/forceMove(NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
+/mob/forceMove(var/atom/NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
 	StartMoving()
 	. = ..()
 	EndMoving()

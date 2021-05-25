@@ -95,7 +95,7 @@
 	if(anchored)
 		update_music()
 
-/obj/machinery/media/forceMove(NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
+/obj/machinery/media/forceMove(var/atom/NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
 	disconnect_media_source()
 	..()
 	if(anchored)

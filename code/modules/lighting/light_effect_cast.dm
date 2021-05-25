@@ -9,8 +9,8 @@ var/light_power_multiplier = 5
 // We actually see these "pseudo-light atoms" in order to ensure that wall shadows are only seen by people who can see the light.
 // Yes, this is stupid, but it's one of the limitations of TILE_BOUND, which cannot be chosen on an overlay-per-overlay basis.
 // So the "next best thing" is to divide the light atoms in two parts, one exclusively for wall shadows and one for general purpose.
-// Do note that this mean that everything is twice as bright, and twice as dark.
-// Draw/generate your shadow maks & light spots accordingly!
+// Do note that this means that everything is twice as bright, and twice as dark.
+// Draw/generate your shadow masks & light spots accordingly!
 
 // cast_light() is "master procs", shared by the two kinds.
 
@@ -208,7 +208,7 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 			M.Translate(shadowoffset, shadowoffset)
 		else if((x_flip == 1 && y_flip == -1 && xy_swap == 0) || (x_flip == 1 && y_flip == 1 && xy_swap == 1))
 			M.Translate(shadowoffset, 0)
-		else if((xy_swap == 0 && x_flip == -y_flip) || (xy_swap == 1 && x_flip == -1 && y_flip == -1))
+		else if((xy_swap == 1 && x_flip == -1 && y_flip == -1))
 			M.Translate(0, shadowoffset)
 	else
 		if(x_flip == 1 && y_flip == 1 && xy_swap == 0)

@@ -11,7 +11,7 @@
 
 /obj/screen/plane/drugs/rainbow/New()
 	..()
-	processing_objects |= src
+	processing_objects += src
 	var/matrix/M = matrix()
 	M.Scale(2)
 	M.Translate(-128, -128)

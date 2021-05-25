@@ -1348,7 +1348,6 @@ obj/machinery/power/apc/proc/autoset(var/val, var/on)
 				spawn(5)
 					L.on = 1
 					L.broken()
-					sleep(1)
 
 /obj/machinery/power/apc/Destroy()
 	var/area/this_area = get_area(src)

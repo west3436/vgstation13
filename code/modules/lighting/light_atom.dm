@@ -31,11 +31,10 @@
 	set_light()
 
 /atom/proc/update_all_lights()
-	spawn()
-		if(light_obj && !light_obj.gcDestroyed)
-			light_obj.follow_holder()
-		if (shadow_obj && !shadow_obj.gcDestroyed)
-			shadow_obj.follow_holder()
+	if(light_obj && !light_obj.gcDestroyed)
+		light_obj.follow_holder()
+	if (shadow_obj && !shadow_obj.gcDestroyed)
+		shadow_obj.follow_holder()
 
 /atom/movable/change_dir()
 	. = ..()
@@ -45,7 +44,7 @@
 	. = ..()
 	update_contained_lights()
 
-/atom/movable/forceMove(NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
+/atom/movable/forceMove(var/atom/NewLoc, Dir = 0, step_x = 0, step_y = 0, var/glide_size_override = 0)
 	. = ..()
 	update_contained_lights()
 
@@ -55,8 +54,7 @@
 	for(var/thing in (specific_contents + src))
 		var/atom/A = thing
 		if(A && !A.gcDestroyed)
-			spawn()
-				A.update_all_lights()
+			A.update_all_lights()
 
 /atom/var/dynamic_lighting = 0
 
