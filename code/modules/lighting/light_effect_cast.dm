@@ -131,6 +131,35 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 
 	temp_appearance += I
 
+// On how many turfs do we cast a shadow ?
+/atom/movable/light/proc/cast_shadows()
+	//no shadows
+	if(light_range < 2 || light_type == LIGHT_DIRECTIONAL)
+		return
+
+	for(var/turf/T in view(light_range, src))
+		if(CheckOcclusion(T))
+			CastShadow(T)
+
+// We need to mask the light of this second light atom if it leaks outside of what it is supposed to illuminate.
+// Yes, this is stupid. Having two light atoms makes everything extra complicated.
+/atom/movable/light/shadow/cast_shadows()
+	. = ..()
+	var/list/masked_turfs = range(round((light_range-1)/2)) - view(round(light_range))
+	var/image/I
+	for (var/turf/T in masked_turfs)
+		// Prevent it from blacking out smooth lighting over walls.
+		if (CheckOcclusion(T))
+			return
+		var/x_offset = T.x - x
+		var/y_offset = T.y - y
+		I = image('icons/lighting/mask.dmi', loc = get_turf(src))
+		I.icon_state = "default"
+		I.pixel_x = (world.icon_size * light_range) + (x_offset * world.icon_size)
+		I.pixel_y = (world.icon_size * light_range) + (y_offset * world.icon_size)
+		I.layer = ABOVE_LIGHTING_LAYER
+		temp_appearance += I
+
 /atom/movable/light/proc/cast_main_shadow(var/turf/target_turf, var/x_offset, var/y_offset)
 	var/num = 1
 	if((abs(x_offset) > 0 && !y_offset) || (abs(y_offset) > 0 && !x_offset))
@@ -228,8 +257,6 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 	for(var/turf/T in affecting_turfs)
 		T.affecting_lights |= src
 
-/atom/movable/light/shadow/cast_main_shadow()
-	return
 
 /atom/movable/light/proc/cast_turf_shadow(var/turf/target_turf, var/x_offset, var/y_offset)
 	var/targ_dir = get_dir(target_turf, src)
@@ -253,16 +280,6 @@ If you feel like fixing it, try to find a way to calculate the bounds that is le
 	temp_appearance = null
 	var/list/RGB = rgb2num(light_color)
 	color = rgb(round(RGB[1]/2), round(RGB[2]/2), round(RGB[3]/2))
-
-// On how many turfs do we cast a shadow ?
-/atom/movable/light/proc/cast_shadows()
-	//no shadows
-	if(light_range < 2 || light_type == LIGHT_DIRECTIONAL)
-		return
-
-	for(var/turf/T in view(light_range, src))
-		if(CheckOcclusion(T))
-			CastShadow(T)
 
 /atom/movable/light/proc/CastShadow(var/turf/target_turf)
 	//get the x and y offsets for how far the target turf is from the light
