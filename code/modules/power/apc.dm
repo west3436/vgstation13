@@ -1344,9 +1344,10 @@ obj/machinery/power/apc/proc/autoset(var/val, var/on)
 		spawn(0)
 			var/area/this_area = get_area(src)
 			for(var/obj/machinery/light/L in this_area)
-				L.on = 1
-				L.broken()
-				sleep(1)
+				L.flicker(5)
+				spawn(5)
+					L.on = 1
+					L.broken()
 
 /obj/machinery/power/apc/Destroy()
 	var/area/this_area = get_area(src)

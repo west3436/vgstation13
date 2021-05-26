@@ -432,9 +432,11 @@
 	return 0
 
 /mob/proc/Life()
+	SHOULD_CALL_PARENT(TRUE)
 	set waitfor = FALSE
 	if(timestopped)
 		return 0 //under effects of time magick
+	check_dark_vision()
 	if(spell_masters && spell_masters.len)
 		for(var/obj/abstract/screen/movable/spell_master/spell_master in spell_masters)
 			spell_master.update_spells(0, src)
@@ -1627,6 +1629,7 @@ Use this proc preferably at the end of an equipment loadout
 
 //this proc allows to set up behaviours that occur the instant AFTER the mob finishes moving from a tile to the next
 /mob/proc/EndMoving()
+	check_dark_vision()
 	var/datum/listener
 	for(var/atomToCall in src.callOnEndMove)
 		listener = locate(atomToCall)
@@ -1635,8 +1638,18 @@ Use this proc preferably at the end of an equipment loadout
 		else
 			src.callOnEndMove -= atomToCall
 
+/mob/proc/check_dark_vision()
+	if (self_vision)
+		if (isturf(loc))
+			var/turf/T = loc
+			if (T.get_lumcount() > 0)
+				if (self_vision.alpha == self_vision.target_alpha)
+					self_vision.alpha = 0
+			else
+				if (self_vision.alpha != self_vision.target_alpha)
+					self_vision.alpha = self_vision.target_alpha
 
-/mob/forceMove(atom/destination,var/no_tp=0, var/harderforce = FALSE, glide_size_override = 0)
+/mob/forceMove(atom/NewLoc, Dir = 0, step_x = 0, step_y = 0, glide_size_override = 0)
 	StartMoving()
 	. = ..()
 	EndMoving()
