@@ -128,7 +128,6 @@ For the other part of the code, check silicon say.dm. Particularly robot talk.*/
 			if(ol.loc == src)
 				ol.icon_state = "holopad1"
 				break
-		
 	return 1
 
 /obj/machinery/hologram/holopad/proc/clear_holo()
