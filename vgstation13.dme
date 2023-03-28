@@ -680,6 +680,7 @@
 #include "code\game\machinery\alarm.dm"
 #include "code\game\machinery\ammolathe.dm"
 #include "code\game\machinery\antiquemattersynth.dm"
+#include "code\game\machinery\assemblers.dm"
 #include "code\game\machinery\ATM.dm"
 #include "code\game\machinery\atmo_control.dm"
 #include "code\game\machinery\autoborger.dm"
