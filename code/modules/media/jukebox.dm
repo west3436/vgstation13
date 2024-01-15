@@ -752,12 +752,20 @@ var/global/list/loopModeNames=list(
 			stop_playing()
 			playlist = playlists[1]
 	else
-		visible_message("<span class='warning'>[bicon(src)] \The [src] buzzes, unable to eject the vinyl.</span>")
+		new /obj/item/weapon/vinyl/custom(get_turf(src), playlist_name, playlists[playlist_name])
+		playlists.Remove(playlist_name)
+		if(playlist == playlist_name)
+			stop_playing()
+			playlist = playlists[1]
 
 /obj/machinery/media/jukebox/proc/insert(var/obj/O)
 	var/obj/item/weapon/vinyl/V = O
 	if(!istype(V))
 		return
+	if(istype(V, /obj/item/weapon/vinyl/custom))
+		var/obj/item/weapon/vinyl/custom/C = V
+		playlists[C.name] = C.name
+		qdel(C)
 	if(playlists.Find(V.unformatted))
 		visible_message("<span class='warning'>[bicon(src)] \The [src] buzzes, rejecting the vinyl.</span>")
 	else
@@ -1216,3 +1224,43 @@ var/global/list/loopModeNames=list(
 	unformatted = "holy"
 	formatted = "Holy"
 	mask = "#8000FF"//purple
+
+/obj/item/weapon/vinyl/custom
+	name = "custom record"
+	mask = "#FFFFFF"//white
+	var/list/playlist = list()
+
+/obj/item/weapon/vinyl/custom/attackby(obj/item/weapon/pen, mob/user)
+	name = input(user, "Enter the desired custom record title.")
+
+/obj/item/weapon/vinyl/custom/attack_self(mob/user)
+	//Clear playlist
+	playlist = list()
+	var/choice = input(usr, "Enter the song's URL, length (in seconds!), title, artist and album in that exact order, separated by a semicolon. Artist and album may be omitted. Example: http://music.com/song.mp3;192;Song Name;Artist;Album. If adding more than one song, each song has to be on its own line.", "Custom Jukebox") as null|message
+	if(!choice)
+		return
+
+	var/success = 0
+	var/error = 0
+
+	for(var/line in splittext(choice, "\n"))
+		var/list/L = params2list(line)
+		if(L.len >= 3)
+			var/list/params = list()
+			params["url"]   = L[1]
+			params["length"]= text2num(L[2])*10 //The song_info datum stores this value in deciseconds
+			params["title"] = L[3]
+			params["artist"]= ""
+			params["album"] = ""
+
+			if(L.len >= 4)
+				params["artist"]= L[4]
+			if(L.len >= 5)
+				params["album"] = L[5]
+
+			playlist.Add(new /datum/song_info(params))
+			success++
+		else
+			error++
+
+	to_chat(usr, "Added [success] songs successfully. Encountered [error] errors.")
