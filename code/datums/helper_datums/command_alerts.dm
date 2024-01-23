@@ -814,3 +814,10 @@ The access requirements on the Asteroid Shuttles' consoles have now been revoked
 /datum/command_alert/archive_thanks/announce()
 	message = "The Research Archive Project extends its profound thanks to [english_list(important_archivists)] for completing the research archival work this shift. There will be an extra stipend in the next pay cycle."
 	..()
+
+/datum/command_alert/zzzt
+	alert_title = "zzzt"
+
+/datum/command_alert/zzzt/announce()
+	message = "An APC on the station has shorted, potentially resulting in a fire. Dispatch your engineering team to repair any damaged equipment."
+	..()

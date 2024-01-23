@@ -858,6 +858,7 @@ var/global/floorIsLava = 0
 			<A href='?src=\ref[src];secretsfun=power'>Make all areas powered</A><BR>
 			<A href='?src=\ref[src];secretsfun=unpower'>Make all areas unpowered</A><BR>
 			<A href='?src=\ref[src];secretsfun=quickpower'>Power all SMES</A><BR>
+			<A href='?src=\ref[src];secretsfun=apcshort'>Short an APC (will cause a fire)</A><BR>
 			<A href='?src=\ref[src];secretsfun=breaklink'>Break the station's link with Central Command</A><BR>
 			<A href='?src=\ref[src];secretsfun=makelink'>Fix the station's link with Central Command</A><BR>
 			<A href='?src=\ref[src];secretsfun=blackout'>Break all lights</A><BR>

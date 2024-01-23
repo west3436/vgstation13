@@ -1499,6 +1499,11 @@
 		update_icon()
 	return ..()
 
-
+/obj/machinery/power/apc/proc/short_circuit()
+	for(var/obj/O in view(2,src.loc))
+		if(O.autoignition_temperature)
+			O.ignite(ARBITRARILY_LARGE_NUMBER)
+	spark(src)
+	src.set_broken()
 
 #undef APC_UPDATE_ICON_COOLDOWN

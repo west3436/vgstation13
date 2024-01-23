@@ -1377,12 +1377,12 @@
 			jobs += "<td width='20%'><a href='?src=\ref[src];jobban3=Cluwne;jobban4=\ref[M]'><font color=red>Cluwne</font></a></td>"
 		else
 			jobs += "<td width='20%'><a href='?src=\ref[src];jobban3=Cluwne;jobban4=\ref[M]'>Cluwne</a></td>"
-		
+
 		if(jobban_isbanned(M, "artist")) //so people can't make paintings
 			jobs += "<td width='20%'><a href='?src=\ref[src];jobban3=artist;jobban4=\ref[M]'><font color=red>Artist</font></a></td>"
 		else
-			jobs += "<td width='20%'><a href='?src=\ref[src];jobban3=artist;jobban4=\ref[M]'>Artist</a></td>"	
-		
+			jobs += "<td width='20%'><a href='?src=\ref[src];jobban3=artist;jobban4=\ref[M]'>Artist</a></td>"
+
 		jobs += "</tr></table>"
 
 		body = "<body>[jobs]</body>"
@@ -3407,6 +3407,12 @@
 				log_admin("[key_name(usr)] made all SMESs powered", 1)
 				message_admins("<span class='notice'>[key_name_admin(usr)] made all SMESs powered</span>", 1)
 				power_restore_quick()
+			if("apcshort")
+				feedback_inc("admin_secrets_fun_used",1)
+				feedback_add_details("admin_secrets_fun_used","APCS")
+				log_admin("[key_name(usr)] has shorted a random APC", 1)
+				message_admins("<span class='notice'>[key_name_admin(usr)] shorted a random APC</span>", 1)
+				new /datum/event/zzzt
 			if("breaklink")
 				log_admin("[key_name(usr)] broke the link with central command", 1)
 				message_admins("<span class='notice'>[key_name_admin(usr)] broke the link with central command</span>", 1)
