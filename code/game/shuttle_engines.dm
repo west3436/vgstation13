@@ -41,7 +41,7 @@
 	icon_state = "propulsion"
 	opacity = 1
 	var/exhaust_type = /obj/item/projectile/fire_breath/shuttle_exhaust
-	var/destroyed = 0 
+	var/destroyed = 0
 
 /obj/structure/shuttle/engine/propulsion/ex_act(severity)
 	switch(severity)
@@ -291,3 +291,22 @@ var/list/large_engines = list()
 	icon = 'icons/3x3.dmi'
 	icon_state = "huge_engine"
 	largeness = 2
+
+//Ion thrusters use electricity for propulsion and can support a lower amount of shuttle tiles.
+/obj/structure/shuttle/engine/heater/DIY/ion
+	name = "ion generator"
+	desc = "Generates charged particles from electricty for use in ion thrusters."
+
+/obj/structure/shuttle/engine/propulsion/DIY/ion
+	name = "ion thruster"
+	desc = "Accelerates charged particles to provide thrust."
+
+
+//Plasma thrusters use plasma gas for propulsion and can support a higher amount of shuttle tiles.
+/obj/structure/shuttle/engine/heater/DIY/plasma
+	name = "plasma heater"
+	desc = "Heats plasma for use in plasma thrusters."
+
+/obj/structure/shuttle/engine/propulsion/DIY/plasma
+	name = "plasma thruster"
+	desc = "Uses plasma combustion to provide thrust."
