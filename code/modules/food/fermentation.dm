@@ -35,10 +35,15 @@ var/list/aging_vessels = list(
 /obj/structure/reagent_dispensers/remove_airlock()
 	return
 
+/obj/structure/reagent_dispensers/start_fermenting()
+	SSferment.add_fermenting(src)
+	return
+
 /obj/structure/reagent_dispensers/process_fermenting()
 	return
 
 /obj/structure/reagent_dispensers/stop_fermenting()
+	SSferment.remove_fermenting(src)
 	return
 
 /obj/structure/reagent_dispensers/check_SG()
