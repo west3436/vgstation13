@@ -22,7 +22,7 @@ var/datum/subsystem/ferment/SSferment
 		currentrun = processing_fermenting.Copy()
 
 	while (currentrun.len)
-		var/obj/item/weapon/reagent_containers/fermenting = currentrun[currentrun.len]
+		var/obj/structure/reagent_dispensers/fermenting = currentrun[currentrun.len]
 		currentrun.len--
 
 		if (!fermenting || fermenting.gcDestroyed)
@@ -35,10 +35,10 @@ var/datum/subsystem/ferment/SSferment
 		if (MC_TICK_CHECK)
 			return
 
-/datum/subsystem/ferment/proc/add_fermenting(var/obj/item/weapon/reagent_containers/fermenting)
+/datum/subsystem/ferment/proc/add_fermenting(var/obj/structure/reagent_dispensers/fermenting)
 	if(!istype(fermenting) || fermenting.gcDestroyed)
 		return
 	processing_fermenting |= fermenting
 
-/datum/subsystem/ferment/proc/remove_fermenting(var/obj/item/weapon/reagent_containers/fermenting)
+/datum/subsystem/ferment/proc/remove_fermenting(var/obj/structure/reagent_dispensers/fermenting)
 	processing_fermenting -= fermenting

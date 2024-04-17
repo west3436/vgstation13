@@ -532,6 +532,8 @@
 #define FLAXOIL			"flax_oil"
 #define WAX				"wax"
 
+#define YEAST			"yeast"
+
 // How many units of reagent are consumed per tick, by default.
 #define REAGENTS_METABOLISM 0.2
 

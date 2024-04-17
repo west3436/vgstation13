@@ -16,8 +16,6 @@
 	var/adj_drowsy = 0
 	var/adj_sleepy = 0
 
-	var/citrus
-
 /datum/reagent/drink/on_mob_life(var/mob/living/M)
 	if(..())
 		return 1
@@ -107,7 +105,6 @@
 	glass_desc = "Vitamins! Yay!"
 	density = 1.05
 	ferment = TRUE
-	citrus = TRUE
 
 /datum/reagent/drink/orangejuice/on_mob_life(var/mob/living/M)
 	if(..())
@@ -157,7 +154,6 @@
 	glass_desc = "A glass of sweet-sour lime juice."
 	density = 1.02
 	ferment = TRUE
-	citrus = TRUE
 
 /datum/reagent/drink/limejuice/on_mob_life(var/mob/living/M)
 	if(..())
@@ -258,7 +254,6 @@
 	glass_desc = "Sour..."
 	density = 1.03
 	ferment = TRUE
-	citrus = TRUE
 
 /datum/reagent/drink/banana
 	name = "Banana Juice"

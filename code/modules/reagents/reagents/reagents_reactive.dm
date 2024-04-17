@@ -99,3 +99,10 @@
 	M.reagents.add_reagent("potassium", 5)
 	M.reagents.add_reagent("sugar", 5)
 	M.reagents.add_reagent("phosphorus", 5)
+
+/datum/reagent/yeast
+	name = "Yeast"
+	id = YEAST
+	description = "A natural enzyme used to produce alcohol from sugars."
+	reagent_state = REAGENT_STATE_SOLID
+	color = "#bb976e" //rgb: 187, 151, 110
