@@ -32,10 +32,10 @@
 	if(rig)
 		to_chat(user, "<span class='notice'>There is some kind of device rigged to the tank.</span>")
 	if(src in fermenting_vessels)
-		if(reagent_list.len)
+		if(reagents.reagent_list.len)
 			var/fermentable = FALSE
 			var/non_fermentable = FALSE
-			for(var/datum/reagent/R in reagent_list)
+			for(var/datum/reagent/R in reagents.reagent_list)
 				if(istype(R,/datum/reagent/yeast))
 					continue
 				else if(R.ferment && !fermentable)

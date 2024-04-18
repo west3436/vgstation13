@@ -29,27 +29,27 @@ var/list/aging_vessels = list(
 
 ///Reagent Dispensers
 //Fermentation
-/obj/structure/reagent_dispensers/add_airlock()
+/obj/structure/reagent_dispensers/proc/add_airlock()
 	return
 
-/obj/structure/reagent_dispensers/remove_airlock()
+/obj/structure/reagent_dispensers/proc/remove_airlock()
 	return
 
-/obj/structure/reagent_dispensers/start_fermenting()
+/obj/structure/reagent_dispensers/proc/start_fermenting()
 	SSferment.add_fermenting(src)
 	return
 
-/obj/structure/reagent_dispensers/process_fermenting()
+/obj/structure/reagent_dispensers/proc/process_fermenting()
 	return
 
-/obj/structure/reagent_dispensers/stop_fermenting()
+/obj/structure/reagent_dispensers/proc/stop_fermenting()
 	SSferment.remove_fermenting(src)
 	return
 
-/obj/structure/reagent_dispensers/check_SG()
+/obj/structure/reagent_dispensers/proc/check_SG()
 	return
 
-/obj/structure/reagent_dispensers/examine_fermentation_progress(mob/user)
+/obj/structure/reagent_dispensers/proc/examine_fermentation_progress(mob/user)
 	switch(fermentation_progress)
 		if(0)
 			to_chat(user, "<span class='notice'>The contained liquids are not bubbling.</span>")
@@ -73,12 +73,11 @@ var/list/aging_vessels = list(
 	layer = TABLE_LAYER
 	flags = FPRINT | TWOHANDABLE | MUSTTWOHAND | OPENCONTAINER
 	health = 50
-	allows_dyeing = FALSE
 
-/obj/structure/reagent_dispensers/cauldron/barrel/take_damage(incoming_damage, damage_type, skip_break, mute, var/sound_effect = 1) //Custom take_damage() proc because of sound_effect behavior.
+/obj/item/weapon/reagent_dispensers/carboy/take_damage(incoming_damage, damage_type, skip_break, mute, var/sound_effect = 1) //Custom take_damage() proc because of sound_effect behavior.
 	health = max(0, health - incoming_damage)
 	if(sound_effect)
-		var/S = pick('sound/effects/Glassbr1','sound/effects/Glassbr2','sound/effects/Glassbr3')
+		var/S = pick('sound/effects/Glassbr1.ogg','sound/effects/Glassbr2.ogg','sound/effects/Glassbr3.ogg')
 		playsound(loc, S, 75, 1)
 
 /obj/item/weapon/reagent_dispensers/carboy/try_break()
@@ -95,7 +94,6 @@ var/list/aging_vessels = list(
 		var/obj/item/tool/weldingtool/WT = W
 		to_chat(user, "<span class='notice'>You begin deconstructing \the [src].</span>")
 		if(WT.do_weld(user, src, 50, 1))
-			dump_reagents()
 			to_chat(user, "<span class='notice'>You finish deconstructing \the [src].</span>")
 			new /obj/item/stack/sheet/glass/(loc, 20)
 			qdel(src)
@@ -148,7 +146,6 @@ var/list/aging_vessels = list(
 	if(iscrowbar(W))
 		to_chat(user, "<span class='notice'>You begin deconstructing \the [src].</span>")
 		if(do_after(user, src, 50))
-			dump_reagents()
 			to_chat(user, "<span class='notice'>You finish deconstructing \the [src].</span>")
 			new /obj/item/stack/sheet/wood/(loc, 20)
 			qdel(src)
