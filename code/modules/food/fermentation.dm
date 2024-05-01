@@ -7,7 +7,7 @@ var/list/aging_vessels = list(
 	/obj/structure/reagent_dispensers/cauldron/barrel,
 	/obj/structure/reagent_dispensers/cauldron/barrel/wood,
 	/obj/structure/reagent_dispensers/agingkeg,
-	)a
+	)
 
 ////Fermenting objects
 ///Items
