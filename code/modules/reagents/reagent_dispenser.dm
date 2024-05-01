@@ -15,8 +15,8 @@
 	var/modded = 0
 	var/obj/item/device/assembly_holder/rig = null
 
-	var/active_fermentation = FALSE
 	var/fermentation_progress = 0
+	var/fermentation_vessel_quality = 0
 
 /obj/structure/reagent_dispensers/AltClick(mob/user)
 	if(!user.incapacitated() && user.Adjacent(get_turf(src)) && possible_transfer_amounts)
@@ -46,7 +46,7 @@
 				if(non_fermentable)
 					to_chat(user, "<span class='warning'>There is a mix of fermentable and non-fermentable liquids inside. Fermentation will not be possible!</span>")
 				else
-					if(active_fermentation)
+					if(is_fermenting())
 						to_chat(user, "<span class='notice'>There are fermentable liquids inside.</span>")
 						examine_fermentation_progress(user)
 					else
@@ -55,8 +55,8 @@
 				to_chat(user, "<span class='notice'>The contained liquids are not fermentable.</span>")
 
 /obj/structure/reagent_dispensers/process()
-	if(src in fermenting_vessels)
-		process_fermenting()
+	if(is_fermenting())
+		process_fermenting() //code/modules/food/fermentation.dm
 	else
 		..()
 
@@ -607,6 +607,7 @@
 	var/burning = FALSE
 	is_cooktop = TRUE
 	allows_dyeing = FALSE
+	fermentation_vessel_quality = 0.75
 
 /obj/structure/reagent_dispensers/cauldron/barrel/wood
 	name = "wooden barrel"
@@ -614,6 +615,7 @@
 	desc = "Originally used to store liquids & powder. It is now used as a source of comfort. This one is made of wood."
 	health = 30
 	is_cooktop = FALSE
+	fermentation_vessel_quality = 0.90
 
 /////////////////////Cooking stuff
 
@@ -828,6 +830,9 @@
 			burning = TRUE
 			processing_objects.Add(src)
 			update_icon()
+			if(is_fermenting())
+				remove_fermenting(src)
+				visible_message("<span class = 'warning'>Fermentation has stopped due to combustion!</span>")
 			return 1
 	visible_message("<span class = 'warning'>\The [src] fails to ignite due to lack of fuel.</span>")
 	return 0

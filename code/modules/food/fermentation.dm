@@ -46,10 +46,15 @@ var/list/aging_vessels = list(
 	SSferment.remove_fermenting(src)
 	return
 
+/obj/structure/reagent_dispensers/proc/is_fermenting()
+	return(src in processing_fermenting)
+
 /obj/structure/reagent_dispensers/proc/check_SG()
 	return
 
 /obj/structure/reagent_dispensers/proc/examine_fermentation_progress(mob/user)
+	if(!is_fermenting())
+		return
 	switch(fermentation_progress)
 		if(0)
 			to_chat(user, "<span class='notice'>The contained liquids are not bubbling.</span>")
@@ -73,6 +78,7 @@ var/list/aging_vessels = list(
 	layer = TABLE_LAYER
 	flags = FPRINT | TWOHANDABLE | MUSTTWOHAND | OPENCONTAINER
 	health = 50
+	fermentation_vessel_quality = 1
 
 /obj/item/weapon/reagent_dispensers/carboy/take_damage(incoming_damage, damage_type, skip_break, mute, var/sound_effect = 1) //Custom take_damage() proc because of sound_effect behavior.
 	health = max(0, health - incoming_damage)
@@ -137,6 +143,7 @@ var/list/aging_vessels = list(
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "bloodkeg"
 	amount_per_transfer_from_this = 10
+	fermentation_vessel_quality = 1
 
 /obj/structure/reagent_dispensers/agingkeg/wrenchable()
 	return 1

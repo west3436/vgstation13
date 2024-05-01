@@ -38,7 +38,7 @@ var/datum/subsystem/ferment/SSferment
 /datum/subsystem/ferment/proc/add_fermenting(var/obj/structure/reagent_dispensers/fermenting)
 	if(!istype(fermenting) || fermenting.gcDestroyed)
 		return
-	processing_fermenting |= fermenting
+	processing_fermenting += fermenting
 
 /datum/subsystem/ferment/proc/remove_fermenting(var/obj/structure/reagent_dispensers/fermenting)
 	processing_fermenting -= fermenting

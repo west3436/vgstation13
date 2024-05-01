@@ -4174,6 +4174,118 @@
 	for(var/turf/T in view(get_turf(holder.my_atom)))
 		T.mute_time = world.time + B.mute_duration
 
+/datum/chemical_reaction/rwine_must
+	name = "Red wine must"
+	id = RWINE_MUST
+	result = RWINE_MUST
+	required_catalysts = list(GRAPEJUICE = 5, WATER = 5)
+	result_amount = 10
+
+/datum/chemical_reaction/rwine_must/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/wwine_must
+	name = "White wine must"
+	id = WWINE_MUST
+	result = WWINE_MUST
+	required_catalysts = list(GGRAPEJUICE = 5, WATER = 5)
+	result_amount = 10
+
+/datum/chemical_reaction/wwine_must/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/cider_must
+	name = "Cider must"
+	id = CIDER_MUST
+	result = CIDER_MUST
+	required_catalysts = list(APPLEJUICE = 5, WATER = 5)
+	result_amount = 10
+
+/datum/chemical_reaction/cider_must/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/berry_must
+	name = "Berry wine must"
+	id = BERRY_MUST
+	result = BERRY_MUST
+	required_catalysts = list(BERRYJUICE = 5, WATER = 5)
+	result_amount = 10
+
+/datum/chemical_reaction/berry_must/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/pberry_must
+	name = "Poison berry wine must"
+	id = PBERRY_MUST
+	result = PBERRY_MUST
+	required_catalysts = list(POISONBERRYJUICE = 5, WATER = 5)
+	result_amount = 10
+
+/datum/chemical_reaction/pberry_must/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/citrus_must
+	name = "Citrus wine must"
+	id = CITRUS_MUST
+	result = CITRUS_MUST
+	required_catalysts = list(CITRUSES = 5, WATER = 5)
+	result_amount = 10
+
+/datum/chemical_reaction/citrus_must/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/banana_must
+	name = "Banana wine must"
+	id = BANANA_MUST
+	result = BANANA_MUST
+	required_catalysts = list(BANANA = 5, WATER = 5)
+	result_amount = 10
+
+/datum/chemical_reaction/banana_must/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/fermentation_activator //dummy reagent to kick off fermentation; deletes itself on creation
+	name = "Fermentation activator"
+	id = FERMENTAATION_ACTIVATOR
+	result = FERMENTAATION_ACTIVATOR
+	required_reagents = list(MUSTS = 1)
+	required_catalysts = list(YEAST = 1)
+
+/datum/chemical_reaction/fermentation_activator/required_condition_check(datum/reagents/holder)
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		return TRUE
+	else
+		return FALSE
+
+/datum/chemical_reaction/fermentation_activator/on_reaction(var/datum/reagents/holder, var/created_volume)
+	..()
+	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+		var/obj/item/weapon/reagent_dispensers/R = holder.my_atom
+		R.start_fermenting()
+	var/datum/reagent/fermentation_activator/F = locate(/datum/reagent/fermentation_activator) in holder.reagent_list
+	holder.reagents.del_reagent(F)
+
 /datum/chemical_reaction/random
 	name = "Random chemical"
 	id = "random"
