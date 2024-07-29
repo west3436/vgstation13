@@ -186,12 +186,12 @@
 					return
 				banduration = null
 				banjob = null
-			if(BANTYPE_OOC_PERMA,  BANTYPE_PAX_PERMA)
+			if(BANTYPE_OOC_PERMA,  BANTYPE_PAX_PERMA, BANTYPE_CUSTOM_JUKE)
 				if(!banckey || !banreason)
 					to_chat(usr, "Not enough parameters (Requires ckey and reason)")
 					return
 				banduration = null
-			if(BANTYPE_OOC_TEMP, BANTYPE_PAX_TEMP)
+			if(BANTYPE_OOC_TEMP, BANTYPE_PAX_TEMP, BANTYPE_CUSTOM_JUKE)
 				if(!banckey || !banreason || !banduration)
 					to_chat(usr, "Not enough parameters (Requires ckey, reason, and duration)")
 					return
@@ -1045,6 +1045,52 @@
 					to_chat(M, "<span class='warning'><BIG><B>You have been appearance banned by [usr.client.ckey].</B></BIG></span>")
 					to_chat(M, "<span class='danger'>The reason is: [reason]</span>")
 					to_chat(M, "<span class='warning'>Appearance ban can be lifted only upon request.</span>")
+					if(config.banappeals)
+						to_chat(M, "<span class='warning'>To try to resolve this matter head to [config.banappeals]</span>")
+					else
+						to_chat(M, "<span class='warning'>No ban appeals URL has been set.</span>")
+				if("No")
+					return
+
+	else if(href_list["jukeban"])
+		if(!check_rights(R_BAN))
+			return
+		var/mob/M = locate(href_list["jukeban"])
+		if(!ismob(M))
+			to_chat(usr, "This can only be used on instances of type /mob")
+			return
+		if(!M.ckey)	//sanity
+			to_chat(usr, "This mob has no ckey")
+			return
+
+		var/banreason = juke_isbanned(M)
+		if(banreason)
+			switch(alert("Reason: '[banreason]' Remove custom jukebox ban?","Please Confirm","Yes","No"))
+				if("Yes")
+					ban_unban_log_save("[key_name(usr)] removed [key_name(M)]'s custom jukebox ban")
+					log_admin("[key_name(usr)] removed [key_name(M)]'s custom jukebox ban")
+					feedback_inc("ban_juke_unban", 1)
+					DB_ban_unban(M.ckey, BANTYPE_CUSTOM_JUKE)
+					juke_unban(M)
+					message_admins("<span class='notice'>[key_name_admin(usr)] removed [key_name_admin(M)]'s custom jukebox ban</span>", 1)
+					to_chat(M, "<span class='warning'><BIG><B>[usr.client.ckey] has removed your custom jukebox ban.</B></BIG></span>")
+
+		else
+			switch(alert("Custom jukebox ban [M.ckey]?",,"Yes","No", "Cancel"))
+				if("Yes")
+					var/reason = input(usr,"Reason?","reason","Bad taste") as text|null
+					if(!reason)
+						return
+					ban_unban_log_save("[key_name(usr)] custom jukebox banned [key_name(M)]. reason: [reason]")
+					log_admin("[key_name(usr)] custom jukebox banned [key_name(M)]. \nReason: [reason]")
+					feedback_inc("ban_juke",1)
+					DB_ban_record(BANTYPE_CUSTOM_JUKE, M, -1, reason)
+					juke_fullban(M, "[reason]; By [usr.ckey] on [time2text(world.realtime)]")
+					notes_add(M.ckey, "Custom jukebox banned - [reason]")
+					message_admins("<span class='notice'>[key_name_admin(usr)] banned [key_name_admin(M)] from using the custom jukebox.</span>", 1)
+					to_chat(M, "<span class='warning'><BIG><B>You have been banned from using the custom jukebox by [usr.client.ckey].</B></BIG></span>")
+					to_chat(M, "<span class='danger'>The reason is: [reason]</span>")
+					to_chat(M, "<span class='warning'>Custom jukebox ban can be lifted only upon request.</span>")
 					if(config.banappeals)
 						to_chat(M, "<span class='warning'>To try to resolve this matter head to [config.banappeals]</span>")
 					else

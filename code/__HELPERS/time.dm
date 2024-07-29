@@ -143,3 +143,32 @@ var/rollovercheck_last_timeofday = 0
 		midnight_rollovers++
 	rollovercheck_last_timeofday = world.timeofday
 	return midnight_rollovers
+
+//Takes a value of time in deciseconds.
+//Returns a text value of that number in hours, minutes, or seconds.
+/proc/DisplayTimeText(time_value, round_seconds_to = 0.1)
+	var/second = floor(time_value * 0.1, round_seconds_to)
+	if(!second)
+		return "right now"
+	if(second < 60)
+		return "[second] second[(second != 1)? "s":""]"
+	var/minute = floor(second / 60, 1)
+	second = floor(second %% 60, round_seconds_to)
+	var/secondT
+	if(second)
+		secondT = " and [second] second[(second != 1)? "s":""]"
+	if(minute < 60)
+		return "[minute] minute[(minute != 1)? "s":""][secondT]"
+	var/hour = floor(minute / 60, 1)
+	minute = minute %% 60
+	var/minuteT
+	if(minute)
+		minuteT = " and [minute] minute[(minute != 1)? "s":""]"
+	if(hour < 24)
+		return "[hour] hour[(hour != 1)? "s":""][minuteT][secondT]"
+	var/day = floor(hour / 24, 1)
+	hour = hour %% 24
+	var/hourT
+	if(hour)
+		hourT = " and [hour] hour[(hour != 1)? "s":""]"
+	return "[day] day[(day != 1)? "s":""][hourT][minuteT][secondT]"

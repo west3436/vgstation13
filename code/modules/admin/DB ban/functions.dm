@@ -43,6 +43,9 @@
 		if(BANTYPE_PAX_TEMP)
 			bantype_str = "PAX_TEMPBAN"
 			bantype_pass = 1
+		if(BANTYPE_CUSTOM_JUKE)
+			bantype_str = "JUKE_PERMABAN"
+			bantype_pass = 1
 	if( !bantype_pass )
 		return
 	if( !istext(reason) )

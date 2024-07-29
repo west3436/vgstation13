@@ -683,6 +683,7 @@ var/list/liftable_structures = list(\
 #define BANTYPE_OOC_TEMP	8
 #define BANTYPE_PAX_PERMA	9
 #define BANTYPE_PAX_TEMP	10
+#define BANTYPE_CUSTOM_JUKE	11
 
 #define SEE_INVISIBLE_MINIMUM 5
 

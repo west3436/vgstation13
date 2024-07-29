@@ -96,6 +96,7 @@ var/auxtools_path
 	paxban_loadbanfile()
 	jobban_updatelegacybans()
 	appearance_loadbanfile()
+	jukebox_loadbanfile()
 	LoadBans()
 
 	spawn() copy_logs() // Just copy the logs.
