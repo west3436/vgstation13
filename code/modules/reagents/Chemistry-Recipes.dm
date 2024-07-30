@@ -4195,7 +4195,8 @@
 	name = "Red wine must"
 	id = RWINE_MUST
 	result = RWINE_MUST
-	required_catalysts = list(GRAPEJUICE = 5, WATER = 5)
+	required_reagents = list(GRAPEJUICE = 10, WATER = 10, YEAST = 1)
+	required_catalysts = list(YEAST = 1)
 	result_amount = 10
 
 /datum/chemical_reaction/rwine_must/required_condition_check(datum/reagents/holder)
@@ -4208,7 +4209,7 @@
 	name = "White wine must"
 	id = WWINE_MUST
 	result = WWINE_MUST
-	required_catalysts = list(GGRAPEJUICE = 5, WATER = 5)
+	required_reagents = list(GGRAPEJUICE = 10, WATER = 10, YEAST = 1)
 	result_amount = 10
 
 /datum/chemical_reaction/wwine_must/required_condition_check(datum/reagents/holder)
@@ -4221,7 +4222,7 @@
 	name = "Cider must"
 	id = CIDER_MUST
 	result = CIDER_MUST
-	required_catalysts = list(APPLEJUICE = 5, WATER = 5)
+	required_reagents = list(APPLEJUICE = 10, WATER = 10, YEAST = 1)
 	result_amount = 10
 
 /datum/chemical_reaction/cider_must/required_condition_check(datum/reagents/holder)
@@ -4234,7 +4235,7 @@
 	name = "Berry wine must"
 	id = BERRY_MUST
 	result = BERRY_MUST
-	required_catalysts = list(BERRYJUICE = 5, WATER = 5)
+	required_reagents = list(BERRYJUICE = 10, WATER = 10, YEAST = 1)
 	result_amount = 10
 
 /datum/chemical_reaction/berry_must/required_condition_check(datum/reagents/holder)
@@ -4247,7 +4248,7 @@
 	name = "Poison berry wine must"
 	id = PBERRY_MUST
 	result = PBERRY_MUST
-	required_catalysts = list(POISONBERRYJUICE = 5, WATER = 5)
+	required_reagents = list(POISONBERRYJUICE = 10, WATER = 10, YEAST = 1)
 	result_amount = 10
 
 /datum/chemical_reaction/pberry_must/required_condition_check(datum/reagents/holder)
@@ -4260,7 +4261,7 @@
 	name = "Banana wine must"
 	id = BANANA_MUST
 	result = BANANA_MUST
-	required_catalysts = list(BANANA = 5, WATER = 5)
+	required_reagents = list(BANANA = 10, WATER = 10, YEAST = 1)
 	result_amount = 10
 
 /datum/chemical_reaction/banana_must/required_condition_check(datum/reagents/holder)
@@ -4268,27 +4269,6 @@
 		return TRUE
 	else
 		return FALSE
-
-/datum/chemical_reaction/fermentation_activator //dummy reagent to kick off fermentation; deletes itself on creation
-	name = "Fermentation activator"
-	id = FERMENTATION_ACTIVATOR
-	result = FERMENTATION_ACTIVATOR
-	required_reagents = list(MUSTS = 1)
-	required_catalysts = list(YEAST = 1)
-
-/datum/chemical_reaction/fermentation_activator/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
-		return TRUE
-	else
-		return FALSE
-
-/datum/chemical_reaction/fermentation_activator/on_reaction(var/datum/reagents/holder, var/created_volume)
-	..()
-	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation/))
-		var/obj/structure/reagent_dispensers/fermentation/R = holder.my_atom
-		R.start_fermenting()
-	var/datum/reagent/fermentation_activator/F = locate(/datum/reagent/fermentation_activator) in holder.reagent_list
-	holder.del_reagent(F)
 
 /datum/chemical_reaction/random
 	name = "Random chemical"

@@ -1,6 +1,3 @@
-//Quality = base score (75) + clarity score (25) + aging score (bonus)
-//Quality = 75 * cleanliness * temperature * (1 - abs(fermenting duration - target duration)) * fermenting vessel quality + 25 * fermenting vessel quality * (1 - abs(secondary duration - target duration)) + aging duration * aging vessel quality
-
 ////Fermenting objects
 ///Items
 //Airlocks
@@ -24,10 +21,17 @@
 ///Reagent Dispensers
 //Fermentation
 /obj/structure/reagent_dispensers/fermentation
+	var/target_duration
+	var/target_temperature
 	var/fermentation_vessel_quality = 1
 	var/aging_vessel_quality = 1
+	var/cleanliness
 	var/fermentation_progress = 0
 	var/obj/item/airlock/attached_airlock
+
+/obj/structure/reagent_dispensers/fermentation/New()
+	target_duration = rand(10,30) MINUTES
+	target_temperature = rand(FERMENT_TEMP_LOWER,FERMENT_TEMP_UPPER)
 
 /obj/structure/reagent_dispensers/fermentation/examine(mob/user)
 	if(reagents.reagent_list.len)
@@ -48,7 +52,7 @@
 					to_chat(user, "<span class='notice'>There are fermentable liquids inside.</span>")
 					examine_fermentation_progress(user)
 				else
-					to_chat(user, "<span class='warning'>There are fermentable liquids inside. Add yeast to begin fermentation!</span>")
+					to_chat(user, "<span class='warning'>There are fermentable liquids inside. Add an airlock to begin fermentation!</span>")
 		else
 			to_chat(user, "<span class='notice'>The contained liquids are not fermentable.</span>")
 
@@ -61,12 +65,12 @@
 		icon_state = initial(icon_state)
 
 /obj/structure/reagent_dispensers/fermentation/process()
-	if(is_fermenting())
+	if(check_yeast_health())
 		process_fermenting()
 	else
-		..()
+		stop_fermenting()
 
-/obj/structure/reagent_dispensers/fermentation/proc/add_airlock(var/obj/item/airlock/A,var/mob/user)
+/obj/structure/reagent_dispensers/fermentation/proc/add_airlock(obj/item/airlock/A, mob/user)
 	spawn(0)
 		if(!user.drop_item(A))
 			to_chat(user, "<span class='warning'>You can't let go of \the [A].</span>")
@@ -78,6 +82,7 @@
 	A.forceMove(src)
 	update_icon()
 	start_fermenting()
+	to_chat(user, "<span class='notice'>You place \the [A] onto \the [src].</span>")
 
 /obj/structure/reagent_dispensers/fermentation/proc/remove_airlock()
 	return
@@ -86,15 +91,60 @@
 	SSferment.add_fermenting(src)
 	return
 
-/obj/structure/reagent_dispensers/fermentation/proc/process_fermenting()
-	return
-
 /obj/structure/reagent_dispensers/fermentation/proc/stop_fermenting()
 	SSferment.remove_fermenting(src)
 	return
 
+/obj/structure/reagent_dispensers/fermentation/proc/process_fermenting()
+	var/health = check_yeast_health()
+	var/temp_bonus = 1
+	if(!health)
+		stop_fermenting()
+		return
+	var/turf/simulated/T = get_turf(src)
+	var/datum/gas_mixture/air = T.return_air()
+	if(!T || !istype(T)) //no fermenting in the vacuum of space
+		stop_fermenting()
+		return
+	var/temperature = air.return_temperature()
+	if(abs(temperature - target_temperature) <= 2)
+		temp_bonus = 2.0 //quicker fermenting if you're near the ideal temperature
+	var/datum/reagent/must/M = get_must()
+	M =- SG_CONSUMPTION_RATE * temp_bonus
+	fermentation_progress++
+
 /obj/structure/reagent_dispensers/fermentation/proc/is_fermenting()
 	return(src in processing_fermenting)
+
+/obj/structure/reagent_dispensers/fermentation/proc/get_must()
+	var/datum/reagent/must/M
+	for(var/datum/reagent/R in reagents.reagent_list)
+		if(istype(R, /datum/reagent/must))
+			M = R
+	return M
+
+/obj/structure/reagent_dispensers/fermentation/proc/check_yeast_health()
+	var/health = 0
+	var/datum/reagent/must/M = get_must()
+	if(!M || !istype(M) || M?.health <= 0) //no yeast if there's no must or if it's already dead
+		return health
+	var/turf/simulated/T = get_turf(src)
+	if(!T || !istype(T)) //no fermenting in the vacuum of space
+		return health
+
+	health = M.health
+
+	//check temperature
+	var/datum/gas_mixture/air = T.return_air()
+	var/temperature = air.return_temperature()
+	health -= round((max(temperature - FERMENT_TEMP_UPPER,0) - max(FERMENT_TEMP_LOWER - temperature, 0)) ** 2) //yeast degrades while outside the safe range
+
+	//check sugar/alcohol levels
+	health -= round((max(M.density - OG_LIMIT,0) - max(FG_LIMIT - M.density, 0)) ** 3) //yeast degrades rapidly in the presence of too much sugar or alcohol
+
+	health = clamp(health,0,100)
+	M.health = health
+	return health
 
 /obj/structure/reagent_dispensers/fermentation/proc/check_SG()
 	return
@@ -124,7 +174,7 @@
 	health = 50
 	aging_vessel_quality = 0.5
 
-/obj/structure/reagent_dispensers/fermentation/carboy/take_damage(incoming_damage, damage_type, skip_break, mute, var/sound_effect = 1) //Custom take_damage() proc because of sound_effect behavior.
+/obj/structure/reagent_dispensers/fermentation/carboy/take_damage(incoming_damage, damage_type, skip_break, mute, sound_effect = 1) //Custom take_damage() proc because of sound_effect behavior.
 	health = max(0, health - incoming_damage)
 	if(sound_effect)
 		var/S = pick('sound/effects/Glassbr1.ogg','sound/effects/Glassbr2.ogg','sound/effects/Glassbr3.ogg')
@@ -154,7 +204,7 @@
 /obj/structure/reagent_dispensers/fermentation/carboy/wrenchable()
 	return 1
 
-/obj/structure/reagent_dispensers/fermentation/carboy/bullet_act(var/obj/item/projectile/Proj)
+/obj/structure/reagent_dispensers/fermentation/carboy/bullet_act(obj/item/projectile/Proj)
 	. = ..()
 	if(Proj.damage)
 		take_damage(Proj.damage)
@@ -168,7 +218,7 @@
 		if(3)
 			take_damage(rand(15,45), sound_effect = 0)
 
-/obj/structure/reagent_dispensers/fermentation/carboy/attack_animal(var/mob/living/simple_animal/M)
+/obj/structure/reagent_dispensers/fermentation/carboy/attack_animal(mob/living/simple_animal/M)
 	if(take_damage(rand(M.melee_damage_lower, M.melee_damage_upper)))
 		M.visible_message("<span class='danger'>[M] shatters \the [src]!</span>")
 	else

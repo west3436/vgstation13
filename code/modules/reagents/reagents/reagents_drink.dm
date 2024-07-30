@@ -103,8 +103,6 @@
 	color = "#E78108" //rgb: 231, 129, 8
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
 	glass_desc = "Vitamins! Yay!"
-	density = 1.05
-	ferment = TRUE
 
 /datum/reagent/drink/orangejuice/on_mob_life(var/mob/living/M)
 	if(..())
@@ -152,8 +150,6 @@
 	alpha = 170
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
 	glass_desc = "A glass of sweet-sour lime juice."
-	density = 1.02
-	ferment = TRUE
 
 /datum/reagent/drink/limejuice/on_mob_life(var/mob/living/M)
 	if(..())
@@ -187,8 +183,6 @@
 	description = "Freshly squeezed juice from red grapes. Quite sweet."
 	color = "#512284" //rgb: 81, 34, 132
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
-	density = 1.07
-	ferment = TRUE
 
 /datum/reagent/drink/ggrapejuice
 	name = "Green Grape Juice"
@@ -196,8 +190,6 @@
 	description = "Freshly squeezed juice from green grapes. Smoothly sweet."
 	color = "#B79E42" //rgb: 183, 158, 66
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
-	density = 1.07
-	ferment = TRUE
 
 /datum/reagent/drink/berryjuice
 	name = "Berry Juice"
@@ -206,8 +198,6 @@
 	color = "#660099" //rgb: 102, 0, 153
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
 	glass_desc = "Berry juice. Or maybe it's jam. Who cares?"
-	density = 1.01
-	ferment = TRUE
 
 /datum/reagent/drink/poisonberryjuice
 	name = "Poison Berry Juice"
@@ -215,8 +205,6 @@
 	description = "A surprisingly tasty juice blended from various kinds of very deadly and toxic berries."
 	color = "#6600CC" //rgb: 102, 0, 204
 	glass_desc = "Drinking this may not be a good idea."
-	density = 1.01
-	ferment = TRUE
 
 /datum/reagent/drink/poisonberryjuice/on_mob_life(var/mob/living/M)
 	if(..())
@@ -231,8 +219,6 @@
 	color = "#EF3520" //rgb: 239, 53, 32
 	alpha = 240
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
-	density = 1.01
-	ferment = TRUE
 
 /datum/reagent/drink/applejuice
 	name = "Apple Juice"
@@ -241,8 +227,6 @@
 	color = "#FDAD01" //rgb: 253, 173, 1
 	alpha = 150
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
-	density = 1.33
-	ferment = TRUE
 
 /datum/reagent/drink/lemonjuice
 	name = "Lemon Juice"
@@ -252,8 +236,6 @@
 	alpha = 170
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
 	glass_desc = "Sour..."
-	density = 1.03
-	ferment = TRUE
 
 /datum/reagent/drink/banana
 	name = "Banana Juice"
@@ -262,8 +244,6 @@
 	color = "#FFE777" //rgb: 255, 230, 119
 	alpha = 255
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
-	density = 1.13
-	ferment = TRUE
 
 /datum/reagent/drink/nothing
 	name = "Nothing"

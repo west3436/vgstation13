@@ -525,7 +525,7 @@
 	alpha = 200
 	nutriment_factor = 15 * REAGENTS_METABOLISM
 	var/quality = 2
-	density = 1.40
+	density = 1.59
 	specheatcap = 1.244
 
 /datum/reagent/honey/on_mob_life(var/mob/living/M)
@@ -923,7 +923,7 @@
 	color = "#FFFFFF" //rgb: 255, 255, 255
 	nutriment_factor = 2.5 * REAGENTS_METABOLISM
 	sport = SPORTINESS_SUGAR
-	density = 1.58
+	density = 1.59
 	specheatcap = 1.244
 
 /datum/reagent/sugar/on_plant_life(var/obj/machinery/portable_atmospherics/hydroponics/T)
