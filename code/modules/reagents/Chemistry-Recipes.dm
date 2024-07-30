@@ -4199,7 +4199,7 @@
 	result_amount = 10
 
 /datum/chemical_reaction/rwine_must/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
 		return TRUE
 	else
 		return FALSE
@@ -4212,7 +4212,7 @@
 	result_amount = 10
 
 /datum/chemical_reaction/wwine_must/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
 		return TRUE
 	else
 		return FALSE
@@ -4225,7 +4225,7 @@
 	result_amount = 10
 
 /datum/chemical_reaction/cider_must/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
 		return TRUE
 	else
 		return FALSE
@@ -4238,7 +4238,7 @@
 	result_amount = 10
 
 /datum/chemical_reaction/berry_must/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
 		return TRUE
 	else
 		return FALSE
@@ -4251,20 +4251,7 @@
 	result_amount = 10
 
 /datum/chemical_reaction/pberry_must/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
-		return TRUE
-	else
-		return FALSE
-
-/datum/chemical_reaction/citrus_must
-	name = "Citrus wine must"
-	id = CITRUS_MUST
-	result = CITRUS_MUST
-	required_catalysts = list(CITRUSES = 5, WATER = 5)
-	result_amount = 10
-
-/datum/chemical_reaction/citrus_must/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
 		return TRUE
 	else
 		return FALSE
@@ -4277,31 +4264,31 @@
 	result_amount = 10
 
 /datum/chemical_reaction/banana_must/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
 		return TRUE
 	else
 		return FALSE
 
 /datum/chemical_reaction/fermentation_activator //dummy reagent to kick off fermentation; deletes itself on creation
 	name = "Fermentation activator"
-	id = FERMENTAATION_ACTIVATOR
-	result = FERMENTAATION_ACTIVATOR
+	id = FERMENTATION_ACTIVATOR
+	result = FERMENTATION_ACTIVATOR
 	required_reagents = list(MUSTS = 1)
 	required_catalysts = list(YEAST = 1)
 
 /datum/chemical_reaction/fermentation_activator/required_condition_check(datum/reagents/holder)
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation))
 		return TRUE
 	else
 		return FALSE
 
 /datum/chemical_reaction/fermentation_activator/on_reaction(var/datum/reagents/holder, var/created_volume)
 	..()
-	if(istype(holder.my_atom, /obj/item/weapon/reagent_dispensers))
-		var/obj/item/weapon/reagent_dispensers/R = holder.my_atom
+	if(istype(holder.my_atom, /obj/structure/reagent_dispensers/fermentation/))
+		var/obj/structure/reagent_dispensers/fermentation/R = holder.my_atom
 		R.start_fermenting()
 	var/datum/reagent/fermentation_activator/F = locate(/datum/reagent/fermentation_activator) in holder.reagent_list
-	holder.reagents.del_reagent(F)
+	holder.del_reagent(F)
 
 /datum/chemical_reaction/random
 	name = "Random chemical"

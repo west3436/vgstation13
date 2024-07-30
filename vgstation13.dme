@@ -2512,6 +2512,7 @@
 #include "code\modules\reagents\reagents\reagents_drink.dm"
 #include "code\modules\reagents\reagents\reagents_drug.dm"
 #include "code\modules\reagents\reagents\reagents_ethanol.dm"
+#include "code\modules\reagents\reagents\reagents_ferment.dm"
 #include "code\modules\reagents\reagents\reagents_food.dm"
 #include "code\modules\reagents\reagents\reagents_material.dm"
 #include "code\modules\reagents\reagents\reagents_medical.dm"

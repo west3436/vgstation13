@@ -15,9 +15,7 @@
 	custom_metabolism = FOOD_METABOLISM
 	density = 1.0 //changes according to composition
 	specheatcap = 2.46
-	var/adj_dizzy = 0
-	var/adj_drowsy = 0
-	var/adj_sleepy = 0
+	var/health = 100
 
 /datum/reagent/must/red
 	name = "Red Wine Must"
@@ -43,11 +41,6 @@
 	name = "Berry Must"
 	id = PBERRY_MUST
 	color = "#C760A2"
-
-/datum/reagent/must/citrus
-	name = "Citrus Must"
-	id = CITRUS_MUST
-	color = "#b9ad00"
 
 /datum/reagent/must/banana
 	name = "Banana Must"

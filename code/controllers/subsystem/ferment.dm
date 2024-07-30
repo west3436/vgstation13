@@ -1,4 +1,5 @@
 var/datum/subsystem/ferment/SSferment
+var/list/obj/structure/reagent_dispensers/fermentation/processing_fermenting = list()
 
 // Processes fermentation.
 /datum/subsystem/ferment
@@ -7,7 +8,6 @@ var/datum/subsystem/ferment/SSferment
 	priority      = SS_PRIORITY_FERMENT
 	wait          = SS_WAIT_FERMENT
 
-	var/list/processing_fermenting = list()
 	var/list/currentrun
 
 /datum/subsystem/ferment/New()
@@ -22,7 +22,7 @@ var/datum/subsystem/ferment/SSferment
 		currentrun = processing_fermenting.Copy()
 
 	while (currentrun.len)
-		var/obj/structure/reagent_dispensers/fermenting = currentrun[currentrun.len]
+		var/obj/structure/reagent_dispensers/fermentation/fermenting = currentrun[currentrun.len]
 		currentrun.len--
 
 		if (!fermenting || fermenting.gcDestroyed)
@@ -35,10 +35,10 @@ var/datum/subsystem/ferment/SSferment
 		if (MC_TICK_CHECK)
 			return
 
-/datum/subsystem/ferment/proc/add_fermenting(var/obj/structure/reagent_dispensers/fermenting)
+/datum/subsystem/ferment/proc/add_fermenting(var/obj/structure/reagent_dispensers/fermentation/fermenting)
 	if(!istype(fermenting) || fermenting.gcDestroyed)
 		return
 	processing_fermenting += fermenting
 
-/datum/subsystem/ferment/proc/remove_fermenting(var/obj/structure/reagent_dispensers/fermenting)
+/datum/subsystem/ferment/proc/remove_fermenting(var/obj/structure/reagent_dispensers/fermentation/fermenting)
 	processing_fermenting -= fermenting

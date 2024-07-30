@@ -15,9 +15,6 @@
 	var/modded = 0
 	var/obj/item/device/assembly_holder/rig = null
 
-	var/fermentation_progress = 0
-	var/fermentation_vessel_quality = 0
-
 /obj/structure/reagent_dispensers/AltClick(mob/user)
 	if(!user.incapacitated() && user.Adjacent(get_turf(src)) && possible_transfer_amounts)
 		set_APTFT()
@@ -31,34 +28,6 @@
 		to_chat(user, "<span class='warning'>The faucet is wrenched open, leaking the contents!</span>")
 	if(rig)
 		to_chat(user, "<span class='notice'>There is some kind of device rigged to the tank.</span>")
-	if(src in fermenting_vessels)
-		if(reagents.reagent_list.len)
-			var/fermentable = FALSE
-			var/non_fermentable = FALSE
-			for(var/datum/reagent/R in reagents.reagent_list)
-				if(istype(R,/datum/reagent/yeast))
-					continue
-				else if(R.ferment && !fermentable)
-					fermentable = TRUE
-				else if(!R.ferment)
-					non_fermentable = TRUE
-			if(fermentable)
-				if(non_fermentable)
-					to_chat(user, "<span class='warning'>There is a mix of fermentable and non-fermentable liquids inside. Fermentation will not be possible!</span>")
-				else
-					if(is_fermenting())
-						to_chat(user, "<span class='notice'>There are fermentable liquids inside.</span>")
-						examine_fermentation_progress(user)
-					else
-						to_chat(user, "<span class='warning'>There are fermentable liquids inside. Add yeast to begin fermentation!</span>")
-			else
-				to_chat(user, "<span class='notice'>The contained liquids are not fermentable.</span>")
-
-/obj/structure/reagent_dispensers/process()
-	if(is_fermenting())
-		process_fermenting() //code/modules/food/fermentation.dm
-	else
-		..()
 
 /*/obj/structure/reagent_dispensers/hear_talk(mob/living/M, text)
 	if(rig)
@@ -616,7 +585,6 @@
 	var/burning = FALSE
 	is_cooktop = TRUE
 	allows_dyeing = FALSE
-	fermentation_vessel_quality = 0.75
 
 /obj/structure/reagent_dispensers/cauldron/barrel/wood
 	name = "wooden barrel"
@@ -624,7 +592,6 @@
 	desc = "Originally used to store liquids & powder. It is now used as a source of comfort. This one is made of wood."
 	health = 30
 	is_cooktop = FALSE
-	fermentation_vessel_quality = 0.90
 
 /////////////////////Cooking stuff
 
@@ -839,9 +806,6 @@
 			burning = TRUE
 			processing_objects.Add(src)
 			update_icon()
-			if(is_fermenting())
-				remove_fermenting(src)
-				visible_message("<span class = 'warning'>Fermentation has stopped due to combustion!</span>")
 			return 1
 	visible_message("<span class = 'warning'>\The [src] fails to ignite due to lack of fuel.</span>")
 	return 0
