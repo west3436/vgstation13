@@ -44,7 +44,8 @@ var/global/list/ghdel_profiling = list()
 	var/timestopped
 
 	appearance_flags = TILE_BOUND|LONG_GLIDE|TILE_MOVER
-
+	/// sources of setting KEEP_TOGETHER on an atom
+	var/list/keep_together_sources
 	var/slowdown_modifier //modified on how fast a person can move over the tile we are on, see turf.dm for more info
 	/// Last name used to calculate a color for the chatmessage overlays
 	var/chat_color_name
@@ -58,7 +59,7 @@ var/global/list/ghdel_profiling = list()
 	var/arcanetampered = 0 //A looot of things can be
 
 	var/image/moody_light
-	var/list/moody_lights = list()
+	var/list/moody_lights
 
 /atom/proc/beam_connect(var/obj/effect/beam/B)
 	if(!last_beamchecks)
@@ -173,7 +174,7 @@ var/global/list/ghdel_profiling = list()
 			if(istype(src,/mob/living))
 				var/mob/living/M = src
 				M.take_organ_damage(10)
-	INVOKE_EVENT(src, /event/throw_impact, "hit_atom" = hit_atom, "speed" = speed, "user" = user)
+	INVOKE_EVENT(src, /event/throw_impact, "hit_atom" = hit_atom, "speed" = speed, "user" = user, "thrown_atom" = src)
 
 /atom/Destroy()
 	QDEL_NULL(reagents)
@@ -184,6 +185,9 @@ var/global/list/ghdel_profiling = list()
 	invisibility = 101
 	if(istype(beams, /list) && beams.len)
 		beams.len = 0
+	var/turf/simulated/T = get_turf(src)
+	if(istype(T))
+		T.zone?.burnable_atoms -= src
 	/*if(istype(beams) && beams.len)
 		for(var/obj/effect/beam/B in beams)
 			if(B && B.target == src)
@@ -296,13 +300,12 @@ var/global/list/ghdel_profiling = list()
 		return 1
 	return
 
-/atom/proc/recursive_in_contents_of(var/atom/container, var/atom/searching_for = src)
-	if(isturf(searching_for))
+/atom/proc/recursive_in_contents_of(atom/container)
+	if(!loc)
 		return FALSE
 	if(loc == container)
 		return TRUE
-	return recursive_in_contents_of(container, src.loc)
-
+	return loc.recursive_in_contents_of(container)
 
 /atom/proc/projectile_check()
 	return
@@ -464,7 +467,8 @@ its easier to just keep the beam vertical.
 	if(on_fire)
 		user.simple_message("<span class='danger'>OH SHIT! IT'S ON FIRE!</span>",\
 			"<span class='info'>It's on fire, man.</span>")
-
+	if(charred_overlay)
+		to_chat(user, span_info("It's covered in ash."))
 	if(min_harm_label && harm_labeled)
 		if(harm_labeled < min_harm_label)
 			to_chat(user, harm_label_examine[1])
@@ -547,6 +551,8 @@ its easier to just keep the beam vertical.
 /atom/proc/clean_act(var/cleanliness)//1 = contact with water (splashed with water, removes glue from objs), 2 = space cleaner or efficient cleaning (showers, sink, soap), 3 = bleach
 	if (cleanliness >= CLEANLINESS_SPACECLEANER)
 		clean_blood()
+		if(charred_overlay)
+			cut_overlay(charred_overlay)
 	if (cleanliness >= CLEANLINESS_BLEACH)
 		color = ""
 	if (cleanliness >= CLEANLINESS_WATER)//I mean, not sure why we'd ever add a rank below water but, futur-proofing and all that jazz
@@ -889,6 +895,12 @@ its easier to just keep the beam vertical.
 
 /atom/proc/update_icon()
 
+/atom/proc/add_overlay(overlay_appearances)
+	overlays += overlay_appearances
+
+/atom/proc/cut_overlay(overlay_appearances)
+	overlays -= overlay_appearances
+
 /atom/proc/splashable()
 	return TRUE
 
@@ -965,6 +977,11 @@ its easier to just keep the beam vertical.
 
 /atom/proc/thermal_energy_transfer()
 	return
+
+/atom/proc/update_keep_together()
+	appearance_flags &= ~KEEP_TOGETHER
+	if(length(keep_together_sources))
+		appearance_flags |= KEEP_TOGETHER
 
 /atom/proc/suitable_colony()
 	return FALSE
@@ -1069,7 +1086,7 @@ its easier to just keep the beam vertical.
 	return FALSE
 
 //Single overlay moody light
-/atom/proc/update_moody_light(var/moody_icon = 'icons/lighting/moody_lights.dmi', var/moody_state = "white", moody_alpha = 255, moody_color = "#ffffff")
+/atom/proc/update_moody_light(var/moody_icon = 'icons/lighting/moody_lights.dmi', var/moody_state = "white", moody_alpha = 255, moody_color = "#ffffff", offX = 0, offY = 0)
 	overlays -= moody_light
 	var/area/here = get_area(src)
 	if (here && here.dynamic_lighting)
@@ -1079,6 +1096,8 @@ its easier to just keep the beam vertical.
 		moody_light.blend_mode = BLEND_ADD
 		moody_light.alpha = moody_alpha
 		moody_light.color = moody_color
+		moody_light.pixel_x = offX
+		moody_light.pixel_y = offY
 		overlays += moody_light
 	luminosity = max(luminosity, 2)
 
@@ -1088,9 +1107,11 @@ its easier to just keep the beam vertical.
 	moody_light = null
 
 //Multi-overlay moody lights. don't combine both procs on a single atom, use one or the other.
-/atom/proc/update_moody_light_index(var/index, var/moody_icon = 'icons/lighting/moody_lights.dmi', var/moody_state = "white", moody_alpha = 255, moody_color = "#ffffff")
+/atom/proc/update_moody_light_index(var/index, var/moody_icon = 'icons/lighting/moody_lights.dmi', var/moody_state = "white", moody_alpha = 255, moody_color = "#ffffff", offX = 0, offY = 0)
 	if (!index)
 		return
+	if (isnull(moody_lights))
+		moody_lights = list()
 	if (index in moody_lights)
 		overlays -= moody_lights[index]
 	var/area/here = get_area(src)
@@ -1101,11 +1122,15 @@ its easier to just keep the beam vertical.
 		moody_light.blend_mode = BLEND_ADD
 		moody_light.alpha = moody_alpha
 		moody_light.color = moody_color
+		moody_light.pixel_x = offX
+		moody_light.pixel_y = offY
 		moody_lights[index] = moody_light
 		overlays += moody_lights[index]
 	luminosity = max(luminosity, 2)
 
 /atom/proc/kill_moody_light_index(var/index)
+	if (isnull(moody_lights))
+		moody_lights = list()
 	if (!index || !(index in moody_lights))
 		return
 	overlays -= moody_lights[index]
@@ -1114,6 +1139,8 @@ its easier to just keep the beam vertical.
 		luminosity = initial(luminosity)
 
 /atom/proc/kill_moody_light_all()
+	if (isnull(moody_lights))
+		moody_lights = list()
 	for (var/i in moody_lights)
 		overlays -= moody_lights[i]
 		moody_lights.Remove(i)

@@ -95,8 +95,7 @@
 			if(rig)
 				to_chat(user, "<span class='warning'>Somebody already attached something to \the [src].</span>")
 				return
-			if(!user.drop_item(W, src))
-				to_chat(user,"<span class='warning'>Oops! You can't let go of \the [W]!</span>")
+			if(!user.drop_item(W, src, failmsg = TRUE))
 				return
 
 			user.visible_message("<span class='notice'>[user] rigs [W] to \the [src].", "<span class='notice'>You rig [W] to \the [src].</span>")
@@ -307,6 +306,16 @@
 	. = ..()
 	reagents.add_reagent(FUEL, 1000)
 
+/obj/structure/reagent_dispensers/fueltank/bulk
+	name = "Bulk Welding Fuel Tank"
+	desc = "Massive welding fuel tank used to refill other welding fuel tanks."
+
+/obj/structure/reagent_dispensers/fueltank/bulk/New()
+	..()
+	create_reagents(1000000)
+	reagents.add_reagent(FUEL, 1000000)
+	transform *= 2 //haha big tank
+
 /obj/structure/reagent_dispensers/peppertank
 	name = "Pepper Spray Refiller"
 	desc = "Refill pepper spray canisters."
@@ -347,7 +356,7 @@
 
 /obj/structure/reagent_dispensers/water_cooler/attack_hand(mob/user as mob)
 	if(paper_cups > 0)
-		user.put_in_hands(new/obj/item/weapon/reagent_containers/food/drinks/sillycup())
+		user.put_in_hands(new/obj/item/weapon/reagent_containers/food/drinks/sillycup(loc))
 		to_chat(user, "You pick up an empty paper cup from \the [src]")
 		paper_cups--
 		desc = "[initial(desc)] There's [paper_cups] paper cups stored inside."
@@ -872,7 +881,7 @@
 				GAS_OXYGEN, -o2_consumption,
 				GAS_CARBON, -co2_consumption)
 			if(prob(unsafety) && T)
-				T.hotspot_expose(max_temperature, 5)
+				try_hotspot_expose(max_temperature, SMALL_FLAME)
 			break
 
 	if(!max_temperature)

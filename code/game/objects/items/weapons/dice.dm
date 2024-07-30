@@ -4,13 +4,14 @@
 	icon = 'icons/obj/dice.dmi'
 	icon_state = "d6"
 	w_class = W_CLASS_TINY
+	w_type = RECYK_PLASTIC
+	flammable = TRUE
 	var/sides = 6
 	var/minsides = 1
 	var/result = null
 	var/multiplier = 0 //For modifying the result (d00 etc)
 	var/activated = 0 //Eventually the dice runs out of power, if cursed
 	var/infinite = 0 //dice with 1 will not run out
-	autoignition_temperature = AUTOIGNITION_PLASTIC
 
 /obj/item/weapon/dice/New()
 	..()
@@ -145,7 +146,7 @@
 					to_chat(user, "<span class=sinister><B>A natural failure, your poor roll has cursed you. Better luck next time! </span></B>")
 					h.flash_eyes(visual = 1)
 					if(h.species.name != "Tajaran")
-						if(h.set_species("Tajaran"))
+						if(h.set_species("Tajaran", transfer_damage = TRUE))
 							h.regenerate_icons()
 						to_chat(user, "<span class=danger><B>You have been turned into a disgusting catbeast! </span></B>")
 					else
@@ -218,7 +219,7 @@
 								switch(pick(1,2,3))
 									if(1)
 										if(h.species.name != "Unathi")
-											if(h.set_species("Unathi"))
+											if(h.set_species("Unathi", transfer_damage = TRUE))
 												h.regenerate_icons()
 											to_chat(user, "<span class=danger><B>You have been turned into a disgusting lizard! </span></B>")
 										else
@@ -226,7 +227,7 @@
 												E.droplimb(1)
 									if(2)
 										if(h.species.name != "Skrell")
-											if(h.set_species("Skrell"))
+											if(h.set_species("Skrell", transfer_damage = TRUE))
 												h.regenerate_icons()
 											to_chat(user, "<span class=danger><B>You have been turned into a disgusting squidman! </span></B>")
 										else
@@ -234,7 +235,7 @@
 												E.droplimb(1)
 									if(3)
 										if(h.species.name != "Vox")
-											if(h.set_species("Vox"))
+											if(h.set_species("Vox", transfer_damage = TRUE))
 												h.regenerate_icons()
 											to_chat(user, "<span class=danger><B>You have been turned into a dumb, diseased bird! </span></B>")
 										else

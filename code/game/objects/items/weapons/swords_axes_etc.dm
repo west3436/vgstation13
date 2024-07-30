@@ -71,11 +71,7 @@
 		M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been attacked with [src.name] by [user.name] ([user.ckey])</font>")
 		user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] to attack [M.name] ([M.ckey])</font>")
 		log_attack("<font color='red'>[user.name] ([user.ckey]) attacked [M.name] ([M.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])</font>")
-		if(!iscarbon(user))
-			M.LAssailant = null
-		else
-			M.LAssailant = user
-			M.assaulted_by(user)
+		M.assaulted_by(user)
 		src.add_fingerprint(user)
 		for(var/mob/O in viewers(M))
 			if (O.client)
@@ -175,11 +171,7 @@
 			target.visible_message("<span class='danger'>[target] has been stunned with \the [src] by [user]!</span>",\
 				drugged_message="<span class='notice'>[user] smacks [target] with the fishing rod!</span>")
 
-			if(!iscarbon(user))
-				target.LAssailant = null
-			else
-				target.LAssailant = user
-				target.assaulted_by(user)
+			target.assaulted_by(user)
 		return
 	else
 		return ..()
@@ -236,12 +228,14 @@
 	slot_flags = null
 	force = 18
 	throwforce = 0
-	w_class = 5
+	w_class = W_CLASS_HUGE
+	w_type = RECYK_BIOLOGICAL
+	flammable = TRUE
 	sharpness = 1.5
 	sharpness_flags = SHARP_TIP | SHARP_BLADE
 	attack_verb = list("attacks", "slashes", "stabs", "slices", "tears", "rips", "dices", "cuts")
 	mech_flags = MECH_SCAN_ILLEGAL
-	autoignition_temperature = AUTOIGNITION_ORGANIC
+
 	cant_drop = 1
 	var/mob/living/simple_animal/borer/parent_borer = null
 
