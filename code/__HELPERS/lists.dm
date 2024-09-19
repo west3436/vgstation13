@@ -18,6 +18,7 @@
 #define LAZYREMOVE(L, I) if(L) { L -= I; if(!length(L)) { L = null; } }
 ///Add an item to the list, if the list is null it will initialize it
 #define LAZYADD(L, I) if(!L) { L = list(); } L += I;
+#define LAZYACCESS(L, I) (L ? (isnum(I) ? (I > 0 && I <= length(L) ? L[I] : null) : L[I]) : null)
 
 //Returns a list in plain english as a string
 /proc/english_list(var/list/input, nothing_text = "nothing", and_text = " and ", comma_text = ", ", final_comma_text = "" )
@@ -113,6 +114,34 @@
 	for(var/type in L)
 		for(var/T in typesof(type)) //Gather all possible typepaths into an associative list
 			L[T] = MAX_VALUE //Set them equal to the max value which is unlikely to collide with any other pregenerated value
+
+//Like typesof() or subtypesof(), but returns a typecache instead of a list
+/proc/typecacheof(path, ignore_root_path, only_root_path = FALSE)
+	if(ispath(path))
+		var/list/types = list()
+		if(only_root_path)
+			types = list(path)
+		else
+			types = ignore_root_path ? subtypesof(path) : typesof(path)
+		var/list/L = list()
+		for(var/T in types)
+			L[T] = TRUE
+		return L
+	else if(islist(path))
+		var/list/pathlist = path
+		var/list/L = list()
+		if(ignore_root_path)
+			for(var/P in pathlist)
+				for(var/T in subtypesof(P))
+					L[T] = TRUE
+		else
+			for(var/P in pathlist)
+				if(only_root_path)
+					L[P] = TRUE
+				else
+					for(var/T in typesof(P))
+						L[T] = TRUE
+		return L
 
 //Removes returns a new list which only contains elements from the original list of a certain type
 /proc/prune_list_to_type(list/L, datum/A, var/exclude_type = FALSE)

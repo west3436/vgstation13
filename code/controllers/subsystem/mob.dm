@@ -10,6 +10,11 @@ var/datum/subsystem/mob/SSmob
 
 	var/list/currentrun
 
+	/// List of player mobs by their stringified virtual z-level
+	var/static/list/list/players_by_virtual_z = list()
+
+	/// List of all dead player mobs by virtual z-level
+	var/static/list/list/dead_players_by_virtual_z = list()
 
 /datum/subsystem/mob/New()
 	NEW_SS_GLOBAL(SSmob)

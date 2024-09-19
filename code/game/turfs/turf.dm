@@ -63,6 +63,9 @@
 	// Map element which spawned this turf
 	var/datum/map_element/map_element
 
+	// ID of the virtual level we're in
+	var/virtual_z = 0
+
 	var/image/viewblock
 
 	var/volume_mult = 1 //how loud are things on this turf?
