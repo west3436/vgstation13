@@ -147,6 +147,9 @@
 	for(var/side in 1 to 4)
 		var/turf/beginning = locate(x_pos_beginning[side], y_pos_beginning[side], z_value)
 		var/turf/ending = locate(x_pos_ending[side], y_pos_ending[side], z_value)
+		for(var/turf/Turf as anything in block(beginning, ending))
+			Turf.relativewall()
+			Turf.relativewall_neighbours()
 
 /datum/virtual_level/proc/selfloop()
 	link_with(NORTH, src)
@@ -601,40 +604,37 @@
 		var/turf/T = locate(destination_x, destination_y, destination_z)
 		user.forceMove(T)
 
-/turf/unsimulated/wall/edge/Entered(mob/arrived, direction)
-	. = ..()
-	if(!arrived || src != arrived.loc)
-		return
+// /turf/unsimulated/wall/edge/Entered(mob/arrived, direction)
+// 	. = ..()
+// 	if(!arrived || src != arrived.loc)
+// 		return
 
-	if(!destination_z && isliving(arrived))
-		stack_trace("Living mob entered level edge turf, somehow")
-		return
+// 	if(!destination_z && isliving(arrived))
+// 		stack_trace("Living mob entered level edge turf, somehow")
+// 		return
 
-	if(destination_z && !arrived.pulledby)
-		var/tx = destination_x
-		var/ty = destination_y
-		var/turf/DT = locate(tx, ty, destination_z)
-		var/itercount = 0
-		while(DT.density || istype(DT.loc,/area/shuttle)) // Extend towards the center of the map, trying to look for a better place to arrive
-			if (itercount++ >= 100)
-				log_game("SPACE Z-TRANSIT ERROR: Could not find a safe place to land [arrived] within 100 iterations.")
-				break
-			if (tx < 128)
-				tx++
-			else
-				tx--
-			if (ty < 128)
-				ty++
-			else
-				ty--
-			DT = locate(tx, ty, destination_z)
+// 	if(destination_z && !arrived.pulledby)
+// 		var/tx = destination_x
+// 		var/ty = destination_y
+// 		var/turf/DT = locate(tx, ty, destination_z)
+// 		var/itercount = 0
+// 		while(DT.density || istype(DT.loc,/area/shuttle)) // Extend towards the center of the map, trying to look for a better place to arrive
+// 			if (itercount++ >= 100)
+// 				log_game("SPACE Z-TRANSIT ERROR: Could not find a safe place to land [arrived] within 100 iterations.")
+// 				break
+// 			if (tx < 128)
+// 				tx++
+// 			else
+// 				tx--
+// 			if (ty < 128)
+// 				ty++
+// 			else
+// 				ty--
+// 			DT = locate(tx, ty, destination_z)
 
-		var/atom/movable/pulling = arrived.pulling
-		var/mob/puller = arrived
-		arrived.forceMove(DT)
+// 		var/atom/movable/pulling = arrived.pulling
+// 		var/mob/puller = arrived
+// 		arrived.forceMove(DT)
 
-		//now we're on the new z_level, proceed the space drifting
-		arrived.apply_inertia(arrived.inertia_dir)
-
-/turf/unsimulated/wall/edge/is_transition_turf()
-	return TRUE
+// 		//now we're on the new z_level, proceed the space drifting
+// 		arrived.apply_inertia(arrived.inertia_dir)

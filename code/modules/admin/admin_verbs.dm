@@ -89,7 +89,8 @@ var/list/admin_verbs_admin = list(
 	/client/proc/body_archive_panel,
 	/client/proc/climate_panel,
 	/datum/admins/proc/ashInvokedEmotions,	/*Ashes all paper from the invoke emotion spell. An emergency purge.*/
-	/client/proc/toggle_admin_examine
+	/client/proc/toggle_admin_examine,
+	/client/proc/level_manager
 )
 var/list/admin_verbs_ban = list(
 	/client/proc/unban_panel,
@@ -513,6 +514,14 @@ var/list/admin_verbs_mod = list(
 	if(holder)
 		holder.Game()
 	feedback_add_details("admin_verb","GP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	return
+
+/client/proc/level_manager()
+	set name = "Level Manager"
+	set category = "Admin"
+	if(holder)
+		holder.LevelManager()
+	feedback_add_details("admin_verb","LM") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	return
 
 /client/proc/secrets()

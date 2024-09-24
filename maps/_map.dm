@@ -128,22 +128,29 @@
 		var/path = levelPaths[i]
 		addZLevel(new path, i)
 
-/datum/map/proc/addZLevel(datum/zLevel/level, z_to_use = 0, make_base_turf = FALSE, fast_base_turf = FALSE)
-
-
+/datum/map/proc/addZLevel(datum/zLevel/level, z_to_use = 0, make_base_turf = FALSE, fast_base_turf = FALSE, allocate = null, title = null)
 	if(!istype(level))
 		warning("ERROR: addZLevel received [level ? "a bad level of type [ispath(level) ? "[level]" : "[level.type]" ]" : "no level at all!"]")
 		return
 	if(!level.base_turf)
 		level.base_turf = /turf/space
+	if(!z_to_use)
+		z_to_use = zLevels.len + 1
 	if(z_to_use > zLevels.len)
 		zLevels.len = z_to_use
+		world.maxz = zLevels.len
 	zLevels[z_to_use] = level
 	if(!level.movementJammed)
 		accessable_z_levels += list("[z_to_use]" = level.movementChance)
 	level.z = z_to_use
 	if(!istype(level.base_turf,/turf/space) && make_base_turf)
 		level.reset_base_turf(/turf/space,fast_base_turf)
+	if(allocate)
+		level.allocation_type = allocate
+	if(title)
+		level.name = title
+	message_admins("New zLevel [title] created at z=[z_to_use].")
+	log_admin("New zLevel [title] created at z=[z_to_use].")
 
 var/global/list/accessable_z_levels = list()
 

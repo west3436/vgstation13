@@ -731,6 +731,48 @@ var/global/floorIsLava = 0
 	usr << browse(dat, "window=admin2;size=280x370")
 	return
 
+/datum/admins/proc/LevelManager(mob/user)
+	if(!check_rights(0))
+		return
+
+	var/dat = {"
+		<HEAD><TITLE>Level Manager</TITLE></HEAD>\n
+		"}
+	dat += "<b>Current zLevels:</b><br><table border='0'><tr><th>zLevel ID</th><th>Title</th><th>vLevels</th></tr>"
+	for (var/datum/zLevel/zlev in map.zLevels)
+		dat += "<tr>"
+		var/vlevs = ""
+		if(!length(zlev.virtual_levels))
+			vlevs = "<center>-</center>"
+		else
+			for(var/datum/virtual_level/vlev in zlev.virtual_levels)
+				vlevs += "<A href='?src=\ref[src];jumptov=\ref[vlev]'>[vlev.id]</A>"
+				if(!(vlev == zlev.virtual_levels[zlev.virtual_levels.len]))
+					vlevs += ", "
+		dat += "<td><center><A href='?src=\ref[src];jumptoz=\ref[zlev]'>[zlev.z]</A></center></td><td>[zlev.name]</td><td>[vlevs]</td>"
+		dat += "</tr>"
+	dat += "<tr><td><center><A href='?src=\ref[src];newz=1'>Add new</A></center></td><td></td><td></td></tr>"
+	dat += "</table><hr>"
+
+	dat += "<b>Current Map Zones:</b><br><table border='0'><tr><th>Map Zone ID</th><th>Title</th><th>vLevels</th><th>Delete</th></tr>"
+	if(length(SSmap.map_zones))
+		var/vlevs = ""
+		for(var/datum/map_zone/mz in SSmap.map_zones)
+			vlevs = ""
+			if(!length(mz.virtual_levels))
+				vlevs = "<center>-</center>"
+			else
+				for(var/datum/virtual_level/vlev in mz.virtual_levels)
+					vlevs += "<A href='?src=\ref[src];jumptov=\ref[vlev]'>[vlev.id]</A>"
+					if(!(vlev == mz.virtual_levels[mz.virtual_levels.len]))
+						vlevs += ", "
+			dat += "<td><center>[mz.id]</center></td><td>[mz.name]</td><td>[vlevs]</td><td><A href='?src=\ref[src];delmz=\ref[mz]'>X</A></td>"
+		dat += "</tr>"
+	dat += "<tr><td><center><A href='?src=\ref[src];newmz=1'>Add new</A></center></td><td></td><td></td><td></td></tr>"
+	dat += "</table><hr>"
+
+	usr << browse(dat, "window=admin2;size=320x370")
+
 /datum/admins/proc/dynamic_mode_options(mob/user)
 	var/dat = {"
 		<center><B><h2>Dynamic Mode Options</h2></B></center><hr>

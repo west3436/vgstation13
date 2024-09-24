@@ -5857,6 +5857,33 @@ access_sec_doors,access_salvage_captain,access_cent_ert,access_syndicate,access_
 		else
 			toggle_tag_mode(usr)
 
+	else if(href_list["jumptov"])
+		var/datum/virtual_level/v = locate(href_list["jumptov"])
+		var/client/C = usr.client
+		C.jumptoturf(v.get_center())
+
+	else if(href_list["jumptoz"])
+		var/datum/zLevel/zlev = locate(href_list["jumptoz"])
+		var/client/C = usr.client
+		C.jumptocoord(250,250,zlev.z)
+
+	else if(href_list["newz"])
+		var/title = input("Create a name for the new zLevel.","zLevel Naming","New zLevel") as text
+		var/datum/zLevel/zlev = input("Select a zLevel Type.","Level Type",/datum/zLevel/space) as anything in subtypesof(/datum/zLevel)
+		map.addZLevel(new zlev,title = title)
+		to_chat(usr, "Created zLevel [map.zLevels[map.zLevels.len]].")
+
+	else if(href_list["newmz"])
+		var/title = input("Create a name for the new map zone.","Map Zone Naming","New Map Zone") as text
+		var/datum/map_zone/newmz = SSmap.create_map_zone(title)
+		to_chat(usr, "Created map zone [newmz.id].")
+
+	else if(href_list["delmz"])
+		var/datum/map_zone/mz = locate(href_list["delmz"])
+		var/choice = input("Are you sure you want to delete map zone [mz.id]?","Deletion Confirmation","No") in list("Yes","No")
+		if(choice == "Yes")
+			mz.Destroy()
+
 /datum/admins/proc/SendAdminGhostTo(var/turf/T,var/mob/M)
 	var/client/C = usr.client
 	if(!isobserver(usr) && isliving(usr))
