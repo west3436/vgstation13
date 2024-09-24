@@ -755,9 +755,9 @@ var/global/floorIsLava = 0
 	dat += "</table><hr>"
 
 	dat += "<b>Current Map Zones:</b><br><table border='0'><tr><th>Map Zone ID</th><th>Title</th><th>vLevels</th><th>Delete</th></tr>"
-	if(length(SSmap.map_zones))
+	if(length(SSmapping.map_zones))
 		var/vlevs = ""
-		for(var/datum/map_zone/mz in SSmap.map_zones)
+		for(var/datum/map_zone/mz in SSmapping.map_zones)
 			vlevs = ""
 			if(!length(mz.virtual_levels))
 				vlevs = "<center>-</center>"

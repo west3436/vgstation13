@@ -11,7 +11,7 @@
 #define SS_INIT_GARBAGE            23
 #define SS_INIT_JOB                22
 #define SS_INIT_HUMANS             21
-#define SS_INIT_MAP                20
+#define SS_INIT_MAPPING            20
 #define SS_INIT_COMPONENT          19.5
 #define SS_INIT_POWER              19
 #define SS_INIT_OBJECT             18

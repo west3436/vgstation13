@@ -1,11 +1,11 @@
 // Subsystem for things such as vaults and away mission init.
 
-var/datum/subsystem/map/SSmap
+var/datum/subsystem/mapping/SSmapping
 
 
-/datum/subsystem/map
-	name       = "Map"
-	init_order = SS_INIT_MAP
+/datum/subsystem/mapping
+	name       = "Mapping"
+	init_order = SS_INIT_MAPPING
 	flags      = SS_NO_FIRE
 
 	/// List of all map zones
@@ -35,11 +35,16 @@ var/datum/subsystem/map/SSmap
 	/// The largest plane offset we've generated so far
 	var/max_plane_offset = 0
 
-/datum/subsystem/map/New()
-	NEW_SS_GLOBAL(SSmap)
+	// Z-manager stuff
+	var/station_start  // should only be used for maploading-related tasks
+	var/space_levels_so_far = 0
+	var/list/datum/zLevel/z_list
+
+/datum/subsystem/mapping/New()
+	NEW_SS_GLOBAL(SSmapping)
 
 
-/datum/subsystem/map/Initialize(timeofday)
+/datum/subsystem/mapping/Initialize(timeofday)
 	if (config.enable_roundstart_away_missions)
 		log_startup_progress("Attempting to generate an away mission...")
 		createRandomZlevel()
@@ -59,12 +64,7 @@ var/datum/subsystem/map/SSmap
 	if (rand(1,3) == 3)
 		generate_hoboshack()
 
-	var/watch_prim = start_watch()
-	for(var/datum/zLevel/z in map.zLevels)
-		var/watch = start_watch()
-		z.post_mapload()
-		log_debug("Finished with zLevel [z.z] in [stop_watch(watch)]s.", FALSE)
-	log_debug("Finished calling post on zLevels in [stop_watch(watch_prim)]s.", FALSE)
+	InitializeDefaultZLevels()
 
 	var/watch = start_watch()
 	map.map_specific_init()
@@ -78,7 +78,7 @@ var/datum/subsystem/map/SSmap
 ///////////////////////////////////
 // MAP ZONES & VIRTUAL Z-LEVELS //
 //////////////////////////////////
-/datum/subsystem/map/proc/get_map_zone_id(mapzone_id)
+/datum/subsystem/mapping/proc/get_map_zone_id(mapzone_id)
 	var/datum/map_zone/returned_mapzone
 	for(var/datum/map_zone/iterated_mapzone as anything in map_zones)
 		if(iterated_mapzone.id == mapzone_id)
@@ -87,7 +87,7 @@ var/datum/subsystem/map/SSmap
 	return returned_mapzone
 
 /// Searches for a free allocation for the passed type and size, creates new physical levels if nessecary.
-/datum/subsystem/map/proc/get_free_allocation(allocation_type, size_x, size_y, allocation_jump = DEFAULT_ALLOC_JUMP)
+/datum/subsystem/mapping/proc/get_free_allocation(allocation_type, size_x, size_y, allocation_jump = DEFAULT_ALLOC_JUMP)
 	var/list/allocation_list
 	var/list/levels_to_check = map.zLevels.Copy()
 	var/created_new_level = FALSE
@@ -118,7 +118,7 @@ var/datum/subsystem/map/SSmap
 		levels_to_check += map.addZLevel(/datum/zLevel/space,allocate = allocation_type,title = "Generated [allocation_name] Level")
 
 /// Finds a box allocation inside a Z level. Uses a methodical box boundary check method
-/datum/subsystem/map/proc/find_allocation_in_level(datum/zLevel/level, size_x, size_y, allocation_jump)
+/datum/subsystem/mapping/proc/find_allocation_in_level(datum/zLevel/level, size_x, size_y, allocation_jump)
 	var/target_x = 1
 	var/target_y = 1
 
@@ -152,13 +152,13 @@ var/datum/subsystem/map/SSmap
 			target_x += allocation_jump
 
 /// Creates and passes a new map zone
-/datum/subsystem/map/proc/create_map_zone(new_name)
+/datum/subsystem/mapping/proc/create_map_zone(new_name)
 	return new /datum/map_zone(new_name)
 
 /// Allocates, creates and passes a new virtual level
-/datum/subsystem/map/proc/create_virtual_level(new_name, list/traits, datum/map_zone/mapzone, width, height, allocation_type = ALLOCATION_FREE, allocation_jump = DEFAULT_ALLOC_JUMP)
+/datum/subsystem/mapping/proc/create_virtual_level(new_name, list/traits, datum/map_zone/mapzone, width, height, allocation_type = ALLOCATION_FREE, allocation_jump = DEFAULT_ALLOC_JUMP)
 	/// Because we add an implicit 1 for the coordinate calcuations.
 	width--
 	height--
-	var/list/allocation_coords = SSmap.get_free_allocation(allocation_type, width, height, allocation_jump)
+	var/list/allocation_coords = SSmapping.get_free_allocation(allocation_type, width, height, allocation_jump)
 	return new /datum/virtual_level(new_name, traits, mapzone, allocation_coords[1], allocation_coords[2], allocation_coords[1] + width, allocation_coords[2] + height, allocation_coords[3])

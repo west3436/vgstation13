@@ -151,6 +151,7 @@
 		level.name = title
 	message_admins("New zLevel [title] created at z=[z_to_use].")
 	log_admin("New zLevel [title] created at z=[z_to_use].")
+	SSmapping.z_list |= level
 
 var/global/list/accessable_z_levels = list()
 
@@ -202,6 +203,11 @@ var/global/list/accessable_z_levels = list()
 	var/allocation_type = ALLOCATION_FREE
 	/// List of dummy reservations, which are safeguards against bad allocations while asynchronously clearing a virtual level.
 	var/list/dummy_reservations = list()
+
+/datum/zLevel/New(new_z, new_name, new_allocation_type)
+	z = new_z
+	name = new_name
+	allocation_type = new_allocation_type
 
 /datum/zLevel/proc/post_mapload()
 	return

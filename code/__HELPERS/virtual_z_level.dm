@@ -40,7 +40,7 @@
 	return my_turf.get_virtual_level()
 
 /turf/get_virtual_level()
-	return SSmap.virtual_z_translation["[virtual_z]"]
+	return SSmapping.virtual_z_translation["[virtual_z]"]
 
 /atom/proc/get_map_zone()
 	var/datum/virtual_level/vlevel = get_virtual_level()

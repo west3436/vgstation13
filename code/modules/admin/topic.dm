@@ -5875,7 +5875,7 @@ access_sec_doors,access_salvage_captain,access_cent_ert,access_syndicate,access_
 
 	else if(href_list["newmz"])
 		var/title = input("Create a name for the new map zone.","Map Zone Naming","New Map Zone") as text
-		var/datum/map_zone/newmz = SSmap.create_map_zone(title)
+		var/datum/map_zone/newmz = SSmapping.create_map_zone(title)
 		to_chat(usr, "Created map zone [newmz.id].")
 
 	else if(href_list["delmz"])

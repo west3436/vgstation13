@@ -21,13 +21,13 @@
 
 /datum/map_zone/New(passed_name)
 	name = passed_name
-	SSmap.map_zones += src
+	SSmapping.map_zones += src
 	next_id++
 	id = next_id
 	. = ..()
 
 /datum/map_zone/Destroy()
-	SSmap.map_zones -= src
+	SSmapping.map_zones -= src
 	QDEL_NULL(climate_controller)
 	QDEL_LIST(virtual_levels)
 	return ..()
@@ -397,7 +397,7 @@
 	name = passed_name
 	traits = passed_traits.Copy()
 	passed_map.add_virtual_level(src)
-	SSmap.virtual_z_translation["[id]"] = src
+	SSmapping.virtual_z_translation["[id]"] = src
 	reserve(lx, ly, hx, hy, passed_z)
 	return ..()
 
@@ -407,7 +407,7 @@
 			unlink(dir)
 	parent_level.virtual_levels -= src
 	parent_level = null
-	SSmap.virtual_z_translation -= "[id]"
+	SSmapping.virtual_z_translation -= "[id]"
 	parent_map_zone.remove_virtual_level(src)
 	if(up_linkage)
 		up_linkage.down_linkage = null
