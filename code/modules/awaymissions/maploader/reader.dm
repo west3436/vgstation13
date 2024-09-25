@@ -146,7 +146,7 @@ var/list/map_dimension_cache = list()
 			break
 		if(zcrd+z_offset > world.maxz)
 			world.maxz = zcrd+z_offset
-			map.addZLevel(/datum/zLevel/away, world.maxz) //create a new z_level if needed
+			map.addZLevel(new /datum/zLevel/away, world.maxz) //create a new z_level if needed
 
 		var/list/xy_grids = list()
 		for(var/xpos=zpos; xpos != findtext(tfile,"\n(1,1,",zpos+1,0); xpos = findtext(tfile,"\n(",xpos+1,0))

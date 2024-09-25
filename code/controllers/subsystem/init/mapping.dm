@@ -59,12 +59,13 @@ var/datum/subsystem/mapping/SSmapping
 	else
 		log_startup_progress("Not generating vaults - SKIP_VAULT_GENERATION found in config/config.txt")
 
+	InitializeDefaultZLevels()
+
 	//hobo shack generation, one shack will spawn, 1/3 chance of two shacks
 	generate_hoboshack()
 	if (rand(1,3) == 3)
 		generate_hoboshack()
 
-	InitializeDefaultZLevels()
 
 	var/watch = start_watch()
 	map.map_specific_init()
@@ -114,7 +115,8 @@ var/datum/subsystem/mapping/SSmapping
 				allocation_name = "Quadrant Allocation"
 			else
 				allocation_name = "Unaccounted Allocation"
-		levels_to_check += map.addZLevel(/datum/zLevel/space,allocate = allocation_type,title = "Generated [allocation_name] Level")
+		//levels_to_check += map.addZLevel(new /datum/zLevel/space,allocate = allocation_type,title = "Generated [allocation_name] Level")
+		levels_to_check += map.addZLevel(new /datum/zLevel/space)
 
 /// Finds a box allocation inside a Z level. Uses a methodical box boundary check method
 /datum/subsystem/mapping/proc/find_allocation_in_level(var/datum/zLevel/level, size_x, size_y, allocation_jump)
