@@ -5868,10 +5868,10 @@ access_sec_doors,access_salvage_captain,access_cent_ert,access_syndicate,access_
 		C.jumptocoord(250,250,zlev.z)
 
 	else if(href_list["newz"])
-		//var/title = input("Create a name for the new zLevel.","zLevel Naming","New zLevel") as text
+		var/newtitle = input("Create a name for the new zLevel.","zLevel Naming","New zLevel") as text
 		var/datum/zLevel/zlev = input("Select a zLevel Type.","Level Type",/datum/zLevel/space) as anything in subtypesof(/datum/zLevel)
-		map.addZLevel(new zlev)
-		to_chat(usr, "Created zLevel [map.zLevels[map.zLevels.len]].")
+		map.addZLevel(zlev, title = newtitle)
+		to_chat(usr, "Created zLevel [SSmapping.z_list[SSmapping.z_list.len]].")
 
 	else if(href_list["newmz"])
 		var/title = input("Create a name for the new map zone.","Map Zone Naming","New Map Zone") as text

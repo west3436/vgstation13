@@ -1,189 +1,189 @@
-/dmm_suite
-	var/quote = "\""
-	var/list/letter_digits = list(
-			"a","b","c","d","e",
-			"f","g","h","i","j",
-			"k","l","m","n","o",
-			"p","q","r","s","t",
-			"u","v","w","x","y",
-			"z",
-			"A","B","C","D","E",
-			"F","G","H","I","J",
-			"K","L","M","N","O",
-			"P","Q","R","S","T",
-			"U","V","W","X","Y",
-			"Z"
-	)
-	var/list/blacklist = list(
-			/atom/movable/lighting_overlay,
-			/obj/effect,
-			/obj/item/projectile,
-			/mob/dview,
-			/mob/virtualhearer
-	)
-/dmm_suite/save_map(var/turf/t1 as turf, var/turf/t2 as turf, var/map_name as text, var/flags as num)
-	//Check for illegal characters in file name... in a cheap way.
-	if(!((ckeyEx(map_name) == map_name) && ckeyEx(map_name)))
-		CRASH("Invalid text supplied to proc save_map, invalid characters or empty string.")
+/**Map exporter
+* Inputting a list of turfs into convert_map_to_tgm() will output a string
+* with the turfs and their objects / areas on said turf into the TGM mapping format
+* for .dmm files. This file can then be opened in the map editor or imported
+* back into the game.
+* ============================
+* This has been made semi-modular so you should be able to use these functions
+* elsewhere in code if you ever need to get a file in the .dmm format
+**/
+/atom/proc/get_save_vars()
+	return list("pixel_x", "pixel_y", "dir", "name", "req_access", "req_access_txt", "piping_layer", "color", "icon", "icon_state", "pipe_color", "amount")
 
-	//Check for valid turfs.
-	if(!isturf(t1) || !isturf(t2))
-		CRASH("Invalid arguments supplied to proc save_map, arguments were not turfs.")
+GLOBAL_LIST_INIT(save_file_chars, list(
+	"a","b","c","d","e",
+	"f","g","h","i","j",
+	"k","l","m","n","o",
+	"p","q","r","s","t",
+	"u","v","w","x","y",
+	"z","A","B","C","D",
+	"E","F","G","H","I",
+	"J","K","L","M","N",
+	"O","P","Q","R","S",
+	"T","U","V","W","X",
+	"Y","Z"
+))
 
-	var/file_text = write_map(t1, t2, flags)
+//Converts a list of turfs into TGM file format
+/proc/write_map(minx as num, \
+				miny as num, \
+				minz as num, \
+				maxx as num, \
+				maxy as num, \
+				maxz as num, \
+				save_flag = SAVE_ALL, \
+				shuttle_area_flag = SAVE_SHUTTLEAREA_DONTCARE, \
+				list/obj_blacklist = list())
 
-	if(fexists("[map_name].dmm"))
-		fdel("[map_name].dmm")
+	var/width = maxx - minx
+	var/height = maxy - miny
+	var/depth = maxz - minz
 
-	var/saved_map = file("[map_name].dmm")
-	saved_map << file_text
+	//Step 0: Calculate the amount of letters we need (26 ^ n > turf count)
+	var/turfsNeeded = (width + 1) * (height + 1)
+	var/layers = FLOOR(log(GLOB.save_file_chars.len, turfsNeeded) + 0.999,1)
 
-	return saved_map
+	//Step 1: Run through the area and generate file data
+	var/list/header_chars	= list()	//The characters of the header
+	var/list/header_dat 	= list()	//The data of the header, lines up with chars
+	var/header				= ""		//The actual header in text
+	var/contents			= ""		//The contents in text (bit at the end)
+	var/index = 1
+	for(var/z in 0 to depth)
+		for(var/x in 0 to width)
+			contents += "\n([x + 1],1,[z + 1]) = {\"\n"
+			for(var/y in height to 0 step -1)
+				CHECK_TICK
+				//====Get turfs Data====
+				var/turf/place_turf = locate((minx + x), (miny + y), (minz + z))
+				var/turf_type = /turf/template_noop
+				var/area/place_area = get_area(place_turf)
+				var/area_type = /area/template_noop
+				var/is_shuttle_area = istype(place_area, /area/shuttle)
+				//If there is nothing there, save as a noop (For odd shapes)
+				if(!place_turf)
+					turf_type = /turf/template_noop
+					area_type = /area/template_noop
+					place_turf = null
+				//Ignore things in space, must be a space turf
+				else if(istype(place_turf, /turf/open/space) && !(save_flag & SAVE_SPACE))
+					turf_type = /turf/template_noop
+					area_type = /area/template_noop
+				//====Saving shuttles only / non shuttles only====
+				else if((is_shuttle_area && shuttle_area_flag == SAVE_SHUTTLEAREA_IGNORE) || (!is_shuttle_area && shuttle_area_flag == SAVE_SHUTTLEAREA_ONLY))
+					turf_type = /turf/template_noop
+					area_type = /area/template_noop
+				//Stuff to add
+				else if(save_flag & SAVE_TURFS)
+					turf_type = place_turf.type
+					area_type = place_area.type
 
-/dmm_suite/write_map(var/turf/t1 as turf, var/turf/t2 as turf, var/flags as num)
-	//Check for valid turfs.
-	if(!isturf(t1) || !isturf(t2))
-		CRASH("Invalid arguments supplied to proc write_map, arguments were not turfs.")
+				//====For toggling not saving areas and turfs====
+				if(!(save_flag & SAVE_AREAS))
+					area_type = /area/template_noop
+				else if(turf_type != /turf/template_noop)
+					//====Saving turfs====
+					var/turf_metadata = generate_tgm_metadata(place_turf)
+					var/custom_data = place_turf.on_turf_saved()
+					turf_type = "[turf_type][turf_metadata][custom_data ? ",\n[custom_data]" : ""]"
+				//====Generate Header Character====
+				var/header_char = calculate_tgm_header_index(index, layers)	//The characters of the header
+				var/current_header = "(\n"										//The actual stuff inside the header
+				//Add objects to the header file
+				var/empty = TRUE
+				//====SAVING OBJECTS====
+				if(save_flag & SAVE_OBJECTS)
+					for(var/obj/thing in place_turf)
+						CHECK_TICK
+						if(thing.type in obj_blacklist)
+							continue
+						var/metadata = generate_tgm_metadata(thing)
+						current_header += "[empty?"":",\n"][thing.type][metadata]"
+						empty = FALSE
+						//====SAVING SPECIAL DATA====
+						//This is what causes lockers and machines to save stuff inside of them
+						if(save_flag & SAVE_OBJECT_PROPERTIES)
+							var/custom_data = thing.on_object_saved()
+							current_header += "[custom_data ? ",\n[custom_data]" : ""]"
+				//====SAVING MOBS====
+				if(save_flag & SAVE_MOBS)
+					for(var/mob/living/thing in place_turf)
+						CHECK_TICK
+						if(istype(thing, /mob/living/carbon))		//Ignore people, but not animals
+							for(var/obj/object in thing.contents)
+								if(object.type in obj_blacklist)
+									continue
+								var/metadata = generate_tgm_metadata(object)
+								current_header += "[empty?"":",\n"][object.type][metadata]"
+								empty = FALSE
+								//====SAVING SPECIAL DATA====
+								//This is what causes lockers and machines to save stuff inside of them
+								if(save_flag & SAVE_OBJECT_PROPERTIES)
+									var/custom_data = object.on_object_saved()
+									current_header += "[custom_data ? ",\n[custom_data]" : ""]"
+							continue
+						var/metadata = generate_tgm_metadata(thing)
+						current_header += "[empty?"":",\n"][thing.type][metadata]"
+						empty = FALSE
+				current_header += "[empty?"":",\n"][turf_type],\n[area_type])\n"
+				//====Fill the contents file====
+				//Compression is done here
+				var/position_of_header = header_dat.Find(current_header)
+				if(position_of_header)
+					//If the header has already been saved, change the character to the other saved header
+					header_char = header_chars[position_of_header]
+				else
+					header += "\"[header_char]\" = [current_header]"
+					header_chars += header_char
+					header_dat += current_header
+					index ++
+				contents += "[header_char]\n"
+			contents += "\"}"
+	return "//MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE\n[header][contents]"
 
-	var/turf/nw = locate(min(t1.x, t2.x), max(t1.y, t2.y), min(t1.z, t2.z))
-	var/turf/se = locate(max(t1.x, t2.x), min(t1.y, t2.y), max(t1.z, t2.z))
-	var/list/templates[0]
-	var/template_buffer = ""
-	var/dmm_text = ""
-
-	for(var/pos_z = nw.z, pos_z <= se.z, pos_z++)
-		for(var/pos_y = nw.y, pos_y >= se.y, pos_y--)
-			for(var/pos_x = nw.x, pos_x <= se.x, pos_x++)
-				var/turf/test_turf = locate(pos_x,pos_y,pos_z)
-				var/test_template = make_template(test_turf, flags)
-				var/template_number = templates.Find(test_template)
-
-				if(!template_number)
-					templates += test_template
-					template_number = templates.len
-
-				template_buffer += "[template_number],"
-
-			template_buffer += ";"
-
-		template_buffer += "."
-
-	var/key_length = round(log(letter_digits.len, templates.len - 1) + 1)
-	var/list/keys[templates.len]
-
-	for(var/key_pos=1, key_pos <= templates.len, key_pos++)
-		keys[key_pos] = get_model_key(key_pos, key_length)
-		dmm_text += "\"[keys[key_pos]]\" = ([templates[key_pos]])\n"
-
-	var/z_level = 0
-	for(var/z_pos = 1, z_pos < length(template_buffer), z_pos = findtext(template_buffer, ".", z_pos) + 1)
-		if(z_level)
-			dmm_text += "\n"
-
-		dmm_text += "\n(1,1,[++z_level]) = {\"\n"
-
-		var/z_block = copytext(template_buffer, z_pos, findtext(template_buffer, ".", z_pos))
-		for(var/y_pos = 1, y_pos < length(z_block), y_pos = findtext(z_block, ";", y_pos) + 1)
-			var/y_block = copytext(z_block, y_pos, findtext(z_block, ";", y_pos))
-
-			for(var/x_pos = 1, x_pos < length(y_block), x_pos = findtext(y_block, ",", x_pos) + 1)
-				var/x_block = copytext(y_block, x_pos, findtext(y_block, ",", x_pos))
-				var/key_number = text2num(x_block)
-				var/temp_key = keys[key_number]
-				dmm_text += temp_key
-
-				sleep(-1)
-
-			dmm_text += "\n"
-			sleep(-1)
-
-		dmm_text += "\"}"
-		sleep(-1)
-
-	return dmm_text
-
-/dmm_suite/proc/make_template(var/turf/model as turf, var/flags as num)
-	var/template = ""
-	var/obj_template = ""
-	var/mob_template = ""
-	var/turf_template = ""
-
-	if(!(flags & DMM_IGNORE_TURFS))
-		turf_template = "[model.type][check_attributes(model)],"
-	else
-		turf_template = "[world.turf],"
-
-	var/area_template = ""
-	var/list/filtered_contents = model.contents.Copy()
-
-	for(var/atom/movable/AM in filtered_contents)	//Filter out blacklisted atoms such as lighting overlays.
-		if(is_type_in_list(AM, blacklist))
-			filtered_contents -= AM
-
-	if(!(flags & DMM_IGNORE_OBJS))
-		for(var/obj/O in model.contents)
-			obj_template += "[O.type][check_attributes(O)],"
-
-	for(var/mob/M in model.contents)
-		if(M.client)
-			if(!(flags & DMM_IGNORE_PLAYERS))
-				mob_template += "[M.type][check_attributes(M)],"
-
-		else
-			if(!(flags & DMM_IGNORE_NPCS))
-				mob_template += "[M.type][check_attributes(M)],"
-
-	if(!(flags & DMM_IGNORE_AREAS))
-		var/area/m_area = model.loc
-		area_template = "[m_area.type][check_attributes(m_area)]"
-	else
-		area_template = "[world.area]"
-
-	template = "[obj_template][mob_template][turf_template][area_template]"
-	. = template
-
-/dmm_suite/proc/check_attributes(var/atom/A)
-	var/attributes_text = "{"
-	for(var/V in A.vars)
-		sleep(-1)
-		if(!issaved(A.vars[V]) || A.vars[V] == initial(A.vars[V]))
-			continue
-
-		if(istext(A.vars[V]))
-			attributes_text += "[V] = \"[A.vars[V]]\""
-
-		else if(isnum(A.vars[V]) || ispath(A.vars[V]))
-			attributes_text += "[V] = [A.vars[V]]"
-
-		else if(isicon(A.vars[V]) || isfile(A.vars[V]))
-			if(!fexists(A.vars[V]))	//The file doesn't actually exist and would cause DM to be unable to read the map (this can happen by admin-uploaded files and icon datums created at runtime).
-				continue
-
-			attributes_text += "[V] = '[A.vars[V]]'"
-
-		else
-			continue
-
-
-		if(attributes_text != "{")
-			attributes_text += "; "
-
-	if(attributes_text == "{")
+//vars_to_save = list() to save all vars
+/proc/generate_tgm_metadata(atom/O)
+	var/dat = ""
+	var/data_to_add = list()
+	var/list/vars_to_save = O.get_save_vars()
+	if(!vars_to_save)
 		return
+	for(var/V in O.vars)
+		if(!(V in vars_to_save))
+			continue
+		var/value = O.vars[V]
+		if(!value)
+			continue
+		if(value == initial(O.vars[V]) || !issaved(O.vars[V]))
+			continue
+		if(V == "icon_state" && O.smoothing_flags)
+			continue
+		var/symbol = ""
+		if(istext(value))
+			symbol = "\""
+			value = sanitize_simple(value, list("{"="", "}"="", "\""="", ";"="", ","=""))
+		else if(islist(value))
+			value = to_list_string(value)
+		else if(isicon(value) || isfile(value))
+			symbol = "'"
+		else if(!(isnum(value) || ispath(value)))
+			continue
+		//Prevent symbols from being because otherwise you can name something [";},/obj/item/gun/energy/laser/instakill{name="da epic gun] and spawn yourself an instakill gun.
+		data_to_add += "[V] = [symbol][value][symbol]"
+	//Process data to add
+	var/first = TRUE
+	for(var/data in data_to_add)
+		dat += "[first ? "" : ";\n"]\t[data]"
+		first = FALSE
+	if(dat)
+		dat = "{\n[dat]\n\t}"
+	return dat
 
-	if(copytext(attributes_text, length(attributes_text) - 1, 0) == "; ")
-		attributes_text = copytext(attributes_text, 1, length(attributes_text) - 1)
-
-	attributes_text += "}"
-	. = attributes_text
-
-/dmm_suite/proc/get_model_key(var/which as num, var/key_length as num)
-	var/key = ""
-	var/working_digit = which - 1
-
-	for(var/digit_pos = key_length, digit_pos >= 1, digit_pos--)
-		var/place_value = round(working_digit / (letter_digits.len ** (digit_pos - 1)))
-		working_digit -= place_value * (letter_digits.len ** (digit_pos - 1))
-		key = "[key][letter_digits[place_value + 1]]"
-
-	. = key
+/proc/calculate_tgm_header_index(index, layers)
+	var/output = ""
+	for(var/i in 1 to layers)
+		var/l = GLOB.save_file_chars.len
+		var/c = FLOOR((index-1) / (l ** (i - 1)), 1)
+		c = (c % l) + 1
+		output = "[GLOB.save_file_chars[c]][output]"
+	return output

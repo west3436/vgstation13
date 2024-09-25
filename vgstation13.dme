@@ -1511,6 +1511,7 @@
 #include "code\modules\awaymissions\trigger.dm"
 #include "code\modules\awaymissions\zlevel.dm"
 #include "code\modules\awaymissions\maploader\dmm_suite.dm"
+#include "code\modules\awaymissions\maploader\preloader.dm"
 #include "code\modules\awaymissions\maploader\reader.dm"
 #include "code\modules\awaymissions\maploader\swapmaps.dm"
 #include "code\modules\awaymissions\maploader\writer.dm"

@@ -21,7 +21,7 @@
 
 /datum/map_zone/New(passed_name)
 	name = passed_name
-	SSmapping.map_zones += src
+	SSmapping.map_zones |= src
 	next_id++
 	id = next_id
 	. = ..()
@@ -67,7 +67,7 @@
 	return FALSE
 
 /datum/map_zone/proc/add_virtual_level(datum/virtual_level/addsub)
-	virtual_levels += addsub
+	virtual_levels |= addsub
 	addsub.parent_map_zone = src
 	next_vlevel_id++
 	addsub.relative_id = next_vlevel_id
@@ -499,7 +499,7 @@
 	high_x = x2
 	high_y = y2
 	z_value = passed_z
-	parent_level = map.zLevels[z_value]
+	parent_level = SSmapping.z_list[z_value]
 	parent_level.virtual_levels += src
 	x_distance = high_x - low_x + 1
 	y_distance = high_y - low_y + 1

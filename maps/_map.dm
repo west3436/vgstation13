@@ -105,7 +105,7 @@
 /datum/map/New()
 	. = ..()
 
-	src.loadZLevels(src.zLevels)
+	//src.loadZLevels(src.zLevels)
 
 	//The spawn below is needed
 	spawn()
@@ -124,16 +124,14 @@
 /datum/map/proc/loadZLevels(list/levelPaths)
 	for(var/i = 1 to levelPaths.len)
 		var/path = levelPaths[i]
-		addZLevel(new path, z_to_use = i)
+		addZLevel(path, z_to_use = i)
 
-/datum/map/proc/addZLevel(datum/zLevel/level, z_to_use = 0, make_base_turf = FALSE, fast_base_turf = FALSE)
-
-
-	if(!istype(level))
-		warning("ERROR: addZLevel received [level ? "a bad level of type [ispath(level) ? "[level]" : "[level.type]" ]" : "no level at all!"]")
-		return
+/datum/map/proc/addZLevel(zpath, z_to_use = 0, make_base_turf = FALSE, fast_base_turf = FALSE, allocate = ALLOCATION_FREE, title = null)
+	var/datum/zLevel/level = new zpath(z_to_use,title,allocate)
 	if(!level.base_turf)
 		level.base_turf = /turf/space
+	if(!z_to_use)
+		z_to_use = zLevels.len + 1
 	if(z_to_use > zLevels.len)
 		zLevels.len = z_to_use
 	zLevels[z_to_use] = level
@@ -142,31 +140,13 @@
 	level.z = z_to_use
 	if(!istype(level.base_turf,/turf/space) && make_base_turf)
 		level.reset_base_turf(/turf/space,fast_base_turf)
-
-// /datum/map/proc/addZLevel(var/zpath, z_to_use = 0, make_base_turf = FALSE, fast_base_turf = FALSE, allocate = ALLOCATION_FREE, title = "New zLevel")
-// 	if(!ispath(zpath))
-// 		CRASH("Received [zpath] and expected a zLevel typepath!")
-// 	if(!z_to_use)
-// 		z_to_use = zLevels.len + 1
-// 	if(z_to_use > zLevels.len)
-// 		zLevels.len = z_to_use
-// 		world.maxz = zLevels.len
-// 	var/datum/zLevel/level = new zpath
-// 	if(!level.base_turf)
-// 		level.base_turf = /turf/space
-// 	zLevels[z_to_use] = level
-// 	if(!level.movementJammed)
-// 		accessable_z_levels += list("[z_to_use]" = level.movementChance)
-// 	level.z = z_to_use
-// 	if(!istype(level.base_turf,/turf/space) && make_base_turf)
-// 		level.reset_base_turf(/turf/space,fast_base_turf)
-// 	if(allocate)
-// 		level.allocation_type = allocate
-// 	if(title)
-// 		level.name = title
-// 	message_admins("New zLevel [title] created at z=[z_to_use].")
-// 	log_admin("New zLevel [title] created at z=[z_to_use].")
-// 	SSmapping.z_list |= level
+	if(title)
+		level.name = title
+	if(allocate)
+		level.allocation_type = allocate
+	message_admins("New zLevel [level.name] created at z=[z_to_use].")
+	log_admin("New zLevel [level.name] created at z=[z_to_use].")
+	SSmapping.z_list |= level
 
 var/global/list/accessable_z_levels = list()
 
@@ -218,6 +198,11 @@ var/global/list/accessable_z_levels = list()
 	var/allocation_type = ALLOCATION_FREE
 	/// List of dummy reservations, which are safeguards against bad allocations while asynchronously clearing a virtual level.
 	var/list/dummy_reservations = list()
+
+/datum/zLevel/New(new_z, new_name, new_allocation_type)
+	z = new_z
+	name = new_name
+	allocation_type = new_allocation_type
 
 /datum/zLevel/proc/post_mapload()
 	return

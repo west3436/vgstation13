@@ -739,7 +739,7 @@ var/global/floorIsLava = 0
 		<HEAD><TITLE>Level Manager</TITLE></HEAD>\n
 		"}
 	dat += "<b>Current zLevels:</b><br><table border='0'><tr><th>zLevel ID</th><th>Title</th><th>vLevels</th></tr>"
-	for (var/datum/zLevel/zlev in map.zLevels)
+	for (var/datum/zLevel/zlev in SSmapping.z_list)
 		dat += "<tr>"
 		var/vlevs = ""
 		if(!length(zlev.virtual_levels))
@@ -759,6 +759,7 @@ var/global/floorIsLava = 0
 		var/vlevs = ""
 		for(var/datum/map_zone/mz in SSmapping.map_zones)
 			vlevs = ""
+			dat += "<tr>"
 			if(!length(mz.virtual_levels))
 				vlevs = "<center>-</center>"
 			else

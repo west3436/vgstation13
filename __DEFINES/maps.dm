@@ -54,7 +54,7 @@ require only minor tweaks.
 #define ZTRAITS_STATION list(ZTRAIT_STATION = TRUE)
 #define ZTRAITS_SPACE list(ZTRAIT_SPACE_RUINS = TRUE)
 #define ZTRAITS_ASTEROID list(ZTRAIT_MINING = TRUE)
-#define ZTRAITS_DERELICT list(ZTRAIT_DERELICT = TRUE)
+#define ZTRAITS_DERELICT list(ZTRAIT_DERELICT = TRUE, ZTRAIT_SPACE_RUINS = TRUE)
 
 #define DL_NAME "name"
 #define DL_TRAITS "traits"
@@ -62,6 +62,11 @@ require only minor tweaks.
 
 // must correspond to _basemap.dm for things to work correctly
 #define DEFAULT_MAP_TRAITS list( \
+	DECLARE_LEVEL("Station", ZTRAITS_STATION), \
+	DECLARE_LEVEL("Mining Asteroid", ZTRAITS_ASTEROID), \
+	DECLARE_LEVEL("Derelict", ZTRAITS_DERELICT), \
+	DECLARE_LEVEL("Space Level 1", ZTRAITS_SPACE), \
+	DECLARE_LEVEL("Space Level 2", ZTRAITS_SPACE), \
 	DECLARE_LEVEL("CentCom", ZTRAITS_CENTCOM), \
 )
 

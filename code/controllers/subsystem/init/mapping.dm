@@ -1,5 +1,7 @@
 // Subsystem for things such as vaults and away mission init.
 
+#define DEFAULT_Z_LEVELS 6 //change this to a config
+
 var/datum/subsystem/mapping/SSmapping
 
 
@@ -38,13 +40,16 @@ var/datum/subsystem/mapping/SSmapping
 	// Z-manager stuff
 	var/station_start  // should only be used for maploading-related tasks
 	var/space_levels_so_far = 0
-	var/list/datum/zLevel/z_list
+	var/list/datum/zLevel/z_list = list()
 
 /datum/subsystem/mapping/New()
 	NEW_SS_GLOBAL(SSmapping)
 
 
 /datum/subsystem/mapping/Initialize(timeofday)
+	world.maxz = DEFAULT_Z_LEVELS
+	InitializeDefaultZLevels()
+
 	if (config.enable_roundstart_away_missions)
 		log_startup_progress("Attempting to generate an away mission...")
 		createRandomZlevel()
@@ -58,8 +63,6 @@ var/datum/subsystem/mapping/SSmapping
 		log_startup_progress("  Finished placing structures in [stop_watch(watch)]s.")
 	else
 		log_startup_progress("Not generating vaults - SKIP_VAULT_GENERATION found in config/config.txt")
-
-	InitializeDefaultZLevels()
 
 	//hobo shack generation, one shack will spawn, 1/3 chance of two shacks
 	generate_hoboshack()
@@ -75,6 +78,30 @@ var/datum/subsystem/mapping/SSmapping
 
 	..()
 
+// Populate the space level list and prepare space transitions
+/datum/subsystem/mapping/proc/InitializeDefaultZLevels()
+	var/watch_prim = start_watch()
+	// if (z_list)  // badminnery, no need
+	// 	return
+
+	z_list = list()
+	var/list/default_map_traits = DEFAULT_MAP_TRAITS
+
+	if (default_map_traits.len != world.maxz)
+		WARNING("More or less map attributes pre-defined ([default_map_traits.len]) than existent z-levels ([world.maxz]). Ignoring the larger.")
+		if (default_map_traits.len > world.maxz)
+			default_map_traits.Cut(world.maxz + 1)
+	for (var/I in 1 to default_map_traits.len)
+		var/watch = start_watch()
+		var/list/features = default_map_traits[I]
+		var/name = features[DL_NAME]
+		var/list/traits = features[DL_TRAITS]
+		var/datum/zLevel/S = new(I, name)
+		S.post_mapload()
+		var/datum/map_zone/mapzone = new(name)
+		new /datum/virtual_level(name, traits, mapzone, 1, 1, world.maxx, world.maxy, S.z)
+		log_startup_progress("Finished with zLevel [S.z] in [stop_watch(watch)]s.")
+	log_startup_progress("Finished calling post on zLevels in [stop_watch(watch_prim)]s.")
 
 ///////////////////////////////////
 // MAP ZONES & VIRTUAL Z-LEVELS //
@@ -115,8 +142,7 @@ var/datum/subsystem/mapping/SSmapping
 				allocation_name = "Quadrant Allocation"
 			else
 				allocation_name = "Unaccounted Allocation"
-		//levels_to_check += map.addZLevel(new /datum/zLevel/space,allocate = allocation_type,title = "Generated [allocation_name] Level")
-		levels_to_check += map.addZLevel(new /datum/zLevel/space)
+		levels_to_check += map.addZLevel(/datum/zLevel/space,allocate = allocation_type,title = "Generated [allocation_name] Level")
 
 /// Finds a box allocation inside a Z level. Uses a methodical box boundary check method
 /datum/subsystem/mapping/proc/find_allocation_in_level(var/datum/zLevel/level, size_x, size_y, allocation_jump)
