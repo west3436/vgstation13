@@ -5870,7 +5870,7 @@ access_sec_doors,access_salvage_captain,access_cent_ert,access_syndicate,access_
 	else if(href_list["newz"])
 		var/title = input("Create a name for the new zLevel.","zLevel Naming","New zLevel") as text
 		var/datum/zLevel/zlev = input("Select a zLevel Type.","Level Type",/datum/zLevel/space) as anything in subtypesof(/datum/zLevel)
-		map.addZLevel(new zlev,title = title)
+		map.addZLevel(zlev,title = title)
 		to_chat(usr, "Created zLevel [map.zLevels[map.zLevels.len]].")
 
 	else if(href_list["newmz"])

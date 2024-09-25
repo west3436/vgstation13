@@ -114,11 +114,10 @@ var/datum/subsystem/mapping/SSmapping
 				allocation_name = "Quadrant Allocation"
 			else
 				allocation_name = "Unaccounted Allocation"
-
 		levels_to_check += map.addZLevel(/datum/zLevel/space,allocate = allocation_type,title = "Generated [allocation_name] Level")
 
 /// Finds a box allocation inside a Z level. Uses a methodical box boundary check method
-/datum/subsystem/mapping/proc/find_allocation_in_level(datum/zLevel/level, size_x, size_y, allocation_jump)
+/datum/subsystem/mapping/proc/find_allocation_in_level(var/datum/zLevel/level, size_x, size_y, allocation_jump)
 	var/target_x = 1
 	var/target_y = 1
 
