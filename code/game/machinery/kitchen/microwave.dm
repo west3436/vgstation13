@@ -300,7 +300,7 @@
 				if (!recipe)
 					dat += {"<font color = 'red'>ERROR: No matching recipe found!</font><br>"}
 					for(var/obj/O in contents) // Informs them if it might blow up
-						if((istype(O,/obj/item/weapon/kitchen/utensil) && !(O.melt_temperature == MELTPOINT_PLASTIC)) || istype(O,/obj/item/weapon/cell))
+						if((istype(O,/obj/item/weapon/kitchen/utensil) && !istype(O,/obj/item/weapon/cell)))
 							dat += {"<font color = 'red'>ALERT: Hazardous contents! Do not microwave!</font><br>"}
 							break
 				else
@@ -376,7 +376,7 @@
 				else
 					explosion(get_turf(src), -1,0,2) // Let's not be too harsh on idiots
 				return
-			if(istype(O,/obj/item/weapon/kitchen/utensil) && !(O.melt_temperature == MELTPOINT_PLASTIC))
+			if(istype(O,/obj/item/weapon/kitchen/utensil))
 				src.visible_message("<span class='warning'>[O] sparks in the microwave!</span>")
 				if (!running(4))
 					abort()

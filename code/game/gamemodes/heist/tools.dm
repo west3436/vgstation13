@@ -16,7 +16,6 @@
 	throw_speed = 5
 	starting_materials = list(MAT_IRON = 200)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	origin_tech = Tc_MAGNETS + "=1;" + Tc_BIOTECH + "=1" // TODO: figure out appropriate values
 
 	var/delay=15 SECONDS     // Adminbus purposes.

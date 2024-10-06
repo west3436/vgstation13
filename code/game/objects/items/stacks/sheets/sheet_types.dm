@@ -22,7 +22,6 @@
 	flags = FPRINT
 	siemens_coefficient = 1
 	origin_tech = Tc_MATERIALS + "=1"
-	melt_temperature = MELTPOINT_STEEL
 	mat_type = MAT_IRON
 	perunit = CC_PER_SHEET_METAL
 
@@ -73,7 +72,6 @@
 	siemens_coefficient = 1
 	origin_tech = Tc_MATERIALS + "=2"
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL+500
 
 /obj/item/stack/sheet/plasteel/New(var/loc, var/amount=null)
 		recipes = plasteel_recipes
@@ -273,7 +271,6 @@
 	icon_state = "sheet-wax"
 	item_state = "sheet-wax"
 	origin_tech = Tc_MATERIALS + "=2;" + Tc_BIOTECH + "=2"
-	melt_temperature = MELTPOINT_WAX
 	siemens_coefficient = 0.1
 	w_type = RECYK_WAX
 	starting_materials = list(MAT_FABRIC = CC_PER_SHEET_WAX)

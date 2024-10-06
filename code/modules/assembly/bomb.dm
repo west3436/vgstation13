@@ -48,12 +48,12 @@
 			return
 		if(!status)
 			status = 1
-			bombers += "[key_name(user)] welded a single tank bomb. Temp: [bombtank.air_contents.temperature-T0C]"
-			message_admins("[key_name_admin(user)] welded a single tank bomb. Temp: [bombtank.air_contents.temperature-T0C]")
+			bombers += "[key_name(user)] welded a single tank bomb. Temp: [bombtank.air_contents.temperature()-T0C]"
+			message_admins("[key_name_admin(user)] welded a single tank bomb. Temp: [bombtank.air_contents.temperature()-T0C]")
 			to_chat(user, "<span class='notice'>A pressure hole has been bored to [bombtank] valve. \The [bombtank] can now be ignited.</span>")
 		else
 			status = 0
-			bombers += "[key_name(user)] unwelded a single tank bomb. Temp: [bombtank.air_contents.temperature-T0C]"
+			bombers += "[key_name(user)] unwelded a single tank bomb. Temp: [bombtank.air_contents.temperature()-T0C]"
 			to_chat(user, "<span class='notice'>The hole has been closed.</span>")
 	add_fingerprint(user)
 	..()
@@ -120,7 +120,7 @@
 	var/turf/ground_zero = get_turf(loc)
 	loc = null
 
-	if(air_contents.temperature > (T0C + 400))
+	if(air_contents.temperature() > (T0C + 400))
 		strength = (fuel_moles/15)
 
 		if(strength >=1)
@@ -133,7 +133,7 @@
 			ground_zero.assume_air(air_contents)
 			try_hotspot_expose(1000, SMALL_FLAME,1)
 
-	else if(air_contents.temperature > (T0C + 250))
+	else if(air_contents.temperature() > (T0C + 250))
 		strength = (fuel_moles/20)
 
 		if(strength >=1)
@@ -144,7 +144,7 @@
 			ground_zero.assume_air(air_contents)
 			try_hotspot_expose(1000, SMALL_FLAME,1)
 
-	else if(air_contents.temperature > (T0C + 100))
+	else if(air_contents.temperature() > (T0C + 100))
 		strength = (fuel_moles/25)
 
 		if (strength >=1)

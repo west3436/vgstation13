@@ -141,7 +141,6 @@
 	//src.verbs += /client/proc/disable_communication
 	//src.verbs += /client/proc/disable_movement
 	src.verbs += /client/proc/Zone_Info
-	src.verbs += /client/proc/Test_ZAS_Connection
 	src.verbs += /client/proc/SDQL2_query
 	src.verbs += /client/proc/check_sim_unsim
 	src.verbs += /client/proc/maprender
@@ -420,7 +419,7 @@ var/global/movement_disabled_exception //This is the client that calls the proc,
 		neighbour = locate() in get_step(get_turf(C),C.d2)
 		if(!neighbour || neighbour.get_powernet() != C.get_powernet())
 			error_str += "<span class = 'warning'>Disconnected wire at [formatJumpTo(get_turf(C))]</span><br>"
-	
+
 	var/datum/browser/popup = new(usr, "Wire connections", usr.name, 300, 400)
 	popup.set_content(error_str)
 	popup.open()

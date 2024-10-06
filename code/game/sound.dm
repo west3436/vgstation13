@@ -72,9 +72,9 @@ var/list/sand_sound = list('sound/effects/sand_walk1.ogg', 'sound/effects/sand_w
 	if(turf_source)
 		vol *= turf_source.volume_mult
 
-	if(gas_modified && turf_source && !turf_source.c_airblock(turf_source)) //if the sound is modified by air, and we are on an airflowing tile
+	if(gas_modified && turf_source && !turf_source.blocks_air) //if the sound is modified by air, and we are on an airflowing tile
 		var/atmosphere = 0
-		var/datum/gas_mixture/current_air = turf_source.return_air()
+		var/datum/gas_mixture/current_air = turf_source.get_readonly_air()
 		if(current_air)
 			atmosphere = current_air.return_pressure()
 		else
@@ -127,7 +127,7 @@ var/const/SURROUND_CAP = 7
 		if(!current_turf)
 			return
 
-		var/datum/gas_mixture/environment = current_turf.return_air()
+		var/datum/gas_mixture/environment = current_turf.get_readonly_air()
 		var/atmosphere = 0
 		if(environment)
 			atmosphere = environment.return_pressure()

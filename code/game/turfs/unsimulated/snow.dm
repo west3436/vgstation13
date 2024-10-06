@@ -77,7 +77,7 @@
 
 /turf/unsimulated/floor/snow/return_air()
 	var/datum/gas_mixture/unsimulated/GM = ..()
-	GM.temperature = T_ARCTIC-(5*round(2**(get_snow_state()-1))) //CALM -= 0, AVERAGE -= 5, HARD -= 10, BLIZZARD -= 20
+	GM.temperature() = T_ARCTIC-(5*round(2**(get_snow_state()-1))) //CALM -= 0, AVERAGE -= 5, HARD -= 10, BLIZZARD -= 20
 	GM.update_values()
 	return GM
 

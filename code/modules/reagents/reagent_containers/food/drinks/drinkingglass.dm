@@ -10,7 +10,6 @@
 	force = 5
 	smashtext = ""  //due to inconsistencies in the names of the drinks just don't say anything
 	smashname = "broken glass"
-	melt_temperature = MELTPOINT_GLASS
 	w_type=RECYK_GLASS
 	var/list/datum/reagent/drink/available_drinks = list() //for changeling stab
 	var/switching = FALSE

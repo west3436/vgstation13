@@ -1569,7 +1569,6 @@
 	desc = "Remember to recycle."
 	icon_state = "plasticbottle"
 	origin_tech = Tc_MATERIALS + "=1"
-	melt_temperature = MELTPOINT_PLASTIC
 	starting_materials = list(MAT_PLASTIC = 500)
 	w_type = RECYK_PLASTIC
 	volume = 100
@@ -1766,7 +1765,6 @@
 	volume = 100
 	starting_materials = list(MAT_GLASS = 500)
 	bottleheight = 31
-	melt_temperature = MELTPOINT_GLASS
 	w_type=RECYK_GLASS
 	can_flip = TRUE
 
@@ -1788,7 +1786,6 @@
 	attack_verb = list("stabs", "slashes", "attacks")
 	var/icon/broken_outline = icon('icons/obj/drinks.dmi', "broken")
 	starting_materials = list(MAT_GLASS = 500)
-	melt_temperature = MELTPOINT_GLASS
 	w_type=RECYK_GLASS
 
 /obj/item/weapon/broken_bottle/attack(mob/living/carbon/M as mob, mob/living/carbon/user as mob)

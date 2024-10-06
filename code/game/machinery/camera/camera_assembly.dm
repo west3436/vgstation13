@@ -8,7 +8,6 @@
 	flags = FPRINT
 	starting_materials = list(MAT_IRON = 700, MAT_GLASS = 300)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_STEEL
 
 	//	Motion, EMP-Proof, X-Ray, Microphone
 	var/list/obj/item/possible_upgrades = list(

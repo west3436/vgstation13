@@ -425,7 +425,7 @@
 		improper_kpa = 0
 
 /obj/machinery/portable_atmospherics/hydroponics/proc/check_temperature(var/datum/gas_mixture/environment)
-	if(abs(environment.temperature - seed.ideal_heat) > seed.heat_tolerance)
+	if(abs(environment.temperature() - seed.ideal_heat) > seed.heat_tolerance)
 		improper_heat = 1
 		if(seed.alter_temp)
 			//This is totally arbitrary. It just serves to approximate the behavior from when this modified temperature rather than thermal energy.

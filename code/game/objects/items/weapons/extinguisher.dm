@@ -16,7 +16,6 @@
 	force = 10.0
 	starting_materials = list(MAT_IRON = 90) // TODO: Check against autolathe.
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	attack_verb = list("slams", "whacks", "bashes", "thunks", "batters", "bludgeons", "thrashes")
 	slimeadd_message = "You attach the slime extract to the extinguisher's funnel"
 	slimes_accepted = SLIME_BLUE
@@ -293,9 +292,6 @@
 								M.extinguish()
 							if(atm.on_fire) // For extinguishing objects on fire
 								atm.extinguish()
-							if(atm.molten) // Molten shit.
-								atm.molten=0
-								atm.solidify()
 
 					var/obj/effect/foam/fire/F = locate() in oldturf
 					if(!istype(F) && oldturf != get_turf(src))

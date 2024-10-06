@@ -174,7 +174,6 @@
 	w_class = W_CLASS_SMALL
 	starting_materials = list(MAT_IRON = 50, MAT_GLASS = 50)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_SILICON
 
 /obj/item/device/radio/intercom/medbay
 	name = "station intercom (Medbay)"

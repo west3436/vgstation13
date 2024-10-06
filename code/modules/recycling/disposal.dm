@@ -261,7 +261,7 @@
 	ui = nanomanager.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if(!ui)
 		// the ui does not exist, so we'll create a new() one
-		// for a list of parameters and their descriptions see the code docs in \code\\modules\nano\nanoui.dm 
+		// for a list of parameters and their descriptions see the code docs in \code\\modules\nano\nanoui.dm
 		ui = new(user, src, ui_key, template_path, "Waste Disposal Unit", 430, 150)
 		// when the ui is first opened this is the data it will use
 		ui.set_initial_data(data)
@@ -399,8 +399,8 @@
 	var/datum/gas_mixture/env = L.return_air()
 	var/pressure_delta = (SEND_PRESSURE*1.01) - air_contents.return_pressure()
 
-	if(env.temperature > 0)
-		var/transfer_moles = 0.1 * pressure_delta * air_contents.volume / (env.temperature * R_IDEAL_GAS_EQUATION)
+	if(env.temperature() > 0)
+		var/transfer_moles = 0.1 * pressure_delta * air_contents.volume / (env.temperature() * R_IDEAL_GAS_EQUATION)
 
 		//Actually transfer the gas
 		var/datum/gas_mixture/removed = env.remove(transfer_moles)

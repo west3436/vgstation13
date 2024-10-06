@@ -18,14 +18,14 @@
 	var/datum/gas_mixture/env = T.return_air()
 	if(env)
 		if(!my_effect.activated)
-			if(!heat_triggered && env.temperature < COLD_TRIGGER)
+			if(!heat_triggered && env.temperature() < COLD_TRIGGER)
 				Triggered(0, "COLDAIR", 0)
-			else if(heat_triggered && env.temperature > HOT_TRIGGER)
+			else if(heat_triggered && env.temperature() > HOT_TRIGGER)
 				Triggered(0, "HOTAIR", 0)
 		else
-			if(!heat_triggered && env.temperature > COLD_TRIGGER)
+			if(!heat_triggered && env.temperature() > COLD_TRIGGER)
 				Triggered(0, "COLDAIR", 0)
-			else if(heat_triggered && env.temperature < HOT_TRIGGER)
+			else if(heat_triggered && env.temperature() < HOT_TRIGGER)
 				Triggered(0, "HOTAIR", 0)
 
 /datum/artifact_trigger/temperature/proc/owner_attackby(mob/living/attacker, obj/item/item)

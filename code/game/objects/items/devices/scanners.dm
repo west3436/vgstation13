@@ -18,7 +18,6 @@ BREATHALYZER
 	item_state = "electronic"
 	starting_materials = list(MAT_IRON = 500, MAT_GLASS = 100)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	origin_tech = Tc_MAGNETS + "=1;" + Tc_ENGINEERING + "=1"
 
@@ -107,7 +106,6 @@ BREATHALYZER
 	throw_speed = 5
 	starting_materials = list(MAT_IRON = 200)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	origin_tech = Tc_MAGNETS + "=1;" + Tc_BIOTECH + "=1"
 	attack_delay = 0
@@ -325,7 +323,6 @@ Subject's pulse: ??? BPM"})
 	throw_range = 20
 	starting_materials = list(MAT_IRON = 30, MAT_GLASS = 20)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = FALSE //the thing used to see how hot the air around it is probably shouldn't be flammable
 	origin_tech = Tc_MAGNETS + "=1;" + Tc_ENGINEERING + "=1"
 
@@ -416,7 +413,7 @@ Subject's pulse: ??? BPM"})
 
 		var/kelvinTemperatureDisplay = scanned.temperature_kelvin_pretty()
 		var/celsiusTemperatureDisplay = scanned.temperature_celsius_pretty()
-		message += "<br>[human_standard && !IsInRange(scanned.temperature, BODYTEMP_COLD_DAMAGE_LIMIT, BODYTEMP_HEAT_DAMAGE_LIMIT) ? "<span class='bad'>" : "<span class='notice'>"] Temperature: [kelvinTemperatureDisplay]K ([celsiusTemperatureDisplay]&deg;C)"
+		message += "<br>[human_standard && !IsInRange(scanned.temperature(), BODYTEMP_COLD_DAMAGE_LIMIT, BODYTEMP_HEAT_DAMAGE_LIMIT) ? "<span class='bad'>" : "<span class='notice'>"] Temperature: [kelvinTemperatureDisplay]K ([celsiusTemperatureDisplay]&deg;C)"
 		message += "<br><span class='notice'>Heat capacity: [round(scanned.heat_capacity(), 0.01)]</span>"
 	else
 		message += "<br><span class='warning'>No gasses detected[container && !istype(container, /turf) ? " in \the [container]." : ""]!</span>"
@@ -596,7 +593,6 @@ Subject's pulse: ??? BPM"})
 	throw_speed = 5
 	starting_materials = list(MAT_IRON = 50)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	origin_tech = Tc_ENGINEERING + "=1;" + Tc_BIOTECH + "=1"
 

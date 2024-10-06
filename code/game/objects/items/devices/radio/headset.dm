@@ -6,7 +6,6 @@
 	species_fit = list(VOX_SHAPED, INSECT_SHAPED)
 	starting_materials = list(MAT_IRON = 75)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	subspace_transmission = 1
 	canhear_range = 0 // can't hear headsets from very far away
 	flags = FPRINT // No HEAR. Headsets should only work when being used explicitly.

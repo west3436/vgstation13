@@ -8,7 +8,6 @@
 	icon_state = "jar"
 	item_state = "beaker"
 	starting_materials = list(MAT_GLASS = 500)
-	melt_temperature = MELTPOINT_GLASS
 	w_type=RECYK_GLASS
 
 /obj/item/weapon/reagent_containers/food/drinks/jar/New()

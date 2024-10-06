@@ -7,7 +7,10 @@
 	max_chance = 25
 
 /datum/disease2/effect/spaceadapt/activate(var/mob/living/mob)
-	var/datum/gas_mixture/environment = mob.loc.return_air()
+	var/turf/T = mob.loc
+	if(!T || !istype(T))
+		return
+	var/datum/gas_mixture/environment = T.get_readonly_air()
 	var/pressure = environment.return_pressure()
 	var/adjusted_pressure = mob.calculate_affecting_pressure(pressure)
 	if (istype(mob.loc, /turf/space) || adjusted_pressure < HAZARD_LOW_PRESSURE)
@@ -356,10 +359,10 @@
 	var/datum/gas_mixture/GM = new
 	if(prob(10))
 		GM.adjust_gas(GAS_PLASMA, 100)
-		//GM.temperature = 1500+T0C //should be enough to start a fire
+		//GM.temperature() = 1500+T0C //should be enough to start a fire
 		to_chat(mob, "<span class='warning'>You exhale a large plume of toxic gas!</span>")
 	else
-		GM.temperature = istype(T) ? T.air.temperature : T20C
+		GM.temperature() = istype(T) ? T.air.temperature() : T20C
 		GM.adjust_gas(GAS_PLASMA, 100)
 		to_chat(mob, "<span class = 'warning'> A toxic gas emanates from your pores!</span>")
 	T.assume_air(GM)

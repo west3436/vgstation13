@@ -8,7 +8,6 @@
 	w_class = W_CLASS_TINY
 	starting_materials = list(MAT_GLASS = 500)
 	w_type = RECYK_GLASS
-	melt_temperature = MELTPOINT_GLASS
 	origin_tech = Tc_BIOTECH + "=2"
 
 	var/last_temperature
@@ -99,7 +98,6 @@
 
 	starting_materials = list(MAT_IRON = 1000, MAT_GLASS = 400)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_GLASS
 
 /obj/item/weapon/thermometer/electronic/initial_thermometer()
 	return
@@ -133,7 +131,6 @@
 	w_class = W_CLASS_TINY
 	attack_verb = list("stabs", "slashes", "attacks")
 	starting_materials = list(MAT_GLASS = 500)
-	melt_temperature = MELTPOINT_GLASS
 	w_type=RECYK_GLASS
 	hitsound = 'sound/weapons/bladeslice.ogg'
 

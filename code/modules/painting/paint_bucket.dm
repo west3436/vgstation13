@@ -13,7 +13,6 @@ var/global/list/paint_types = subtypesof(/datum/reagent/paint)
 	starting_materials = list(MAT_IRON = 200)
 	w_type = RECYK_METAL
 	w_class = W_CLASS_MEDIUM
-	melt_temperature = MELTPOINT_STEEL
 	amount_per_transfer_from_this = 10
 	possible_transfer_amounts = list(10,20,25,30,50,100,150)
 	volume = 150

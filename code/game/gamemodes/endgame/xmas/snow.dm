@@ -177,14 +177,14 @@ var/list/snowsound = list('sound/misc/snow1.ogg', 'sound/misc/snow2.ogg', 'sound
 		update_env_air()
 		if(!env)
 			return
-		else if(env.temperature > MELTPOINT_SNOW)//above 30?C, the snow melts away)
+		else if(env.temperature() > MELTPOINT_SNOW)//above 30?C, the snow melts away)
 			src.snowMelt()
 			return
-		else if(env.temperature < SNOWSPREAD_MAXTEMP)
+		else if(env.temperature() < SNOWSPREAD_MAXTEMP)
 			for(var/i in cardinal)
 				var/turf/T = get_step(src,i)
 				var/datum/gas_mixture/env2 = T.return_air()
-				if(env2.temperature >= MELTPOINT_SNOW)
+				if(env2.temperature() >= MELTPOINT_SNOW)
 					continue
 				if(src.canSpreadTo(T))
 					new/obj/structure/snow/cosmic(T)
@@ -245,9 +245,9 @@ var/list/snowsound = list('sound/misc/snow1.ogg', 'sound/misc/snow2.ogg', 'sound
 	while(src && !src.gcDestroyed)
 		if(snow_tiles >= COSMICFREEZE_END)
 			return
-		if(env.temperature > COSMICSNOW_MINIMALTEMP)//the snow will slowly lower the temperature until -40?C.
-			env.temperature -= (0.01 * snow_amount)
-		if(env.temperature < COSMICSNOW_MINIMALTEMP+1)//snow that reached its minimal temperature stops its reaction. should considerably reduce the lag.
+		if(env.temperature() > COSMICSNOW_MINIMALTEMP)//the snow will slowly lower the temperature until -40?C.
+			env.temperature() -= (0.01 * snow_amount)
+		if(env.temperature() < COSMICSNOW_MINIMALTEMP+1)//snow that reached its minimal temperature stops its reaction. should considerably reduce the lag.
 			return
 		sleep(TICK_JIGGLE(chill_delay * snowTickMod))
 	return
@@ -260,7 +260,6 @@ var/list/snowsound = list('sound/misc/snow1.ogg', 'sound/misc/snow2.ogg', 'sound
 	desc = "Technically water."
 	singular_name = "snow ball"
 	icon_state = "snow"
-	melt_temperature = MELTPOINT_SNOW
 	force = 0
 	throwforce = 1
 	throw_speed = 3
@@ -640,7 +639,6 @@ var/global/list/datum/stack_recipe/snow_recipes = list (
 	name = "ice crystal"
 	desc = "crystallized water. Take a chunk or two off to cool down your liquor."
 	icon_state = "ice_crystal"
-	melt_temperature = MELTPOINT_SNOW
 	w_class = W_CLASS_TINY
 
 #undef SNOWCOVERING_FULL

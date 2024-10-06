@@ -37,7 +37,6 @@ var/global/list/shoal_stuff = list(
 	icon_state = "box_of_doom"
 	item_state = "box_of_doom"
 	w_type = RECYK_WOOD
-	flammable = TRUE //haha
 
 /obj/item/weapon/boxofsnow/attack_self(mob/user)
 	var/turf/center = get_turf(loc)

@@ -10,7 +10,6 @@
 	starting_materials = list(MAT_GLASS = CC_PER_SHEET_GLASS+250)
 	w_type = RECYK_GLASS
 	w_class = W_CLASS_MEDIUM
-	melt_temperature = MELTPOINT_GLASS
 	origin_tech = Tc_MATERIALS + "=1"
 	var/obj/held_item = null
 	var/list/forbidden_items = list(/obj/item/weapon/reagent_containers/dropper, /obj/item/weapon/reagent_containers/syringe, \

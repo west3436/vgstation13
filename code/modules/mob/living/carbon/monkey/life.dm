@@ -351,7 +351,7 @@
 			spawn(0) emote(pick("giggle", "laugh"))
 
 
-	if(breath.temperature > (T0C+66)) // Hot air hurts :(
+	if(breath.temperature() > (T0C+66)) // Hot air hurts :(
 		if(prob(20))
 			to_chat(src, "<span class='warning'>You feel a searing heat in your lungs!</span>")
 		fire_alert = max(fire_alert, 2)
@@ -431,7 +431,7 @@
 				bodytemperature += min((1 - thermal_protection) * ((loc_temp - get_skin_temperature()) / BODYTEMP_HEAT_DIVISOR), BODYTEMP_HEATING_MAX)
 
 	if(stat!=DEAD)//this is sweating/shiverring, right?....
-		bodytemperature += 0.1*(environment.temperature - bodytemperature)*environment_heat_capacity/(environment_heat_capacity + 270000)
+		bodytemperature += 0.1*(environment.temperature() - bodytemperature)*environment_heat_capacity/(environment_heat_capacity + 270000)
 
 	if (status_flags & GODMODE)
 		fire_alert = 0

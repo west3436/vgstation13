@@ -7,7 +7,6 @@
 	w_class = W_CLASS_TINY
 	starting_materials = list(MAT_IRON = 60, MAT_GLASS = 30)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	var/recording = 0.0
 	var/playing = 0.0

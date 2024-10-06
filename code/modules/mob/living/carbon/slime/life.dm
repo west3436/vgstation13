@@ -175,27 +175,27 @@
 	if(istype(get_turf(src), /turf/space))
 		//environment_heat_capacity = loc:heat_capacity
 		var/turf/heat_turf = get_turf(src)
-		loc_temp = heat_turf.temperature
+		loc_temp = heat_turf.temperature()
 	else if(istype(loc, /obj/machinery/atmospherics/unary/cryo_cell))
 		var/obj/machinery/atmospherics/unary/cryo_cell/tube = loc
-		loc_temp = tube.air_contents.temperature
+		loc_temp = tube.air_contents.temperature()
 	else
-		loc_temp = environment.temperature
+		loc_temp = environment.temperature()
 
 	/*
-	if((environment.temperature > (T0C + 50)) || (environment.temperature < (T0C + 10)))
+	if((environment.temperature() > (T0C + 50)) || (environment.temperature() < (T0C + 10)))
 		var/transfer_coefficient
 
 		transfer_coefficient = 1
-		if(wear_mask && (wear_mask.body_parts_covered & HEAD) && (environment.temperature < wear_mask.protective_temperature))
+		if(wear_mask && (wear_mask.body_parts_covered & HEAD) && (environment.temperature() < wear_mask.protective_temperature))
 			transfer_coefficient *= wear_mask.heat_transfer_coefficient
 
-		// handle_temperature_damage(HEAD, environment.temperature, environment_heat_capacity*transfer_coefficient)
+		// handle_temperature_damage(HEAD, environment.temperature(), environment_heat_capacity*transfer_coefficient)
 	*/
 
 	/*
 	if(stat==2)
-		bodytemperature += 0.1*(environment.temperature - bodytemperature)*environment_heat_capacity/(environment_heat_capacity + 270000)
+		bodytemperature += 0.1*(environment.temperature() - bodytemperature)*environment_heat_capacity/(environment_heat_capacity + 270000)
 
 	*/
 	//Account for massive pressure differences

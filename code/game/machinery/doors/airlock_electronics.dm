@@ -7,7 +7,6 @@
 	w_class = W_CLASS_SMALL //It should be tiny! -Agouri
 	starting_materials = list(MAT_IRON = 50, MAT_GLASS = 50)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_SILICON
 
 	req_access = list(access_engine_minor)
 

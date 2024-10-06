@@ -121,7 +121,7 @@
 	if(air1 && air2)
 		var/air1_heat_capacity = air1.heat_capacity()
 		var/air2_heat_capacity = air2.heat_capacity()
-		var/delta_temperature = abs(air2.temperature - air1.temperature)
+		var/delta_temperature = abs(air2.temperature() - air1.temperature())
 
 		if(delta_temperature > 0 && air1_heat_capacity > 0 && air2_heat_capacity > 0)
 			var/energy_transfer = delta_temperature * air2_heat_capacity * air1_heat_capacity / (air2_heat_capacity + air1_heat_capacity)
@@ -134,12 +134,12 @@
 			if(circ2.reagents.get_reagent_amount(LUBE)>=1)
 				last_gen *= 1 + ((circ2.volume_capacity_used * 100) / 16.5)
 
-			if(air2.temperature > air1.temperature)
-				air2.temperature = air2.temperature - energy_transfer/air2_heat_capacity
-				air1.temperature = air1.temperature + heat/air1_heat_capacity
+			if(air2.temperature() > air1.temperature())
+				air2.temperature() = air2.temperature() - energy_transfer/air2_heat_capacity
+				air1.temperature() = air1.temperature() + heat/air1_heat_capacity
 			else
-				air2.temperature = air2.temperature + heat/air2_heat_capacity
-				air1.temperature = air1.temperature - energy_transfer/air1_heat_capacity
+				air2.temperature() = air2.temperature() + heat/air2_heat_capacity
+				air1.temperature() = air1.temperature() - energy_transfer/air1_heat_capacity
 
 	//Transfer the air.
 	circ1.air2.merge(air1)
@@ -190,16 +190,16 @@
 	if(circ1)
 		data["first_flow_cap"] = round(circ1.volume_capacity_used * 100)
 		data["first_in_pressure"] = round(circ1.air1.return_pressure(), 1)
-		data["first_in_temp"] = round(circ1.air1.temperature, 1)
+		data["first_in_temp"] = round(circ1.air1.temperature(), 1)
 		data["first_out_pressure"] = round(circ1.air2.return_pressure(), 1)
-		data["first_out_temp"] = round(circ1.air2.temperature, 1)
+		data["first_out_temp"] = round(circ1.air2.temperature(), 1)
 
 	if(circ2)
 		data["second_flow_cap"] = round(circ2.volume_capacity_used * 100)
 		data["second_in_pressure"] = round(circ2.air1.return_pressure(), 1)
-		data["second_in_temp"] = round(circ2.air1.temperature, 1)
+		data["second_in_temp"] = round(circ2.air1.temperature(), 1)
 		data["second_out_pressure"] = round(circ2.air2.return_pressure(), 1)
-		data["second_out_temp"] = round(circ2.air2.temperature, 1)
+		data["second_out_temp"] = round(circ2.air2.temperature(), 1)
 
 	return data
 

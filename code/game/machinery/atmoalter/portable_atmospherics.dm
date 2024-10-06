@@ -14,7 +14,7 @@
 /obj/machinery/portable_atmospherics/New()
 	..()
 	air_contents.volume = volume
-	air_contents.temperature = T20C
+	air_contents.temperature() = T20C
 
 	return 1
 

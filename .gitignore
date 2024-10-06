@@ -80,3 +80,6 @@ Thumbs.db
 
 # Running OpenDream locally
 vgstation13.json
+
+# Rust output.
+/milla/target/*

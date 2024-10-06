@@ -348,14 +348,14 @@
 		TTV.tank_two = OT
 
 		//This is just an arbitrary mix that works fairly well.
-		PT.air_contents.temperature = T0C + 170
-		OT.air_contents.temperature = T0C - 100
+		PT.air_contents.temperature() = T0C + 170
+		OT.air_contents.temperature() = T0C - 100
 
 		for(var/obj/item/weapon/tank/T in list(PT, OT))
 			T.master = TTV
 			var/datum/gas_mixture/G = T.air_contents
 			G.update_values()
-			G.multiply(((40 / 7) * required_dev) * ONE_ATMOSPHERE / G.pressure) //Should give an epicentre in the range.
+			G.multiply(((40 / 7) * required_dev) * ONE_ATMOSPHERE / G.pressure()) //Should give an epicentre in the range.
 
 		TTV.update_icon()
 

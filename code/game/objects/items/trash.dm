@@ -164,7 +164,6 @@
 	siemens_coefficient = 2 //Do not touch live wires
 	starting_materials = list(MAT_IRON = 100)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_SILICON //Not as high as steel
 
 /obj/item/trash/pietin/attackby(obj/item/W, mob/user)
 	if(istype(W,/obj/item/trash/pietin))
@@ -181,7 +180,6 @@
 	siemens_coefficient = 2
 	starting_materials = list(MAT_IRON = 100)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_SILICON
 
 /obj/item/trash/wired_pietin_assembly/attackby(obj/item/W, mob/user)
 	if (istype(W, /obj/item/trash/pietin))

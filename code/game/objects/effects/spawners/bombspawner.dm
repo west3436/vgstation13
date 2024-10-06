@@ -44,14 +44,14 @@ var/list/syndicate_bomb_spawners = list()
 	V.tank_two = OT
 
 	//This is just an arbitrary mix that works fairly well.
-	PT.air_contents.temperature = T0C + 170
-	OT.air_contents.temperature = T0C - 100
+	PT.air_contents.temperature() = T0C + 170
+	OT.air_contents.temperature() = T0C - 100
 
 	for(var/obj/item/weapon/tank/T in list(PT, OT))
 		T.master = V
 		var/datum/gas_mixture/G = T.air_contents
 		G.update_values()
-		G.multiply(20 * ONE_ATMOSPHERE / G.pressure) //Sets each tank's pressure to twenty atmospheres, generates a 3, 7, 14 explosion (used to be 10 times for 1, 3, 7)
+		G.multiply(20 * ONE_ATMOSPHERE / G.pressure()) //Sets each tank's pressure to twenty atmospheres, generates a 3, 7, 14 explosion (used to be 10 times for 1, 3, 7)
 
 	var/obj/item/device/assembly/S
 

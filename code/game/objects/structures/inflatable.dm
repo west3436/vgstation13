@@ -4,7 +4,6 @@
 	icon = 'icons/obj/inflatable.dmi'
 	w_type = RECYK_PLASTIC
 	flammable = FALSE
-	melt_temperature = MELTPOINT_PLASTIC
 	starting_materials = list(MAT_PLASTIC = 1.5*CC_PER_SHEET_MISC)
 
 	var/deploy_path = null
@@ -321,7 +320,7 @@
 	..()
 	cabin_air = new /datum/gas_mixture()
 	cabin_air.volume = CELL_VOLUME / 3
-	cabin_air.temperature = T20C+20 //Nice and toasty to avoid Celthermia
+	cabin_air.temperature() = T20C+20 //Nice and toasty to avoid Celthermia
 	cabin_air.adjust_multi(
 		GAS_OXYGEN, MOLES_O2STANDARD,
 		GAS_NITROGEN, MOLES_N2STANDARD)

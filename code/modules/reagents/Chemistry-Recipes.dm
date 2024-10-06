@@ -757,7 +757,7 @@
 		for(var/turf/simulated/floor/target_tile in range(0,location))
 			var/datum/gas_mixture/napalm = new()
 			napalm.adjust_gas(GAS_VOLATILE, created_volume, FALSE)
-			napalm.temperature = 400+T0C
+			napalm.temperature() = 400+T0C
 			napalm.update_values()
 			target_tile.assume_air(napalm)
 			spawn(0)
@@ -890,7 +890,7 @@
 	if(!T)
 		return
 	var/datum/gas_mixture/G = new
-	G.temperature = T20C
+	G.temperature() = T20C
 	disperse(T,G,created_volume)
 
 /datum/chemical_reaction/vaporize/proc/disperse(turf/T,datum/gas_mixture/G,var/vol)
@@ -1893,7 +1893,7 @@
 	for(var/turf/simulated/floor/target_tile in range(0, location))
 
 		var/datum/gas_mixture/napalm = new
-		napalm.temperature = 1400
+		napalm.temperature() = 1400
 		napalm.adjust_gas(GAS_PLASMA, 25)
 		target_tile.assume_air(napalm)
 		spawn(0)

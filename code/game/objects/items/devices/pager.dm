@@ -14,7 +14,6 @@ var/list/pager_list = list()
 	throw_speed = 3
 	starting_materials = list(MAT_IRON = 500, MAT_GLASS = 200)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_SILICON
 	origin_tech = Tc_ENGINEERING + "=3;" + Tc_BLUESPACE + "=2"
 	slot_flags = SLOT_BELT
 	var/muted = TRUE

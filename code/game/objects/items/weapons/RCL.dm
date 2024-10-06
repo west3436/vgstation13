@@ -13,7 +13,6 @@
 	throw_range = 10
 	w_class = W_CLASS_MEDIUM
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	origin_tech = Tc_ENGINEERING + "=2;" + Tc_MATERIALS + "=4"
 

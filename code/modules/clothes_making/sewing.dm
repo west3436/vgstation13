@@ -39,7 +39,6 @@
 	item_state = "sewing_needles"
 	starting_materials = list(MAT_IRON = 75)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	siemens_coefficient = 1
 	flammable = FALSE
 	force = 10

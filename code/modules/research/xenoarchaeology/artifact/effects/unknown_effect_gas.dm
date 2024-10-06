@@ -23,5 +23,5 @@
 /datum/artifact_effect/gas/DoEffectAura()
 	if(holder)
 		var/datum/gas_mixture/env = holder.loc.return_air()
-		if(env && env.pressure < max_pressure)
+		if(env && env.pressure() < max_pressure)
 			env.adjust_gas(effect_gas, pick(rand(0,75)))

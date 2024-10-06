@@ -46,7 +46,7 @@
 			if(environment.return_pressure() > seed.highkpa_tolerance) //Kudzu can live at 0KPA, otherwise you could just vent the room to kill it.
 				health -= rand(5,10)
 
-			if(abs(environment.temperature - seed.ideal_heat) > seed.heat_tolerance)
+			if(abs(environment.temperature() - seed.ideal_heat) > seed.heat_tolerance)
 				health -= rand(5,10)
 				return
 

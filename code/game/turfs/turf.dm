@@ -75,12 +75,17 @@
 
 	var/datum/paint_overlay/paint_overlay = null
 
+	/// The general behavior of atmos on this tile.
+	var/atmos_mode = ATMOS_MODE_SEALED
+	/// The external environment that this tile is exposed to for ATMOS_MODE_EXPOSED_TO_ENVIRONMENT
+	var/atmos_environment
+
+	var/datum/gas_mixture/bound_to_turf/bound_air
+
 /turf/examine(mob/user)
 	..()
 	if(bullet_marks)
 		to_chat(user, "It has [bullet_marks > 1 ? "some holes" : "a hole"] in it.")
-	if(locate(/obj/effect/ash) in src)
-		to_chat(user, "It is covered in ashes.")
 
 /turf/proc/process()
 	set waitfor = FALSE
@@ -95,6 +100,12 @@
 		src.Entered(AM)
 	if(opacity)
 		has_opaque_atom = TRUE
+	initialize_milla()
+
+
+/turf/Destroy()
+	bound_air = null
+	..()
 
 /turf/ex_act(severity)
 	return 0
@@ -338,15 +349,6 @@
 	var/old_holomap = holomap_data
 //	to_chat(world, "Replacing [src.type] with [N]")
 
-	//The following two lines are an optimization. Without them, each connection would search connections when erased to remove itself.
-	var/list/connection/connections = src.connections
-	src.connections = null
-
-	for(var/turf/T in connections)
-		connections[T].erase()
-
-	connections = null
-
 	if(N == /turf/space)
 		for(var/obj/effect/decal/cleanable/C in src)
 			qdel(C)//enough with footprints floating in space
@@ -355,13 +357,8 @@
 		for(var/obj/effect/overlay/puddle/ice/P in src)
 			qdel(P)
 
-	//Rebuild turf
-	var/turf/T = src
-	env = T.air //Get the air before the change
-	if(istype(src,/turf/simulated))
-		var/turf/simulated/S = src
-		if(S.zone)
-			S.zone.rebuild()
+	var/datum/milla_safe/turf_assimilate_air/milla = new()
+	milla.invoke_async(src)
 
 	if(istype(src,/turf/simulated/floor))
 		var/turf/simulated/floor/F = src
@@ -383,17 +380,12 @@
 		var/turf/simulated/W = new N(src)
 		if(world.has_round_started())
 			initialize()
-		if(env)
-			W.air = env //Copy the old environment data over if both turfs were simulated
 
 		if (istype(W,/turf/simulated/floor) && !W.can_exist_under_lattice)
 			W.RemoveLattice()
 
 		if(tell_universe)
 			universe.OnTurfChange(W)
-
-		if(SS_READY(SSair))
-			SSair.mark_for_update(src)
 
 		W.levelupdate()
 		W.post_change() //What to do after changing the turf. Handles stuff like zshadow updates.
@@ -411,9 +403,6 @@
 
 		if(tell_universe)
 			universe.OnTurfChange(W)
-
-		if(SS_READY(SSair))
-			SSair.mark_for_update(src)
 
 		W.levelupdate()
 
@@ -752,3 +741,83 @@
 	..()
 	if (cleanliness >= CLEANLINESS_BLEACH)
 		remove_paint_overlay(TRUE)
+
+// The MILLA Corner
+/datum/milla_safe/turf_assimilate_air
+
+/datum/milla_safe/turf_assimilate_air/on_run(turf/self)
+	if(isnull(self))
+		return
+
+	var/datum/gas_mixture/merged = new()
+	var/turf_count = 0
+	for(var/turf/T in self.GetAtmosAdjacentTurfs())
+		if(isspaceturf(T))
+			turf_count += 1
+			continue
+		if(T.blocks_air)
+			continue
+		merged.merge(get_turf_air(T))
+		turf_count += 1
+	if(turf_count > 0)
+		// Average the contents of the turfs.
+		merged.set_oxygen(merged.oxygen() / turf_count)
+		merged.set_nitrogen(merged.nitrogen() / turf_count)
+		merged.set_carbon_dioxide(merged.carbon_dioxide() / turf_count)
+		merged.set_plasma(merged.plasma() / turf_count)
+		merged.set_sleeping_agent(merged.sleeping_agent() / turf_count)
+		merged.set_agent_b(merged.agent_b() / turf_count)
+	get_turf_air(self).copy_from(merged)
+
+/turf/proc/initialize_milla()
+	var/datum/milla_safe/initialize_turf/milla = new()
+	milla.invoke_async(src)
+
+/datum/milla_safe/initialize_turf
+
+/datum/milla_safe/initialize_turf/on_run(turf/T)
+	if(!isnull(T))
+		set_tile_atmos(T, atmos_mode = T.atmos_mode, environment_id = SSmap.environments[T.atmos_environment], innate_heat_capacity = T.heat_capacity, temperature = T.temperature())
+
+/// Do not call this directly. Use get_readonly_air or implement /datum/milla_safe.
+/turf/proc/private_unsafe_get_air()
+	if(isnull(bound_air))
+		SSair.bind_turf(src)
+	return bound_air
+
+/// Gets a read-only version of this tile's air. Do not use if you intend to modify the air later, implement /datum/milla_safe instead.
+/turf/proc/get_readonly_air()
+	// This is one of two intended places to call this otherwise-unsafe proc.
+	var/datum/gas_mixture/bound_to_turf/air = private_unsafe_get_air()
+	if(air.lastread < SSair.times_fired)
+		var/list/milla_tile = new/list(MILLA_TILE_SIZE)
+		get_tile_atmos(src, milla_tile)
+		air.copy_from_milla(milla_tile)
+		air.lastread = SSair.times_fired
+		air.readonly = null
+		air.dirty = FALSE
+		air.synchronized = FALSE
+	return air.get_readonly()
+
+/// Blindly releases air to this tile. Do not use if you care what the tile previously held, implement /datum/milla_safe instead.
+/turf/proc/blind_release_air(datum/gas_mixture/air)
+	var/datum/milla_safe/turf_blind_release/milla = new()
+	milla.invoke_async(src, air)
+
+/datum/milla_safe/turf_blind_release
+
+/datum/milla_safe/turf_blind_release/on_run(turf/T, datum/gas_mixture/air)
+	get_turf_air(T).merge(air)
+
+// Blindly sets the air in this tile. Do not use if you care what the tile previously held, implement /datum/milla_safe instead.
+/turf/proc/blind_set_air(datum/gas_mixture/air)
+	var/datum/milla_safe/turf_blind_set/milla = new()
+	milla.invoke_async(src, air)
+
+/datum/milla_safe/turf_blind_set
+
+/datum/milla_safe/turf_blind_set/on_run(turf/T, datum/gas_mixture/air)
+	get_turf_air(T).copy_from(air)
+
+/turf/return_analyzable_air()
+	return get_readonly_air()

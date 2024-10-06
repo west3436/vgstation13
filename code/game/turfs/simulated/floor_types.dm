@@ -36,7 +36,6 @@
 	icon_state = "wood"
 
 	soot_type = null
-	melt_temperature = 0 // Doesn't melt.
 
 /turf/simulated/floor/vox/wood/create_floor_tile()
 	floor_tile = new /obj/item/stack/tile/wood(null)
@@ -61,7 +60,6 @@
 	name = "floor"
 	icon_state = "wood"
 	soot_type = null
-	melt_temperature = 0 // Doesn't melt.
 	flammable = TRUE
 	thermal_material = new/datum/thermal_material/wood()
 	thermal_mass = 5
@@ -92,7 +90,6 @@
 	protect_infrastructure = TRUE
 
 	soot_type = null
-	melt_temperature = 0 // Doesn't melt.
 	var/secured = FALSE
 
 /turf/simulated/floor/engine/create_floor_tile()
@@ -358,7 +355,6 @@
 	name = "Beach"
 	icon = 'icons/misc/beach.dmi'
 	soot_type = null
-	melt_temperature = 0 // Doesn't melt.
 
 /turf/simulated/floor/beach/sand
 	name = "Sand"

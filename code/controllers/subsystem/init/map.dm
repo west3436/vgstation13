@@ -8,12 +8,18 @@ var/datum/subsystem/map/SSmap
 	init_order = SS_INIT_MAP
 	flags      = SS_NO_FIRE
 
+	// A mapping of environment names to MILLA environment IDs.
+	var/list/environments
 
 /datum/subsystem/map/New()
 	NEW_SS_GLOBAL(SSmap)
 
 
 /datum/subsystem/map/Initialize(timeofday)
+	environments = list()
+	environments[ENVIRONMENT_TEMPERATE] = create_environment(oxygen = MOLES_O2STANDARD, nitrogen = MOLES_N2STANDARD, temperature = T20C)
+	environments[ENVIRONMENT_COLD] = create_environment(oxygen = MOLES_O2STANDARD, nitrogen = MOLES_N2STANDARD, temperature = 180)
+
 	if (config.enable_roundstart_away_missions)
 		log_startup_progress("Attempting to generate an away mission...")
 		createRandomZlevel()

@@ -280,7 +280,7 @@
 
 	var/t = "<span class='notice'> Coordinates: [x],[y] \n</span>"
 
-	t += "<span class='warning'> Temperature: [environment.temperature] \n</span>"
+	t += "<span class='warning'> Temperature: [environment.temperature()] \n</span>"
 	for(var/g in environment.gas)
 		to_chat(usr, "<span class='notice'> [XGM.name[g]]: [environment.gas[g]] \n</span>")
 

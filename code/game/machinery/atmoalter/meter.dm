@@ -53,7 +53,7 @@
 
 	use_power(5)
 
-	var/datum/gas_mixture/environment = target.return_air()
+	var/datum/gas_mixture/environment = target.get_readonly_air()
 	if(!environment)
 		icon_state = "meterX"
 		// Pop the meter off when the environment we're attached to croaks.
@@ -89,7 +89,7 @@
 			"tag" = id_tag,
 			"device" = "AM",
 			"pressure" = round(env_pressure),
-			"temperature" = round(environment.temperature),
+			"temperature" = round(environment.temperature()),
 			"sigtype" = "status"
 		)
 

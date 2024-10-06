@@ -64,7 +64,7 @@ var/global/list/all_robot_modules = default_nanotrasen_robot_modules + emergency
 #define MODULE_CAN_HANDLE_FOOD 8		//Can use microwaves and bartending machinery
 #define MODULE_CAN_BUY 16				//Can use vending machines that need money(uses the station's account to pay)
 #define MODULE_CLEAN_ON_MOVE 32			//Will clean everything under it while moving
-#define MODULE_HAS_MAGPULSE 64			//Module isn't pushed b ZAS nor can slip in space
+#define MODULE_HAS_MAGPULSE 64			//Module isn't pushed by MILLA nor can slip in space
 #define MODULE_IS_THE_LAW 128			//Module can use *law and *halt
 #define MODULE_CAN_LIFT_SECTAPE 256		//Can lift security tape
 #define MODULE_CAN_LIFT_ENGITAPE 512	//Can lift atmos/engi tape

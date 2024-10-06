@@ -226,11 +226,11 @@
 
 /obj/mecha/proc/add_cabin()
 	cabin_air = new
-	cabin_air.temperature = T20C
+	cabin_air.temperature() = T20C
 	cabin_air.volume = 200
 	cabin_air.adjust_multi(
-		GAS_OXYGEN, O2STANDARD*cabin_air.volume/(R_IDEAL_GAS_EQUATION*cabin_air.temperature),
-		GAS_NITROGEN, N2STANDARD*cabin_air.volume/(R_IDEAL_GAS_EQUATION*cabin_air.temperature))
+		GAS_OXYGEN, O2STANDARD*cabin_air.volume/(R_IDEAL_GAS_EQUATION*cabin_air.temperature()),
+		GAS_NITROGEN, N2STANDARD*cabin_air.volume/(R_IDEAL_GAS_EQUATION*cabin_air.temperature()))
 	mech_parts.Add(cabin_air)
 	return cabin_air
 
@@ -2253,8 +2253,8 @@
 
 /datum/global_iterator/mecha_preserve_temp/process(var/obj/mecha/mecha)
 	if(mecha.cabin_air && mecha.cabin_air.return_volume() > 0)
-		var/delta = mecha.cabin_air.temperature - T20C
-		mecha.cabin_air.temperature -= max(-10, min(10, round(delta/4,0.1)))
+		var/delta = mecha.cabin_air.temperature() - T20C
+		mecha.cabin_air.temperature() -= max(-10, min(10, round(delta/4,0.1)))
 
 /datum/global_iterator/mecha_tank_give_air
 	delay = 15
@@ -2311,9 +2311,9 @@
 				mecha.setInternalDamage(MECHA_INT_TANK_BREACH)
 			var/datum/gas_mixture/int_tank_air = mecha.internal_tank.return_air()
 			if(int_tank_air && int_tank_air.return_volume()>0) //heat the air_contents
-				int_tank_air.temperature = min(6000+T0C, int_tank_air.temperature+rand(10,15))
+				int_tank_air.temperature() = min(6000+T0C, int_tank_air.temperature()+rand(10,15))
 		if(mecha.cabin_air && mecha.cabin_air.return_volume()>0)
-			mecha.cabin_air.temperature = min(6000+T0C, mecha.cabin_air.return_temperature()+rand(10,15))
+			mecha.cabin_air.temperature() = min(6000+T0C, mecha.cabin_air.return_temperature()+rand(10,15))
 			if(mecha.cabin_air.return_temperature()>mecha.max_temperature/2)
 				mecha.take_damage(4/round(mecha.max_temperature/mecha.cabin_air.return_temperature(),0.1), damage_type = "fire")
 	if(mecha.hasInternalDamage(MECHA_INT_TEMP_CONTROL)) //stop the mecha_preserve_temp loop datum

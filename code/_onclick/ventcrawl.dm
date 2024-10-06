@@ -170,12 +170,12 @@ var/list/ventcrawl_machinery = list(/obj/machinery/atmospherics/unary/vent_pump,
 								break
 
 					if(vent_found)
-						if(vent_found.network && (vent_found.network.normal_members.len || vent_found.network.line_members.len))
+						if(vent_found.pipeline && vent_found.pipeline.members.len)
 
 							to_chat(src, "You begin climbing into the ventilation system...")
 							if(vent_found.air_contents && !issilicon(src))
 
-								switch(vent_found.air_contents.temperature)
+								switch(vent_found.air_contents.temperature())
 									if(0 to BODYTEMP_COLD_DAMAGE_LIMIT)
 										to_chat(src, "<span class='danger'>You feel a painful freeze coming from the vent!</span>")
 									if(BODYTEMP_COLD_DAMAGE_LIMIT to T0C)
@@ -185,7 +185,7 @@ var/list/ventcrawl_machinery = list(/obj/machinery/atmospherics/unary/vent_pump,
 									if(BODYTEMP_HEAT_DAMAGE_LIMIT to INFINITY)
 										to_chat(src, "<span class='danger'>You feel a searing heat coming from the vent!</span>")
 
-								switch(vent_found.air_contents.pressure)
+								switch(vent_found.air_contents.pressure())
 									if(0 to HAZARD_LOW_PRESSURE)
 										to_chat(src, "<span class='danger'>You feel a rushing draw pulling you into the vent!</span>")
 									if(HAZARD_LOW_PRESSURE to WARNING_LOW_PRESSURE)

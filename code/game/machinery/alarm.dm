@@ -446,7 +446,7 @@ var/global/list/air_alarms = list()
 	var/datum/gas_mixture/environment = location.return_air()
 
 	// Handle temperature adjustment here.
-	if(environment.temperature < config.target_temperature - 2 || environment.temperature > config.target_temperature  + 2 || regulating_temperature)
+	if(environment.temperature() < config.target_temperature - 2 || environment.temperature() > config.target_temperature  + 2 || regulating_temperature)
 		//If it goes too far, we should adjust ourselves back before stopping.
 		var/actual_target_temperature = config.target_temperature
 		if(config.temperature_threshold.assess_danger(actual_target_temperature))
@@ -454,15 +454,15 @@ var/global/list/air_alarms = list()
 			actual_target_temperature = clamp(actual_target_temperature, config.temperature_threshold.min_1(), config.temperature_threshold.max_1())
 		var/thermo_changed = FALSE
 		if(!regulating_temperature)
-			if(environment.temperature > config.target_temperature)
+			if(environment.temperature() > config.target_temperature)
 				regulating_temperature = "cooling"
 			else
 				regulating_temperature = "heating"
 			thermo_changed = TRUE
-		else if(regulating_temperature == "heating" && environment.temperature > config.target_temperature)
+		else if(regulating_temperature == "heating" && environment.temperature() > config.target_temperature)
 			regulating_temperature = "cooling"
 			thermo_changed = TRUE
-		else if(regulating_temperature == "cooling" && environment.temperature < config.target_temperature)
+		else if(regulating_temperature == "cooling" && environment.temperature() < config.target_temperature)
 			regulating_temperature = "heating"
 			thermo_changed = TRUE
 		if(thermo_changed)
@@ -472,20 +472,20 @@ var/global/list/air_alarms = list()
 		var/datum/gas_mixture/gas = environment.remove_volume(0.25 * CELL_VOLUME)
 		if(gas)
 			var/heat_capacity = gas.heat_capacity()
-			var/energy_used = min(abs(heat_capacity * (gas.temperature - actual_target_temperature)), MAX_ENERGY_CHANGE)
+			var/energy_used = min(abs(heat_capacity * (gas.temperature() - actual_target_temperature)), MAX_ENERGY_CHANGE)
 
 			// We need to cool ourselves, but only if the gas isn't already colder than what we can do.
-			if (environment.temperature > actual_target_temperature && gas.temperature >= MIN_TEMPERATURE)
-				gas.temperature -= energy_used / heat_capacity
+			if (environment.temperature() > actual_target_temperature && gas.temperature() >= MIN_TEMPERATURE)
+				gas.temperature() -= energy_used / heat_capacity
 				use_power(energy_used/3) //these are heat pumps, so they can have a >100% efficiency, typically about 300%
 			// We need to warm ourselves, but only if the gas isn't already hotter than what we can do.
-			else if (environment.temperature < actual_target_temperature && gas.temperature <= MAX_TEMPERATURE)
-				gas.temperature += energy_used / heat_capacity
+			else if (environment.temperature() < actual_target_temperature && gas.temperature() <= MAX_TEMPERATURE)
+				gas.temperature() += energy_used / heat_capacity
 				use_power(energy_used/3)
 
 			environment.merge(gas)
 
-			if (abs(environment.temperature - actual_target_temperature) <= 0.5)
+			if (abs(environment.temperature() - actual_target_temperature) <= 0.5)
 				visible_message("\The [src] clicks quietly as it stops [regulating_temperature] the room.",\
 				"You hear a click as a faint electronic humming stops.")
 				regulating_temperature = 0
@@ -539,8 +539,8 @@ var/global/list/air_alarms = list()
 		return 0
 
 	var/other_moles
-	var/worst_dangerlevel = max(config.pressure_threshold.assess_danger(environment.pressure),
-								config.temperature_threshold.assess_danger(environment.temperature))
+	var/worst_dangerlevel = max(config.pressure_threshold.assess_danger(environment.pressure()),
+								config.temperature_threshold.assess_danger(environment.temperature()))
 
 	for(var/gas_id in environment.gas)
 		var/datum/gas/gas_datum = XGM.gases[gas_id]
@@ -550,7 +550,7 @@ var/global/list/air_alarms = list()
 		else
 			other_moles += environment[gas_id]
 
-	return max(worst_dangerlevel, config.other_gas_threshold.assess_danger(other_moles / environment.total_moles * environment.pressure))
+	return max(worst_dangerlevel, config.other_gas_threshold.assess_danger(other_moles / environment.total_moles * environment.pressure()))
 
 /obj/machinery/alarm/proc/master_is_operating()
 	var/area/this_area = get_area(src)
@@ -823,11 +823,11 @@ var/global/list/air_alarms = list()
 		return null
 
 	var/data[0]
-	data["pressure"]=environment.pressure
-	data["temperature"]=environment.temperature
-	data["temperature_c"]=round(environment.temperature - T0C, 0.1)
-	data["pressure_danger"] = config.pressure_threshold.assess_danger(environment.pressure)
-	data["temperature_danger"] = config.temperature_threshold.assess_danger(environment.temperature)
+	data["pressure"]=environment.pressure()
+	data["temperature"]=environment.temperature()
+	data["temperature_c"]=round(environment.temperature() - T0C, 0.1)
+	data["pressure_danger"] = config.pressure_threshold.assess_danger(environment.pressure())
+	data["temperature_danger"] = config.temperature_threshold.assess_danger(environment.temperature())
 
 	var/list/noteworthy_gases = list()
 	var/worst_dangerlevel = 0
@@ -846,7 +846,7 @@ var/global/list/air_alarms = list()
 			if(environment[gas_id])
 				other_moles += environment[gas_id]
 	var/list/raw_other_gas_data = list()
-	raw_other_gas_data["danger"] = config.other_gas_threshold.assess_danger(other_moles / total * environment.pressure)
+	raw_other_gas_data["danger"] = config.other_gas_threshold.assess_danger(other_moles / total * environment.pressure())
 	raw_other_gas_data["percentage"] = round(other_moles / total * 100, 2)
 	raw_other_gas_data["name"] = "Other"
 	noteworthy_gases += list(raw_other_gas_data)
@@ -1680,7 +1680,7 @@ var/global/list/firealarms = list() //shrug
 		var/datum/gas_mixture/environment = location.return_air()
 		if(!environment)
 			continue
-		avg_temp += environment.temperature
+		avg_temp += environment.temperature()
 		avg_divide++
 
 	if(avg_divide)

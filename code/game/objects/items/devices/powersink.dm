@@ -13,7 +13,6 @@
 	throw_range = 2
 	starting_materials = list(MAT_IRON = 750)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_STEEL
 	origin_tech = Tc_POWERSTORAGE + "=3;" + Tc_SYNDICATE + "=5"
 	var/drain_rate = 600000		// amount of power to drain per tick
 	var/last_drain = 0			// amount we tried to drain last tick

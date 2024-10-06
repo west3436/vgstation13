@@ -14,7 +14,6 @@
 	max_amount = 60
 	attack_verb = list("hits", "bludgeons", "whacks")
 	w_type=RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	var/active = 0
 
 /obj/item/stack/rods/Destroy()
@@ -206,7 +205,6 @@ var/list/datum/stack_recipe/chain_recipes = list (
 	max_amount = 12
 	attack_verb = list("bolts")
 	w_type=RECYK_METAL
-	melt_temperature = MELTPOINT_PLASMA
 
 /obj/item/stack/bolts/attackby(var/obj/O, mob/user)
 	if(istype(O, /obj/item/stack/cable_coil))

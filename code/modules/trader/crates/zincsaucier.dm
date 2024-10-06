@@ -547,7 +547,6 @@ var/global/global_cricket_population = 0
 	throwforce = 10
 	sharpness = 1.2
 	sharpness_flags = SHARP_TIP
-	melt_temperature = MELTPOINT_STEEL
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	w_class = W_CLASS_TINY
 	var/aim = 1

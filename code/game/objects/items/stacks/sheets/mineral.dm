@@ -31,7 +31,6 @@ Mineral Sheets
 	throw_range = 5
 	origin_tech = Tc_MATERIALS + "=1"
 	sheettype = "sandstone"
-	melt_temperature = MELTPOINT_GLASS
 	mat_type = MAT_GLASS
 	perunit = CC_PER_SHEET_GLASS
 	starting_materials = list(MAT_GLASS = CC_PER_SHEET_GLASS)
@@ -61,7 +60,6 @@ var/list/datum/stack_recipe/sandstone_recipes = list ( \
 	throw_range = 3
 	throw_speed = 3
 	w_class = W_CLASS_MEDIUM
-	melt_temperature = 2473.15
 	sheettype = "brick"
 	starting_materials = list(MAT_IRON = CC_PER_SHEET_METAL, MAT_GLASS = CC_PER_SHEET_GLASS)
 
@@ -86,7 +84,6 @@ var/list/datum/stack_recipe/brick_recipes = list ( \
 	throw_range = 3
 	origin_tech = Tc_MATERIALS + "=6"
 	sheettype = "diamond"
-	melt_temperature = 3820 // In a vacuum, but fuck dat
 	perunit = CC_PER_SHEET_DIAMOND
 	mat_type = MAT_DIAMOND
 	starting_materials = list(MAT_DIAMOND = CC_PER_SHEET_DIAMOND)
@@ -116,7 +113,6 @@ var/list/datum/stack_recipe/diamond_recipes = list ( \
 	throw_range = 3
 	origin_tech = Tc_MATERIALS + "=5"
 	sheettype = "uranium"
-	melt_temperature = 1132+T0C
 	perunit = CC_PER_SHEET_URANIUM
 	mat_type = MAT_URANIUM
 	starting_materials = list(MAT_URANIUM = CC_PER_SHEET_URANIUM)
@@ -148,7 +144,6 @@ var/list/datum/stack_recipe/uranium_recipes = list ( \
 	throw_range = 3
 	origin_tech = Tc_PLASMATECH + "=2;" + Tc_MATERIALS + "=2"
 	sheettype = "plasma"
-	melt_temperature = MELTPOINT_STEEL + 500
 	perunit = CC_PER_SHEET_PLASMA
 	mat_type = MAT_PLASMA
 	starting_materials = list(MAT_PLASMA = CC_PER_SHEET_PLASMA)
@@ -177,7 +172,6 @@ var/list/datum/stack_recipe/plasma_recipes = list ( \
 	throw_speed = 3
 	throw_range = 3
 	origin_tech = Tc_MATERIALS + "=3"
-	melt_temperature = MELTPOINT_PLASTIC
 	sheettype = "plastic"
 	perunit = CC_PER_SHEET_PLASTIC
 	mat_type = MAT_PLASTIC
@@ -239,7 +233,6 @@ var/list/datum/stack_recipe/plastic_recipes = list ( \
 	throw_speed = 3
 	throw_range = 3
 	origin_tech = Tc_MATERIALS + "=4"
-	melt_temperature = 1064+T0C
 	sheettype = "gold"
 	perunit = CC_PER_SHEET_GOLD
 	mat_type = MAT_GOLD
@@ -280,7 +273,6 @@ var/list/datum/stack_recipe/phazon_recipes = list( \
 	icon_state = "sheet-phazon"
 	item_state = "sheet-phazon"
 	sheettype = "phazon"
-	melt_temperature = MELTPOINT_PLASTIC
 	throwforce = 15.0
 	flags = FPRINT
 	siemens_coefficient = 1

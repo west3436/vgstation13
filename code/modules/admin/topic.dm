@@ -4706,13 +4706,6 @@ access_sec_doors,access_salvage_captain,access_cent_ert,access_syndicate,access_
 		if(check_rights(R_ADMIN|R_SERVER))
 			populate_inactive_customitems_list(src.owner)
 
-	else if(href_list["vsc"])
-		if(check_rights(R_ADMIN|R_SERVER))
-			if(href_list["vsc"] == "airflow")
-				zas_settings.ChangeSettingsDialog(usr,zas_settings.settings)
-			if(href_list["vsc"] == "default")
-				zas_settings.SetDefault(usr)
-
 	else if(href_list["xgm_panel"])
 		XGM.ui_interact(usr)
 

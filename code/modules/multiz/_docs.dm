@@ -16,7 +16,6 @@ see turfs/turf.dm ChangeTurf()
 - Ported post_change() for turfs
 - At 384 and 386 in process.dm we manually add to world.log, Polaris has logging procs (log_to_dd) that I didn't port
 - Commented a log_runtime call at 365 for similar reasons
-- MultiZAS: airflow between Z levels was merely a define and type changes away from working (ZAS/ConnectionManager.dm)
 - Jetpacks and flight allow travelling up or down Z-levels
 
 What's NOT ported?

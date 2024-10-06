@@ -30,7 +30,6 @@
 	var/busy = 0
 	starting_materials = list(MAT_IRON = 10*CC_PER_SHEET_METAL)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 
 	//Icon Update Code
 	var/overlay_status = 0
@@ -204,8 +203,8 @@
 		//Can not have a pressure delta that would cause environment pressure > tank pressure
 
 		var/transfer_moles = 0
-		if((air_contents.temperature > 0) && (pressure_delta > 0))
-			transfer_moles = pressure_delta * transfer_vol / (air_contents.temperature * R_IDEAL_GAS_EQUATION)
+		if((air_contents.temperature() > 0) && (pressure_delta > 0))
+			transfer_moles = pressure_delta * transfer_vol / (air_contents.temperature() * R_IDEAL_GAS_EQUATION)
 
 			//Actually transfer the gas
 			var/datum/gas_mixture/removed = air_contents.remove(transfer_moles)
@@ -228,7 +227,7 @@
 	else
 		can_label = 0
 
-	if(air_contents.temperature > PLASMA_FLASHPOINT)
+	if(air_contents.temperature() > PLASMA_FLASHPOINT)
 		air_contents.zburn()
 		nanomanager.update_uis(src)
 
@@ -240,7 +239,7 @@
 /obj/machinery/portable_atmospherics/canister/proc/return_temperature()
 	var/datum/gas_mixture/GM = src.return_air()
 	if(GM && GM.volume>0)
-		return GM.temperature
+		return GM.temperature()
 	return 0
 
 /obj/machinery/portable_atmospherics/canister/proc/return_pressure()
@@ -282,8 +281,8 @@
 		var/pressure_delta = min(10*ONE_ATMOSPHERE - env_pressure, (air_contents.return_pressure() - env_pressure)/2)
 		//Can not have a pressure delta that would cause environment pressure > tank pressure
 		var/transfer_moles = 0
-		if((air_contents.temperature > 0) && (pressure_delta > 0))
-			transfer_moles = pressure_delta*thejetpack.volume/(air_contents.temperature * R_IDEAL_GAS_EQUATION)//Actually transfer the gas
+		if((air_contents.temperature() > 0) && (pressure_delta > 0))
+			transfer_moles = pressure_delta*thejetpack.volume/(air_contents.temperature() * R_IDEAL_GAS_EQUATION)//Actually transfer the gas
 			var/datum/gas_mixture/removed = air_contents.remove(transfer_moles)
 			thejetpack.merge(removed)
 			to_chat(user, "You pulse-pressurize your jetpack from the tank.")
@@ -414,35 +413,35 @@
 
 /obj/machinery/portable_atmospherics/canister/plasma/New(loc)
 	..(loc)
-	air_contents.adjust_gas(GAS_PLASMA, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature))
+	air_contents.adjust_gas(GAS_PLASMA, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature()))
 	update_icon()
 
 /obj/machinery/portable_atmospherics/canister/oxygen/New(loc)
 	..(loc)
-	air_contents.adjust_gas(GAS_OXYGEN, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature))
+	air_contents.adjust_gas(GAS_OXYGEN, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature()))
 	update_icon()
 
 /obj/machinery/portable_atmospherics/canister/sleeping_agent/New(loc)
 	..(loc)
-	air_contents.adjust_gas(GAS_SLEEPING, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature))
+	air_contents.adjust_gas(GAS_SLEEPING, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature()))
 	update_icon()
 
 /obj/machinery/portable_atmospherics/canister/nitrogen/New(loc)
 	..(loc)
-	air_contents.adjust_gas(GAS_NITROGEN, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature))
+	air_contents.adjust_gas(GAS_NITROGEN, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature()))
 	update_icon()
 
 /obj/machinery/portable_atmospherics/canister/carbon_dioxide/New(loc)
 	..(loc)
-	air_contents.adjust_gas(GAS_CARBON, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature))
+	air_contents.adjust_gas(GAS_CARBON, (maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature()))
 	update_icon()
 
 /obj/machinery/portable_atmospherics/canister/air/New(loc)
 	..(loc)
 
 	air_contents.adjust_multi(
-		GAS_OXYGEN, (O2STANDARD * maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature),
-		GAS_NITROGEN, (N2STANDARD * maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature))
+		GAS_OXYGEN, (O2STANDARD * maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature()),
+		GAS_NITROGEN, (N2STANDARD * maximum_pressure * filled) * air_contents.volume / (R_IDEAL_GAS_EQUATION * air_contents.temperature()))
 
 	update_icon()
 

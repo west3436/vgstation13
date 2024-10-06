@@ -98,7 +98,6 @@
 	inhand_states = list("left_hand" = 'icons/mob/in-hand/left/misc_tools.dmi', "right_hand" = 'icons/mob/in-hand/right/misc_tools.dmi')
 	force = 4
 	attack_verb = list("attacks", "pokes", "hits")
-	melt_temperature = MELTPOINT_STEEL
 	var/bendable = TRUE
 	var/bent = FALSE
 
@@ -185,7 +184,6 @@
 	desc = "Super dull action!"
 	icon_state = "pspoon"
 	force = 1
-	melt_temperature = MELTPOINT_PLASTIC
 	bendable = FALSE
 	starting_materials = list(MAT_PLASTIC = 1*CC_PER_SHEET_MISC) //Recipe calls for 1 sheet
 	w_type = RECYK_PLASTIC
@@ -200,7 +198,6 @@
 	icon_state = "spork"
 	inhand_states = list("left_hand" = 'icons/mob/in-hand/left/misc_tools.dmi', "right_hand" = 'icons/mob/in-hand/right/misc_tools.dmi')
 	attack_verb = list("attacks", "pokes", "hits")
-	melt_temperature = MELTPOINT_STEEL
 	sharpness_flags = SHARP_TIP
 	sharpness = 0.3
 	var/liquid_content = FALSE
@@ -288,7 +285,6 @@
 	name = "plastic spork"
 	desc = "Plork!"
 	icon_state = "pspork"
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	starting_materials = list(MAT_PLASTIC = 1*CC_PER_SHEET_MISC) //Recipe calls for 1 sheet
 	w_type = RECYK_PLASTIC
@@ -311,7 +307,6 @@
 	inhand_states = list("left_hand" = 'icons/mob/in-hand/left/misc_tools.dmi', "right_hand" = 'icons/mob/in-hand/right/misc_tools.dmi')
 	sharpness_flags = SHARP_TIP
 	sharpness = 0.6
-	melt_temperature = MELTPOINT_STEEL
 	surgerysound = 'sound/items/retractor.ogg'
 
 /obj/item/weapon/kitchen/utensil/fork/New()
@@ -386,7 +381,6 @@
 	name = "plastic fork"
 	desc = "Yay, no washing up to do."
 	icon_state = "pfork"
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	starting_materials = list(MAT_PLASTIC = 1*CC_PER_SHEET_MISC) //Recipe calls for 1 sheet
 	w_type = RECYK_PLASTIC
@@ -395,7 +389,6 @@
 	name = "teflon fork"
 	desc = "Less likely to dissolve when picking up a forkful of mothership stew."
 	icon_state = "tfork"
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 
 /*
@@ -410,7 +403,6 @@
 	throwforce = 10.0
 	sharpness = 1.2
 	sharpness_flags = SHARP_BLADE
-	melt_temperature = MELTPOINT_STEEL
 	hitsound = 'sound/weapons/bladeslice.ogg'
 
 /obj/item/weapon/kitchen/utensil/knife/load_food(var/obj/item/weapon/reagent_containers/food/snacks/snack, var/mob/user)
@@ -431,7 +423,6 @@
 	force = 2
 	throwforce = 1
 	sharpness = 0.8
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 	starting_materials = list(MAT_PLASTIC = 1*CC_PER_SHEET_MISC) //Recipe calls for 1 sheet
 	w_type = RECYK_PLASTIC
@@ -450,7 +441,6 @@
 	sharpness_flags = SHARP_TIP | SHARP_BLADE
 	starting_materials = list(MAT_IRON = 12000)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	origin_tech = Tc_MATERIALS + "=1"
 	attack_verb = list("slashes", "stabs", "slices", "tears", "rips", "dices", "cuts")
 
@@ -473,7 +463,6 @@
 	throw_range = 6
 	starting_materials = list(MAT_IRON = 12000)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	origin_tech = Tc_MATERIALS + "=1"
 	attack_verb = list("slashes", "stabs", "slices", "tears", "rips", "dices", "cuts")
 	shrapnel_amount = 0
@@ -526,7 +515,6 @@
 	throw_range = 6
 	starting_materials = list(MAT_IRON = 12000)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	origin_tech = Tc_MATERIALS + "=1"
 	attack_verb = list("cleaves", "slashes", "stabs", "slices", "tears", "rips", "dices", "cuts")
 	surgerysound = 'sound/items/hatchetsurgery.ogg'
@@ -636,7 +624,6 @@
 	siemens_coefficient = 1
 	starting_materials = list(MAT_IRON = 3000)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	var/list/carrying = list() // List of things on the tray. - Doohl
 	var/max_carry = 10 // w_class = W_CLASS_TINY -- takes up 1
 					   // w_class = W_CLASS_SMALL -- takes up 3

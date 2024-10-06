@@ -139,7 +139,7 @@
 		loc_temp = S.return_temperature()
 	else if(istype(loc, /obj/machinery/atmospherics/unary/cryo_cell))
 		var/obj/machinery/atmospherics/unary/cryo_cell/CC = loc
-		loc_temp = CC.air_contents.temperature
+		loc_temp = CC.air_contents.temperature()
 	else
-		loc_temp = environment.temperature
+		loc_temp = environment.temperature()
 	return loc_temp

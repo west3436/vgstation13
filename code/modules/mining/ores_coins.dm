@@ -10,6 +10,7 @@
 	max_amount = 100
 	var/datum/geosample/geologic_data
 	var/can_orebox = TRUE
+	var/melt_temperature
 
 /obj/item/stack/ore/New()
 	singular_name += name

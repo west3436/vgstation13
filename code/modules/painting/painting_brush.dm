@@ -368,7 +368,6 @@
 	w_class = W_CLASS_LARGE
 	starting_materials = list(MAT_IRON = 9375)//half of the materials used to print one
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	flags = FPRINT | TWOHANDABLE | SLOWDOWN_WHEN_CARRIED
 	slowdown = NO_SLOWDOWN//HIGHROLLER_SLOWDOWN when active
 

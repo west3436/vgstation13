@@ -13,10 +13,10 @@
 
 /obj/item/rig_module/proc/can_install(var/obj/item/clothing/suit/space/rig/target)
    if ((locate(type) in target.modules)) //by default only allow one module of a type
-      return list(FALSE, "Could not install the " + name + ": module already present.") 
+      return list(FALSE, "Could not install the " + name + ": module already present.")
    else
       return list(TRUE, name +": successfully installed.")  //redundant second string to return, but just in case
-   
+
 
 /obj/item/rig_module/proc/examine_addition(mob/user)
 	return
@@ -124,17 +124,17 @@
 	else
 		var/obj/item/weapon/tank/T = H.internal
 		var/datum/gas_mixture/internals = T.air_contents
-		if(internals.pressure >= 10*ONE_ATMOSPHERE)
+		if(internals.pressure() >= 10*ONE_ATMOSPHERE)
 			return
 		var/datum/gas_mixture/M = H.loc.return_air()
 		var/datum/gas_mixture/sample = M.remove_volume(amount) //So we don't just succ the entire room up
 		if(sample[gas_id])
-			var/pressure_delta = 10*ONE_ATMOSPHERE - internals.pressure //How much pressure we have left to work with
-			var/transfer_moles = (pressure_delta/R_IDEAL_GAS_EQUATION/internals.temperature)*internals.volume //How many moles can we transfer?
+			var/pressure_delta = 10*ONE_ATMOSPHERE - internals.pressure() //How much pressure we have left to work with
+			var/transfer_moles = (pressure_delta/R_IDEAL_GAS_EQUATION/internals.temperature())*internals.volume //How many moles can we transfer?
 			transfer_moles = min(sample[gas_id],transfer_moles)
 			if(transfer_moles > 0)
 				var/datum/gas_mixture/to_add = new
-				to_add.temperature = sample.temperature
+				to_add.temperature() = sample.temperature()
 				to_add.adjust_gas(gas_id, transfer_moles)
 				sample.adjust_gas(gas_id, -transfer_moles)
 				internals.merge(to_add)
@@ -172,10 +172,10 @@
 /obj/item/rig_module/plasma_proof/can_install(var/obj/item/clothing/suit/space/rig/target)
    var/parent_check=..()
    if(!parent_check[1])
-      return list(FALSE,parent_check[2]) 
+      return list(FALSE,parent_check[2])
    if(target.clothing_flags & PLASMAGUARD)
       return list(FALSE,"Could not install the " + name +": suit is already plasma sealed.")
-   return list(TRUE, name +": successfully installed.") 
+   return list(TRUE, name +": successfully installed.")
 
 //Muscle tissue/Hulk module
 /obj/item/rig_module/muscle_tissue
@@ -310,7 +310,7 @@
       return list(FALSE,parent_check[2])
    if(locate(/obj/item/rig_module/rad_shield/adv) in target.modules) //don't allow both rad mods at once
       return list(FALSE,"Could not install the " + name +": a radiation absorption device is already present.")
-   return list(TRUE, name +": successfully installed.") 
+   return list(TRUE, name +": successfully installed.")
 
 
 
@@ -325,4 +325,4 @@
       return list(FALSE,parent_check[2])
    if(locate(/obj/item/rig_module/rad_shield) in target.modules) //don't allow both rad mods at once
       return list(FALSE,"Could not install the " + name +": a radiation absorption device is already present.")
-   return list(TRUE, name +": successfully installed.") 
+   return list(TRUE, name +": successfully installed.")

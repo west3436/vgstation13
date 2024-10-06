@@ -812,22 +812,22 @@
 		var/datum/gas_mixture/temp_gas_jet = new()
 		temp_gas_jet.copy_from(gas_jet)
 		temp_gas_jet.merge(turf_gases)
-		if(temp_gas_jet.temperature < 373.15)
-			temp_gas_jet.temperature = 383.15
+		if(temp_gas_jet.temperature() < 373.15)
+			temp_gas_jet.temperature() = 383.15
 			temp_gas_jet.update_values()
 		for(var/i = 1; i <= 20; i++)
 			temp_gas_jet.react()
-		burn_strength = temp_gas_jet.temperature
+		burn_strength = temp_gas_jet.temperature()
 
 	else
 		if(!has_reacted)
-			if(gas_jet.temperature < 373.15)
-				gas_jet.temperature = 383.15
+			if(gas_jet.temperature() < 373.15)
+				gas_jet.temperature() = 383.15
 				gas_jet.update_values()
 			for(var/i = 1; i <= 20; i++)
 				gas_jet.react()
 			has_reacted = 1
-		burn_strength = gas_jet.temperature
+		burn_strength = gas_jet.temperature()
 
 	var/initial_burn_damage = burn_strength/100
 	burn_damage = ((((-(10 * (0.9**((initial_burn_damage/10) * 5))) + 10) * 0.4) * 20)/5) //Exponential decay function 20*(y=(-(10*(0.9^(x/10)))+10)*0.4)
@@ -869,8 +869,8 @@
 	firemix.adjust_gas(GAS_PLASMA, 666)
 	gas_jet = firemix
 	jet_pressure = firemix.return_pressure()
-	gas_jet.temperature = 383.15
-	burn_strength = gas_jet.temperature
+	gas_jet.temperature() = 383.15
+	burn_strength = gas_jet.temperature()
 
 
 /obj/item/projectile/bullet/mahoganut

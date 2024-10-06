@@ -10,11 +10,13 @@
 	return 1
 
 // Called after turf replaces old one
-/turf/proc/post_change()
+/turf/proc/post_change(ignore_air = FALSE)
 	levelupdate()
 	var/turf/simulated/open/T = GetAbove(src)
 	if(istype(T))
 		T.update_icon()
+	initialize_milla()
+	recalculate_atmos_connectivity()
 
 
 /proc/is_on_same_plane_or_station(var/z1, var/z2)

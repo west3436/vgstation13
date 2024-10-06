@@ -36,7 +36,7 @@
 	if (istype(user.loc, /obj/machinery/atmospherics/pipe))
 		var/obj/machinery/atmospherics/pipe/P = user.loc
 		var/datum/gas_mixture/air = P.parent.air
-		air.temperature += heat
+		air.temperature() += heat
 		air.update_values()
 		for(var/mob/M in player_list)//most of the time it's gonna be faster to loop through the player list, than through the contents of all turfs in the zone
 			if (istype(M.loc, /obj/machinery/atmospherics/pipe))
@@ -47,7 +47,7 @@
 	else if (istype(user.loc, /obj/structure/inflatable/shelter))
 		var/obj/structure/inflatable/shelter/S = user.loc
 		var/datum/gas_mixture/air = S.cabin_air
-		air.temperature += heat
+		air.temperature() += heat
 		air.update_values()
 		for (var/mob/M in S.contents)
 			M.playsound_local(S.loc,'sound/items/canned_heat.ogg', 30, 0, null, FALLOFF_SOUNDS, 0)
@@ -68,7 +68,7 @@
 			to_chat(user, "<span class='warning'>The heat disperses into nothing...</span>")
 			return
 
-		target_zone.air.temperature += heat
+		target_zone.air.temperature() += heat
 		target_zone.air.update_values()
 		for(var/mob/M in player_list)//most of the time it's gonna be faster to loop through the player list, than through the contents of all turfs in the zone
 			if (isturf(M.loc))

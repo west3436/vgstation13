@@ -163,11 +163,11 @@ var/global/list/cryo_health_indicator = list(	"full" = image("icon" = 'icons/obj
 			process_occupant()
 
 	if(air_contents)
-		temperature_archived = air_contents.temperature
+		temperature_archived = air_contents.temperature()
 		heat_gas_contents()
 		expel_gas()
 
-	if(abs(temperature_archived-air_contents.temperature) > 1)
+	if(abs(temperature_archived-air_contents.temperature()) > 1)
 		network.update = 1
 
 	updateUsrDialog()
@@ -264,11 +264,11 @@ var/global/list/cryo_health_indicator = list(	"full" = image("icon" = 'icons/obj
 		occupantData["bodyTemperature"] = occupant.bodytemperature
 	data["occupant"] = occupantData;
 
-	data["cellTemperature"] = air_contents.temperature
+	data["cellTemperature"] = air_contents.temperature()
 	data["cellTemperatureStatus"] = "good"
-	if(air_contents.temperature > T0C) // if greater than 273.15 kelvin (0 celcius)
+	if(air_contents.temperature() > T0C) // if greater than 273.15 kelvin (0 celcius)
 		data["cellTemperatureStatus"] = "bad"
-	else if(air_contents.temperature > 225)
+	else if(air_contents.temperature() > 225)
 		data["cellTemperatureStatus"] = "average"
 	data["occupantTemperatureStatus"] = "bad"
 	if(occupant)
@@ -505,7 +505,7 @@ var/global/list/cryo_health_indicator = list(	"full" = image("icon" = 'icons/obj
 	if(!occupant)
 		return
 	if(!ejecting)
-		occupant.bodytemperature += (air_contents.temperature - occupant.bodytemperature) * (1 - current_heat_capacity / (current_heat_capacity + air_contents.heat_capacity()))
+		occupant.bodytemperature += (air_contents.temperature() - occupant.bodytemperature) * (1 - current_heat_capacity / (current_heat_capacity + air_contents.heat_capacity()))
 	else
 		occupant.bodytemperature = mix(occupant.bodytemperature, T0C + 37, 0.6)
 
@@ -515,8 +515,8 @@ var/global/list/cryo_health_indicator = list(	"full" = image("icon" = 'icons/obj
 	var/air_heat_capacity = air_contents.heat_capacity()
 	var/combined_heat_capacity = current_heat_capacity + air_heat_capacity
 	if(combined_heat_capacity > 0)
-		var/combined_energy = T20C*current_heat_capacity + air_heat_capacity*air_contents.temperature
-		air_contents.temperature = combined_energy/combined_heat_capacity
+		var/combined_energy = T20C*current_heat_capacity + air_heat_capacity*air_contents.temperature()
+		air_contents.temperature() = combined_energy/combined_heat_capacity
 
 /obj/machinery/atmospherics/unary/cryo_cell/proc/expel_gas()
 	if(air_contents.total_moles() < 1)
@@ -526,7 +526,7 @@ var/global/list/cryo_health_indicator = list(	"full" = image("icon" = 'icons/obj
 //	expel_gas = air_contents.remove(remove_amount)
 
 	// Just have the gas disappear to nowhere.
-	//expel_gas.temperature = T20C // Lets expel hot gas and see if that helps people not die as they are removed
+	//expel_gas.temperature() = T20C // Lets expel hot gas and see if that helps people not die as they are removed
 	//loc.assume_air(expel_gas)
 
 /obj/machinery/atmospherics/unary/cryo_cell/Exited(var/atom/movable/O) // Used for teleportation from within the tube.
@@ -681,7 +681,7 @@ var/global/list/cryo_health_indicator = list(	"full" = image("icon" = 'icons/obj
 	set src in oview(1)
 	CtrlClick(usr)
 
-/obj/machinery/atmospherics/unary/cryo_cell/return_air()
+/obj/machinery/atmospherics/unary/cryo_cell/get_readonly_air()
 	return air_contents
 
 /obj/machinery/atmospherics/unary/cryo_cell/npc_tamper_act(mob/living/L)

@@ -134,7 +134,7 @@
 		//copypasted from scrubber code with modifications to add the scrubbing rate limit
 		if (removed)
 			var/datum/gas_mixture/total_to_filter = new
-			total_to_filter.temperature = removed.temperature
+			total_to_filter.temperature() = removed.temperature()
 			for(var/gas_type in scrubbed_gases)
 				if(scrubbed_gases[gas_type])
 					total_to_filter.adjust_gas((gas_type), removed[gas_type], FALSE)

@@ -34,8 +34,8 @@
 		var/datum/gas_mixture/Environment = T.return_air()
 
 		if(Environment)
-			if(abs(Environment.temperature - dude.bodytemperature) > min_overheat_temp)
-				dude.bodytemperature = (Environment.temperature - dude.bodytemperature) / 5
+			if(abs(Environment.temperature() - dude.bodytemperature) > min_overheat_temp)
+				dude.bodytemperature = (Environment.temperature() - dude.bodytemperature) / 5
 
 			if(min_oxy)
 				if(Environment.molar_density(GAS_OXYGEN) < min_oxy)

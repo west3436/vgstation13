@@ -92,12 +92,12 @@
 /obj/machinery/atmospherics/unary/cold_sink/freezer/attack_hand(mob/user as mob)
 	user.set_machine(src)
 	var/temp_text = ""
-	if(air_contents.temperature > (T0C - 20))
-		temp_text = "<FONT color=red>[air_contents.temperature]</FONT>"
-	else if(air_contents.temperature < (T0C - 20) && air_contents.temperature > (T0C - 100))
-		temp_text = "<FONT color=black>[air_contents.temperature]</FONT>"
+	if(air_contents.temperature() > (T0C - 20))
+		temp_text = "<FONT color=red>[air_contents.temperature()]</FONT>"
+	else if(air_contents.temperature() < (T0C - 20) && air_contents.temperature() > (T0C - 100))
+		temp_text = "<FONT color=black>[air_contents.temperature()]</FONT>"
 	else
-		temp_text = "<FONT color=blue>[air_contents.temperature]</FONT>"
+		temp_text = "<FONT color=blue>[air_contents.temperature()]</FONT>"
 
 	var/dat = {"<B>Cryo gas cooling system</B><BR>
 	Current status: [ on ? "<A href='?src=\ref[src];start=1'>Off</A> <B>On</B>" : "<B>Off</B> <A href='?src=\ref[src];start=1'>On</A>"]<BR>
@@ -262,10 +262,10 @@
 /obj/machinery/atmospherics/unary/heat_reservoir/heater/attack_hand(mob/user as mob)
 	user.set_machine(src)
 	var/temp_text = ""
-	if(air_contents.temperature > (T20C+40))
-		temp_text = "<FONT color=red>[air_contents.temperature]</FONT>"
+	if(air_contents.temperature() > (T20C+40))
+		temp_text = "<FONT color=red>[air_contents.temperature()]</FONT>"
 	else
-		temp_text = "<FONT color=black>[air_contents.temperature]</FONT>"
+		temp_text = "<FONT color=black>[air_contents.temperature()]</FONT>"
 
 	var/dat = {"<B>Heating system</B><BR>
 	Current status: [ on ? "<A href='?src=\ref[src];start=1'>Off</A> <B>On</B>" : "<B>Off</B> <A href='?src=\ref[src];start=1'>On</A>"]<BR>

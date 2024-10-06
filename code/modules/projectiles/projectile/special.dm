@@ -48,7 +48,7 @@
 
 	var/obj/item/weapon/gun/energy/temperature/T = shot_from
 	if(istype(T))
-		temperature = T.temperature
+		temperature = T.temperature()
 	else
 		temperature = rand(100,600) //give it a random temp value if it's not fired from a temp gun
 

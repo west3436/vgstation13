@@ -16,7 +16,6 @@
 	icon_state = "table_parts"
 	starting_materials = list(MAT_IRON = 3750)
 	w_type = RECYK_METAL
-	melt_temperature=MELTPOINT_STEEL
 	flags = FPRINT
 	siemens_coefficient = 1
 	attack_verb = list("slams", "bashes", "batters", "bludgeons", "thrashes", "whacks")
@@ -89,7 +88,6 @@
 	icon_state = "reinf_tableparts"
 	starting_materials = list(MAT_IRON = 7500)
 	w_type = RECYK_METAL
-	melt_temperature=MELTPOINT_STEEL
 	flags = FPRINT
 	siemens_coefficient = 1
 	table_type = /obj/structure/table/reinforced
@@ -148,7 +146,6 @@
 	icon_state = "glass_tableparts"
 	starting_materials = list(MAT_GLASS = 3750)
 	w_type = RECYK_GLASS
-	melt_temperature=MELTPOINT_GLASS
 	flags = FPRINT
 	siemens_coefficient = 0 //copying from glass sheets and shards even if its bad balance
 	table_type = /obj/structure/table/glass
@@ -166,7 +163,6 @@
 	icon_state = "plasma_tableparts"
 	starting_materials = list(MAT_PLASMA = 3750)
 	w_type = RECYK_GLASS
-	melt_temperature=MELTPOINT_PLASMA
 	flags = FPRINT
 	siemens_coefficient = 0 //copying from glass sheets and shards even if its bad balance
 	table_type = /obj/structure/table/glass/plasma
@@ -212,7 +208,6 @@
 	siemens_coefficient = 1
 	starting_materials = list(MAT_IRON = 3750)
 	w_type = RECYK_METAL
-	melt_temperature=MELTPOINT_STEEL
 	var/sheet_amount = 1
 
 /obj/item/weapon/rack_parts/attackby(obj/item/weapon/W, mob/user)

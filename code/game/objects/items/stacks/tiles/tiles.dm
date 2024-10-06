@@ -76,7 +76,6 @@
 	force = 6.0
 	starting_materials = list(MAT_IRON = 937.5)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	throwforce = 10
 	throw_speed = 4
 	throw_range = 20
@@ -138,7 +137,7 @@
 /obj/item/stack/tile/metal/proc/build(turf/S as turf)
 	if(S.air)
 		var/datum/gas_mixture/GM = S.air
-		if(GM.pressure > HALF_ATM)
+		if(GM.pressure() > HALF_ATM)
 			S.ChangeTurf(/turf/simulated/floor/plating)
 			return
 	S.ChangeTurf(/turf/simulated/floor/plating/airless)
@@ -214,7 +213,7 @@
 		qdel(L)
 		if(S.air)
 			var/datum/gas_mixture/GM = S.air
-			if(GM.pressure > HALF_ATM)
+			if(GM.pressure() > HALF_ATM)
 				S.ChangeTurf(/turf/simulated/floor/glass)
 				return
 		S.ChangeTurf(/turf/simulated/floor/glass/airless)
@@ -234,7 +233,7 @@
 		qdel(L)
 		if(S.air)
 			var/datum/gas_mixture/GM = S.air
-			if(GM.pressure > HALF_ATM)
+			if(GM.pressure() > HALF_ATM)
 				S.ChangeTurf(/turf/simulated/floor/glass/plasma)
 				return
 		S.ChangeTurf(/turf/simulated/floor/glass/plasma/airless)
@@ -246,7 +245,6 @@
 	icon_state = "r_tile"
 	force = 9.0
 	starting_materials = list(MAT_IRON = 937.5, MAT_PLASMA = 937.5)
-	melt_temperature = MELTPOINT_PLASMA
 	throwforce = 15
 	sheet_type = /obj/item/stack/sheet/plasteel
 	material = "plasteel"

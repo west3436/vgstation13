@@ -142,7 +142,7 @@ Deuterium-tritium fusion: 4.5 x 10^7 K
 	//at minimum strength, 0.25% of the field volume is pulled in per update (?)
 	//have a max of 1000 moles suspended
 	if(held_plasma[GAS_PLASMA] < transfer_ratio * 1000)
-		var/moles_covered = environment.return_pressure()*volume_covered/(environment.temperature * R_IDEAL_GAS_EQUATION)
+		var/moles_covered = environment.return_pressure()*volume_covered/(environment.temperature() * R_IDEAL_GAS_EQUATION)
 //		to_chat(world, "<span class='notice'>moles_covered: [moles_covered]</span>")
 		//
 
@@ -153,7 +153,7 @@ Deuterium-tritium fusion: 4.5 x 10^7 K
 		var/datum/gas_mixture/gas_covered = environment.remove(min(moles_covered, environment.molar_density() * CELL_VOLUME))
 		var/datum/gas_mixture/plasma_captured = new()
 		//
-		plasma_captured.temperature = gas_covered.temperature
+		plasma_captured.temperature() = gas_covered.temperature()
 		plasma_captured.adjust_gas(GAS_PLASMA, round(gas_covered[GAS_PLASMA] * transfer_ratio))
 		//
 		gas_covered.subtract(plasma_captured)
@@ -177,7 +177,7 @@ Deuterium-tritium fusion: 4.5 x 10^7 K
 	if(mega_energy > 0 && held_plasma[GAS_PLASMA])
 		var/heat_capacity = held_plasma.heat_capacity()//200 * number of plasma moles
 		if(heat_capacity > 0.0003)	//formerly MINIMUM_HEAT_CAPACITY
-			held_plasma.temperature = (heat_capacity + mega_energy * 35000)/heat_capacity
+			held_plasma.temperature() = (heat_capacity + mega_energy * 35000)/heat_capacity
 
 	//if there is too much plasma in the field, lose some
 	/*if( held_plasma[GAS_PLASMA] > (MOLES_CELLSTANDARD * 7) * (50 / field_strength) )
@@ -188,7 +188,7 @@ Deuterium-tritium fusion: 4.5 x 10^7 K
 //		to_chat(world, "lost [loss_ratio*100]% of held plasma")
 		//
 		var/datum/gas_mixture/plasma_lost = new
-		plasma_lost.temperature = held_plasma.temperature
+		plasma_lost.temperature() = held_plasma.temperature()
 		//
 		plasma_lost.adjust_gas(GAS_PLASMA, held_plasma[GAS_PLASMA] * loss_ratio)
 		held_plasma.subtract(plasma_lost)

@@ -6,7 +6,6 @@
 	inhand_states = list("left_hand" = 'icons/mob/in-hand/left/surgery_tools.dmi', "right_hand" = 'icons/mob/in-hand/right/surgery_tools.dmi')
 	item_state = "retractor"
 	starting_materials = list(MAT_IRON = 10000, MAT_GLASS = 5000)
-	melt_temperature = MELTPOINT_STEEL
 	w_type = RECYK_METAL
 	flags = FPRINT
 	siemens_coefficient = 1

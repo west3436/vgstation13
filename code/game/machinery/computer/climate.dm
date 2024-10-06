@@ -32,7 +32,7 @@ var/list/climatecomps = list()
 		var/datum/climate/C = map.climate
 		if(istype(C.current_weather,/datum/weather/snow)) //This is a snowmap!
 			var/datum/weather/snow/S = C.current_weather
-			var/reported_temp = S.temperature - 273.15
+			var/reported_temp = S.temperature() - 273.15
 			var/reported_snow = S.snow_fluff_estimate
 			var/remaining_time = formatTimeDuration(C.current_weather.timeleft)
 			dat += "<b>Temperature:</b> <div class='line'>[reported_temp] Celcius</div>"

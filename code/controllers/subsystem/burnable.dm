@@ -1,5 +1,5 @@
 var/datum/subsystem/burnable/SSburnable
-var/list/zone/burnable_zones_processing = list()
+var/list/area/burnable_areas_processing = list()
 
 /datum/subsystem/burnable
 	name          = "Burnable"
@@ -14,20 +14,20 @@ var/list/zone/burnable_zones_processing = list()
 	NEW_SS_GLOBAL(SSburnable)
 
 /datum/subsystem/burnable/stat_entry()
-	..("P:[burnable_zones_processing.len]")
+	..("P:[burnable_areas_processing.len]")
 
 /datum/subsystem/burnable/fire(var/resumed = FALSE)
 	if(!resumed)
-		currentrun = burnable_zones_processing.Copy()
+		currentrun = burnable_areas_processing.Copy()
 
 	while(currentrun.len)
-		var/zone/Z = currentrun[currentrun.len]
+		var/area/A = currentrun[currentrun.len]
 		currentrun.len--
 
-		if(!Z || Z.gcDestroyed)
+		if(!A || A.gcDestroyed)
 			continue
 
-		Z.checkzoneburn()
+		A.checkzoneburn()
 
 		if (MC_TICK_CHECK)
 			break

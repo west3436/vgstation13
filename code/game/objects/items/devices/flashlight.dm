@@ -11,7 +11,6 @@
 	slot_flags = SLOT_BELT
 	starting_materials = list(MAT_IRON = 50, MAT_GLASS = 20)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_STEEL // Assuming big beefy fucking maglite.
 	actions_types = list(/datum/action/item_action/toggle_light)
 	flammable = TRUE
 	var/on = 0

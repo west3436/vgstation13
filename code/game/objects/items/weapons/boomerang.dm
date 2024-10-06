@@ -298,7 +298,6 @@
 	throw_impact_sound = 'sound/weapons/tap.ogg'
 
 	starting_materials = list(MAT_PLASTIC = 1200)
-	melt_temperature = MELTPOINT_PLASTIC
 	w_type = RECYK_PLASTIC
 
 //Castlevania, deals double damage to supernatural mobs
@@ -309,7 +308,6 @@
 	icon_state = "cross_modern"
 
 	starting_materials = list(MAT_SILVER = CC_PER_SHEET_SILVER * 16)
-	melt_temperature = MELTPOINT_SILVER
 	w_type = 0
 	luminosity = 2
 
@@ -383,7 +381,6 @@
 
 	w_type = RECYK_GLASS
 	starting_materials = list(MAT_GLASS = CC_PER_SHEET_GLASS/2)
-	melt_temperature = MELTPOINT_GLASS
 
 	var/obj/item/clothing/glasses/kaminaglasses/KG = null
 

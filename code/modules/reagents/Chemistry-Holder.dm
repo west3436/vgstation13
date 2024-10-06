@@ -1043,6 +1043,19 @@ trans_to_atmos(var/datum/gas_mixture/target, var/amount=1, var/multiplier=1, var
 		return
 	handle_reactions()
 
+// Very silly but simple way to atmospherically heat reagents.
+/datum/reagents/proc/temperature_reagents(exposed_temperature, divisor = 35, change_cap = 15)
+	//Do not manually change the reagent unless you know what youre doing.
+	var/difference = abs(chem_temp - exposed_temperature)
+	var/change = min(max((difference / divisor), 1), change_cap)
+	if(exposed_temperature > chem_temp)
+		chem_temp += change
+	else if(exposed_temperature < chem_temp)
+		chem_temp -= change
+
+	chem_temp = max(min(chem_temp, temperature_max), temperature_min) //Cap for the moment.
+	handle_reactions()
+
 /datum/reagents/proc/adjust_consumed_reagents_temp()
 	for(var/datum/reagent/R in reagent_list)
 		if (R.adj_temp != 0)//if the reagent already has a set adjust, we ignore its actual temperature
@@ -1183,7 +1196,7 @@ trans_to_atmos(var/datum/gas_mixture/target, var/amount=1, var/multiplier=1, var
 	if (!the_air)
 		return
 
-	if (!(abs(chem_temp - the_air.temperature) >= MINIMUM_TEMPERATURE_DELTA_TO_CONSIDER)) //Do it this way to catch NaNs.
+	if (!(abs(chem_temp - the_air.temperature()) >= MINIMUM_TEMPERATURE_DELTA_TO_CONSIDER)) //Do it this way to catch NaNs.
 		return
 
 	//We treat the reagents like a spherical grey body with an emissivity of THERM_DISS_SCALING_FACTOR.
@@ -1215,7 +1228,7 @@ trans_to_atmos(var/datum/gas_mixture/target, var/amount=1, var/multiplier=1, var
 		var/air_thermal_mass = the_air.heat_capacity()
 
 		var/Tr = chem_temp
-		var/Ta = the_air.temperature
+		var/Ta = the_air.temperature()
 
 		if (max(Tr, Ta) <= THERM_DISS_MAX_SAFE_TEMP)
 
@@ -1266,7 +1279,7 @@ trans_to_atmos(var/datum/gas_mixture/target, var/amount=1, var/multiplier=1, var
 			#undef REAGENTS_HOTTER
 			#undef AIR_HOTTER
 
-			the_air.temperature = Ta
+			the_air.temperature() = Ta
 			chem_temp = Tr
 
 		else //At extreme temperatures, we do a simpler calculation to avoid blowing out any values.
@@ -1279,14 +1292,14 @@ trans_to_atmos(var/datum/gas_mixture/target, var/amount=1, var/multiplier=1, var
 
 		temperature_equalization_unsimmed_air:
 		//If the air is unsimulated we consider the air to have infinite thermal mass so the equalization temperature is the air temperature.
-		chem_temp = the_air.temperature
+		chem_temp = the_air.temperature()
 
 		goto reactions_check
 
 		temperature_equalization_simmed_air:
 		//If the air is simulated we consider the thermal mass of the air.
-		chem_temp = (total_thermal_mass * chem_temp + air_thermal_mass * the_air.temperature) / (total_thermal_mass + air_thermal_mass) //Use the original values in case something went wrong.
-		the_air.temperature = chem_temp
+		chem_temp = (total_thermal_mass * chem_temp + air_thermal_mass * the_air.temperature()) / (total_thermal_mass + air_thermal_mass) //Use the original values in case something went wrong.
+		the_air.temperature() = chem_temp
 
 		reactions_check:
 		if(skip_flags & SKIP_RXN_CHECK_ON_HEATING)

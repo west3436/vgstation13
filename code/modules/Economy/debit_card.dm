@@ -6,7 +6,6 @@
 	desc = "A flimsy piece of plastic with cheap near field circuitry backed by digits representing funds in a bank account."
 	icon = 'icons/obj/card.dmi'
 	icon_state = "debit"
-	melt_temperature = MELTPOINT_PLASTIC
 	w_class = W_CLASS_TINY
 	starting_materials = list(MAT_PLASTIC = 10)
 	w_type = RECYK_PLASTIC
@@ -51,10 +50,6 @@
 			user.visible_message("<span class='warning'>\The [user] cuts \the [src] with \the [item], destroying it.</span>", "<span class='warning'>You destroy \the [src] with \the [item]</span>", "You hear plastic being cut.")
 			qdel(src)
 			return
-		else if(O.is_hot() >= melt_temperature)
-			user.visible_message("<span class='warning'>\The [user] melts \the [src] with \the [item], destroying it.</span>", "<span class='warning'>You destroy \the [src] with \the [item]</span>")
-			qdel(src)
-			return
 
 /obj/item/weapon/card/debit/trader
 	name = "\improper Trader Shoal debit card"
@@ -68,7 +63,6 @@
 	name = "\improper preferred debit card"
 	desc = "A sturdy looking metal card containing near field circuitry."
 	icon_state = "debit-preferred"
-	melt_temperature = MELTPOINT_STEEL
 	starting_materials = list(MAT_IRON = 10)
 	w_type = RECYK_METAL
 	flammable = FALSE

@@ -178,7 +178,6 @@
 	w_class = W_CLASS_MEDIUM
 	starting_materials = list(MAT_IRON = 10, MAT_GLASS = 10)
 	w_type = RECYK_MISC
-	melt_temperature = MELTPOINT_PLASTIC
 	attack_verb = list("strikes", "pistol whips", "hits", "bashes")
 	var/bullets = 7.0
 
@@ -231,7 +230,6 @@
 	siemens_coefficient = 1
 	w_class = W_CLASS_TINY
 	starting_materials = list(MAT_IRON = 10, MAT_GLASS = 10)
-	melt_temperature = MELTPOINT_PLASTIC
 	w_type = RECYK_MISC
 	var/amount_left = 7.0
 
@@ -1302,7 +1300,7 @@
 	if(!G)
 		B.air_contents = new /datum/gas_mixture()
 		B.air_contents.volume = volume //liters
-		B.air_contents.temperature = T20C
+		B.air_contents.temperature() = T20C
 		if(ishuman(user))
 			var/mob/living/carbon/human/H = user
 			var/datum/organ/internal/lungs/L = H.internal_organs_by_name["lungs"]
@@ -1315,7 +1313,7 @@
 		else
 			B.air_contents.adjust_gas(GAS_CARBON, 0.5)
 	else
-		var/moles = ONE_ATMOSPHERE*volume/(R_IDEAL_GAS_EQUATION*G.temperature)
+		var/moles = ONE_ATMOSPHERE*volume/(R_IDEAL_GAS_EQUATION*G.temperature())
 		B.air_contents = G.remove(moles)
 		B.air_contents.volume = volume
 		B.air_contents.update_values()

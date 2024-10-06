@@ -19,6 +19,18 @@ CONTRIBUTING TO VGSTATION
 
 It is also suggested that you hop into irc.rizon.net #vgstation to discuss your changes, or if you need help.
 
+## Modifying MILLA-vg
+
+Our atmos engine, MILLA-vg, is in the `milla/` directory. It's written in Rust for performance reasons, which means it's not compiled the same way as the rest of the code. If you're on Windows, you get a pre-built copy by default. If you're on Linux, you built one already to run the server.
+
+If you make changes to MILLA, you'll want to rebuild. This will be very similar to RUSTG:
+https://github.com/ParadiseSS13/rust-g
+The only difference is that you run `cargo` from the `milla/` directory, and don't need to speify `--all-features` (though it doesn't hurt).
+
+The server will automatically detect that you have a local build, and use that over the default Windows one.
+
+When you're ready to make a PR, please DO NOT modify `milla.dll` or `tools/ci/libmilla_ci.so`. Leave "Allow edits and access to secrets by maintainers" enabled, and post a comment on your PR saying `!build_milla`. A bot will automatically build them for you and update your branch.
+
 # Other considerations
 
 * If you're working with PNG and/or DMI files, you might want to check out and install the `pre-commit` git hook found [here](tools/git-hooks). This will automatically run `optipng` (if you have it) on your added/modified files, shaving off some bytes here and there.

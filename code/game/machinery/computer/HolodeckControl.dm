@@ -333,7 +333,7 @@
 						var/turf/T = get_turf(L)
 						spark(T, 2)
 						if(T)
-							T.temperature = 5000
+							T.temperature() = 5000
 							try_hotspot_expose(50000,FULL_FLAME,1)
 
 		active = 1
@@ -380,7 +380,7 @@
 					var/turf/T = get_turf(L)
 					spark(T, 2)
 					if(T)
-						T.temperature = 5000
+						T.temperature() = 5000
 						try_hotspot_expose(50000,FULL_FLAME,1)
 			if(L.name=="Holocarp Spawn")
 				new /mob/living/simple_animal/hostile/carp/holocarp(L.loc)

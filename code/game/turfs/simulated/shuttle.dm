@@ -4,7 +4,6 @@
 	icon = 'icons/turf/shuttle.dmi'
 	thermal_conductivity = 0.05
 	heat_capacity = 0
-	melt_temperature = 0 // Doesn't melt.
 	flags = INVULNERABLE
 	walltype = "swall"
 	hardness = 100 // nohulkz
@@ -148,7 +147,6 @@
 	thermal_conductivity = 0.05
 	heat_capacity = 0
 	soot_type = null
-	melt_temperature = 0 // Doesn't melt.
 	flags = INVULNERABLE
 
 /turf/simulated/floor/shuttle/attackby(obj/item/weapon/W as obj, mob/user as mob)

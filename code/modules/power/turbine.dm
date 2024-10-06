@@ -121,7 +121,7 @@
 	lastgen = ((compressor.rpm / TURBGENQ)**TURBGENG) *TURBGENQ
 
 	add_avail(lastgen)
-	var/newrpm = ((compressor.gas_contained.temperature) * compressor.gas_contained.total_moles())/4
+	var/newrpm = ((compressor.gas_contained.temperature()) * compressor.gas_contained.total_moles())/4
 	newrpm = max(0, newrpm)
 
 	if(!compressor.starter || newrpm > 1000)
@@ -264,7 +264,7 @@
 		\n<BR>
 		\nTurbine speed: [src.compressor.rpm]rpm<BR>
 		\nPower currently being generated: [src.compressor.turbine.lastgen]W<BR>
-		\nInternal gas temperature: [src.compressor.gas_contained.temperature]K<BR>
+		\nInternal gas temperature: [src.compressor.gas_contained.temperature()]K<BR>
 		\nVent doors: [ src.door_status ? "<A href='?src=\ref[src];doors=1'>Closed</A> <B>Open</B>" : "<B>Closed</B> <A href='?src=\ref[src];doors=1'>Open</A>"]
 		\n</PRE><HR><A href='?src=\ref[src];view=1'>View</A>
 		\n</PRE><HR><A href='?src=\ref[src];close=1'>Close</A>

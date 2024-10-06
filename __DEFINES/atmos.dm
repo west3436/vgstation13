@@ -49,7 +49,8 @@
 #define DOOR_HEAT_TRANSFER_COEFFICIENT 0.0
 #define SPACE_HEAT_TRANSFER_COEFFICIENT 0.2 //a hack to partly simulate radiative heat
 #define OPEN_HEAT_TRANSFER_COEFFICIENT 0.4
-#define WINDOW_HEAT_TRANSFER_COEFFICIENT 0.1 //a hack for now
+#define WINDOW_HEAT_TRANSFER_COEFFICIENT 0.001 //a hack for now
+#define ZERO_HEAT_TRANSFER_COEFFICIENT 0.0
 
 //Thermal dissipation
 #define THERM_DISS_SCALING_FACTOR (1/2) //Per tick thermally dissipated energy is scaled by this much.
@@ -91,10 +92,30 @@
 #define HEATPIPERATE 8					//heat-exch pipe insulation
 #define FLOWFRAC 0.99				// fraction of gas transfered per process
 
-#define BASE_ZAS_FUEL_REQ	0.1
-
 //Snowmap when?
 #define T_ARCTIC 223.65 //- 49.5 Celcius, taken from South Pole averages
 #define MOLES_ARCTICSTANDARD (ONE_ATMOSPHERE*CELL_VOLUME/(T_ARCTIC*R_IDEAL_GAS_EQUATION)) //Note : Open air tiles obviously aren't 2.5 meters in height, but abstracted for now with infinite atmos
 #define MOLES_O2STANDARD_ARCTIC MOLES_ARCTICSTANDARD*O2STANDARD	//O2 standard value (21%)
 #define MOLES_N2STANDARD_ARCTIC MOLES_ARCTICSTANDARD*N2STANDARD	//N2 standard value (79%)
+
+// From milla/src/lib.rs
+#define ATMOS_MODE_SPACE 0
+#define ATMOS_MODE_SEALED 1
+#define ATMOS_MODE_EXPOSED_TO_ENVIRONMENT 2
+
+// Temperate environment: Normal atmosphere, 20 C.
+#define ENVIRONMENT_TEMPERATE "temperate"
+// Cold environment: Normal atmosphere, -93 C.
+#define ENVIRONMENT_COLD "cold"
+
+// Atmos stuff that fucking terrifies me
+#define MILLA_SPAWN_HEAT 		(1<<0)
+#define MILLA_SPAWN_20C 		(1<<1)
+#define MILLA_SPAWN_TOXINS 		(1<<2)
+#define MILLA_SPAWN_OXYGEN 		(1<<3)
+#define MILLA_SPAWN_CO2 		(1<<4)
+#define MILLA_SPAWN_NITROGEN 	(1<<5)
+#define MILLA_SPAWN_N2O 		(1<<6)
+#define MILLA_SPAWN_AGENT_B 	(1<<7)
+#define MILLA_SPAWN_AIR 		(1<<8)
+#define MILLA_SPAWN_COLD 		(1<<9)

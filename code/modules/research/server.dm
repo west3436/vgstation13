@@ -56,7 +56,7 @@
 
 /obj/machinery/r_n_d/server/process()
 	var/datum/gas_mixture/environment = loc.return_air()
-	switch(environment.temperature)
+	switch(environment.temperature())
 		if(0 to T0C)
 			health = min(100, health + 1)
 		if(T0C to (T20C + 20))
@@ -118,7 +118,7 @@
 		var/turf/simulated/L = loc
 		if(istype(L))
 			var/datum/gas_mixture/env = L.return_air()
-			if(env.temperature < (heat_amt + T0C))
+			if(env.temperature() < (heat_amt + T0C))
 				env.add_thermal_energy(min(heating_power, env.get_thermal_energy_change(1000)))
 
 /obj/machinery/r_n_d/server/attack_hand(mob/user as mob)
@@ -341,7 +341,7 @@
 				A.anchored = 1
 				src.transfer_fingerprints_to(A)
 				qdel(src)
-	else 
+	else
 		return ..()
 
 /obj/machinery/computer/rdservercontrol/emag_act(mob/user)

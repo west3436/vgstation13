@@ -395,8 +395,6 @@ var/list/admin_verbs_mod = list(
 		///client/proc/kill_air_processing,
 		///client/proc/disable_communication,
 		///client/proc/disable_movement,
-		/client/proc/Zone_Info,
-		/client/proc/Test_ZAS_Connection,
 		/client/proc/SDQL2_query,
 		/client/proc/check_sim_unsim,
 		/client/proc/start_line_profiling,

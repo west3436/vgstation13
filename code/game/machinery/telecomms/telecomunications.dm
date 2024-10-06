@@ -254,8 +254,8 @@ var/global/list/obj/machinery/telecomms/telecomms_list = list()
 
 /obj/machinery/telecomms/proc/checkheat()
 	// Checks heat from the environment and applies any integrity damage
-	var/datum/gas_mixture/environment = loc.return_air()
-	if(environment.temperature > T20C + 20)
+	var/datum/gas_mixture/environment = loc.get_readonly_air()
+	if(environment.temperature() > T20C + 20)
 		set_integrity(get_integrity() - 1)
 		if(get_integrity() <= 0)
 			update_power()

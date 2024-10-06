@@ -22,7 +22,7 @@ var/obj/effect/plasticflaps_overlay/PO
 		PO = new
 	vis_contents.Add(PO)
 
-//Destruction ZAS sanity
+//Destruction MILLA sanity
 /obj/structure/plasticflaps/Destroy()
 	airtight = 0
 	update_nearby_tiles()

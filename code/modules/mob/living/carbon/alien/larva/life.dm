@@ -102,7 +102,7 @@
 			else if(istype(loc, /turf/))
 				/*if(environment.return_pressure() > ONE_ATMOSPHERE)
 					// Loads of air around (pressure effect will be handled elsewhere), so lets just take a enough to fill our lungs at normal atmos pressure (using n = Pv/RT)
-					breath_moles = (ONE_ATMOSPHERE*BREATH_VOLUME/R_IDEAL_GAS_EQUATION*environment.temperature)
+					breath_moles = (ONE_ATMOSPHERE*BREATH_VOLUME/R_IDEAL_GAS_EQUATION*environment.temperature())
 				else
 					*/
 					// Not enough air around, take a percentage of what's there to model this properly
@@ -176,7 +176,7 @@
 		GAS_PLASMA, -toxins_used,
 		GAS_OXYGEN, toxins_used)
 
-	if(breath.temperature > (T0C+66) && !(M_RESIST_HEAT in mutations)) // Hot air hurts :(
+	if(breath.temperature() > (T0C+66) && !(M_RESIST_HEAT in mutations)) // Hot air hurts :(
 		if(prob(20))
 			to_chat(src, "<span class='danger'>You feel a searing heat in your lungs !</span>")
 		fire_alert = max(fire_alert, 1)

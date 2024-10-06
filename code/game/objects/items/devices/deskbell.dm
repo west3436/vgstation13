@@ -16,7 +16,6 @@
 	hitsound = 'sound/machines/ding2.ogg'
 	starting_materials = list(MAT_IRON = 3750)
 	w_type = RECYK_METAL
-	melt_temperature=MELTPOINT_STEEL
 	anchored = 1
 	origin_tech = Tc_MATERIALS + "=1"
 
@@ -221,7 +220,6 @@
 	siemens_coefficient = 1
 	starting_materials = list(MAT_IRON = 3750)
 	w_type = RECYK_METAL
-	melt_temperature=MELTPOINT_STEEL
 
 	var/frequency = 1457
 	var/code = 0

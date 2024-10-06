@@ -12,6 +12,16 @@
 	var/datum/custom_painting/advanced_graffiti
 	var/image/advanced_graffiti_overlay
 
+	// Current gas overlay. Can be set to plasma or sleeping_gas
+	var/atmos_overlay_type = null
+
+	/// The active hotspot on this turf. The fact this is done through a literal object is painful
+	var/obj/effect/hotspot/active_hotspot
+
+	// If a fire is ongoing, how much fuel did we burn last tick?
+	// Value is not updated while below PLASMA_MINIMUM_BURN_TEMPERATURE.
+	var/fuel_burnt = 0
+
 /turf/simulated/proc/render_advanced_graffiti(var/mob/user)
 	if (!advanced_graffiti)
 		return FALSE
@@ -27,8 +37,6 @@
 	if(istype(loc, /area/chapel))
 		holy = 1
 	levelupdate()
-	if(flammable)
-		zone?.burnable_atoms |= src
 
 /turf/simulated/proc/AddTracks(var/typepath,var/bloodDNA,var/comingdir,var/goingdir,var/bloodcolor=DEFAULT_BLOOD,var/luminous=FALSE)
 	var/obj/effect/decal/cleanable/blood/tracks/tracks = locate(typepath) in src
@@ -111,3 +119,16 @@
 		this.blood_DNA["UNKNOWN BLOOD"] = "X*"
 	else if( istype(M, /mob/living/silicon/robot ))
 		new /obj/effect/decal/cleanable/blood/oil(src)
+
+/turf/simulated/post_change(ignore_air = FALSE)
+	..()
+	if(!ignore_air)
+		var/datum/milla_safe/turf_assimilate_air/milla = new()
+		milla.invoke_async(src)
+
+/datum/milla_safe/turf_cool
+
+/datum/milla_safe/turf_cool/on_run(turf/T, delta, divisor)
+	var/datum/gas_mixture/air = get_turf_air(T)
+	air.set_temperature(max(min(air.temperature()-delta * divisor,air.temperature() / divisor), TCMB))
+	air.react()

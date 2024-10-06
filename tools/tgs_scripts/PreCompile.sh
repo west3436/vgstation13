@@ -36,3 +36,9 @@ cd ..
 echo "Compiling tgui..."
 cd "$1"
 env TG_BOOTSTRAP_CACHE="$original_dir" TG_BOOTSTRAP_NODE_LINUX=1 CBT_BUILD_MODE="TGS" tools/bootstrap/node tools/build/build.js
+
+echo "Deploying MILLA-vg..."
+cd $1/milla-vg
+env PKG_CONFIG_ALLOW_CROSS=1 ~/.cargo/bin/cargo build --release --features all --target=i686-unknown-linux-gnu
+mv target/i686-unknown-linux-gnu/release/libmilla.so "$1/libmilla.so"
+cd ..

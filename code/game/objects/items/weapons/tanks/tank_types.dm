@@ -197,7 +197,7 @@
 /obj/item/weapon/tank/cryotheum/New()
 	. = ..()
 	air_contents.adjust_gas(GAS_CRYOTHEUM, (8 * ONE_ATMOSPHERE) * volume / (R_IDEAL_GAS_EQUATION * 253.15))
-	air_contents.temperature = 253.15
+	air_contents.temperature() = 253.15
 
 /obj/item/weapon/tank/cryotheum/empty/New()
 	..()

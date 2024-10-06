@@ -61,10 +61,10 @@
 			var/pressure_delta = target_pressure - environment.return_pressure()
 			//Can not have a pressure delta that would cause environment pressure > tank pressure
 
-			if(air_contents.temperature > 0)
-				var/required_moles = pressure_delta * environment.volume / (air_contents.temperature * R_IDEAL_GAS_EQUATION)
+			if(air_contents.temperature() > 0)
+				var/required_moles = pressure_delta * environment.volume / (air_contents.temperature() * R_IDEAL_GAS_EQUATION)
 				//cap flow rate at our throughput litres (at our internal air pressure) per tick
-				var/max_transferred_moles = air_contents.pressure * throughput / (air_contents.temperature * R_IDEAL_GAS_EQUATION)
+				var/max_transferred_moles = air_contents.pressure() * throughput / (air_contents.temperature() * R_IDEAL_GAS_EQUATION)
 				var/transfer_moles = min(required_moles, max_transferred_moles)
 
 				//Actually transfer the gas
@@ -78,8 +78,8 @@
 			var/pressure_delta = target_pressure - air_contents.return_pressure()
 			//Can not have a pressure delta that would cause environment pressure > tank pressure
 
-			if(environment.temperature > 0)
-				var/transfer_moles = pressure_delta * air_contents.volume / (environment.temperature * R_IDEAL_GAS_EQUATION)
+			if(environment.temperature() > 0)
+				var/transfer_moles = pressure_delta * air_contents.volume / (environment.temperature() * R_IDEAL_GAS_EQUATION)
 
 				//Actually transfer the gas
 				var/datum/gas_mixture/removed

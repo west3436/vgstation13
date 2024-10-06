@@ -37,6 +37,23 @@
 			line+=locate(px,py,M.z)
 	return line
 
+//Same as the thing below just for density and without support for atoms.
+/proc/can_line(atom/source, atom/target, length = 5)
+	var/turf/current = get_turf(source)
+	var/turf/target_turf = get_turf(target)
+	var/steps = 0
+
+	while(current != target_turf)
+		if(steps > length)
+			return FALSE
+		if(!current)
+			return FALSE
+		if(current.density)
+			return FALSE
+		current = get_step_towards(current, target_turf)
+		steps++
+	return TRUE
+
 //Returns whether or not a player is a guest using their ckey as an input
 /proc/IsGuestKey(key)
 	if (findtext(key, "Guest-", 1, 7) != 1) //was findtextEx
@@ -845,7 +862,8 @@
 					B.icon_state = old_icon_state
 					B.icon = old_icon
 
-					B.return_air().copy_from(T.return_air())
+					var/datum/milla_safe/area_move_transrer_gas/milla = new()
+					milla.invoke_async(T, B)
 
 					for(var/obj/O in T)
 						copiedobjs += O.DuplicateObject(B)
@@ -1636,3 +1654,8 @@ Game Mode config tags:
 		sleep(30)
 		for(var/turf/Q in .)
 			Q.color = null
+
+/datum/milla_safe/area_move_transrer_gas
+
+/datum/milla_safe/area_move_transrer_gas/on_run(turf/source, turf/target)
+	get_turf_air(target).copy_from(get_turf_air(source))

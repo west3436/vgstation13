@@ -185,7 +185,7 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 Oxygen : [env[GAS_OXYGEN]]
 Plasma : [env[GAS_PLASMA]]
 CO2: [env[GAS_CARBON]]
-Pressure: [env.pressure]"}
+Pressure: [env.pressure()]"}
 	usr.show_message(t, 1)
 	feedback_add_details("admin_verb","ASL") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
@@ -602,7 +602,7 @@ Pressure: [env.pressure]"}
 			if(!Rad.P)
 				var/obj/item/weapon/tank/plasma/Plasma = new/obj/item/weapon/tank/plasma(Rad)
 				Plasma.air_contents[GAS_PLASMA] = 100 //Don't need to explain, space magic
-				Plasma.air_contents.temperature = 73.15 //Perfect freezer cooling
+				Plasma.air_contents.temperature() = 73.15 //Perfect freezer cooling
 				Plasma.air_contents.update_values()
 				Rad.drain_ratio = 0
 				Rad.P = Plasma

@@ -206,18 +206,6 @@ var/global/list/ghdel_profiling = list()
 	QDEL_NULL(firelightdummy)
 	..()
 
-/atom/proc/assume_air(datum/gas_mixture/giver)
-	return null
-
-/atom/proc/remove_air(amount)
-	return null
-
-/atom/proc/return_air()
-	if(loc)
-		return loc.return_air()
-	else
-		return null
-
 /atom/proc/check_eye(user as mob)
 	if (istype(user, /mob/living/silicon/ai)) // WHYYYY
 		return 1

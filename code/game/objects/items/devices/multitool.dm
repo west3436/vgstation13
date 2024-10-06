@@ -22,7 +22,6 @@
 	attack_delay			= 5
 	starting_materials		= list(MAT_IRON = 50, MAT_GLASS = 20)
 	w_type					= RECYK_ELECTRONIC
-	melt_temperature		= MELTPOINT_SILICON
 	origin_tech				= Tc_MAGNETS + "=1;" + Tc_ENGINEERING + "=1"
 	// VG: We dun changed dis so we can link simple machines. - N3X
 	var/datum/weakref/buffer // simple machine buffer for device linkage

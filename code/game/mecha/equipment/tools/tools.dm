@@ -391,9 +391,6 @@
 										M.extinguish()
 									if(atm.on_fire) // For extinguishing objects on fire
 										atm.extinguish()
-									if(atm.molten) // Molten shit.
-										atm.molten=0
-										atm.solidify()
 
 							var/obj/effect/foam/fire/F = locate() in oldturf
 							if(!istype(F) && oldturf != get_turf(src))
@@ -1241,12 +1238,12 @@
 		return
 	var/datum/gas_mixture/GM = new
 	if(prob(10))
-		GM.temperature = 1500+T0C //should be enough to start a fire
+		GM.temperature() = 1500+T0C //should be enough to start a fire
 		GM.adjust_gas(GAS_PLASMA, 100)
 		T.visible_message("The [src] suddenly disgorges a cloud of heated plasma.")
 		qdel(src)
 	else
-		GM.temperature = istype(T) ? T.air.temperature : T20C
+		GM.temperature() = istype(T) ? T.air.temperature() : T20C
 		GM.adjust_gas(GAS_PLASMA, 5)
 		T.visible_message("The [src] suddenly disgorges a cloud of plasma.")
 	T.assume_air(GM)
@@ -1535,7 +1532,7 @@
 	playsound(T, 'sound/weapons/Genhit.ogg', 50, 1)
 	if(T.air)
 		var/datum/gas_mixture/GM = T.air
-		if(GM.pressure > HALF_ATM)
+		if(GM.pressure() > HALF_ATM)
 			T.ChangeTurf(/turf/simulated/floor/plating)
 			return
 	T.ChangeTurf(/turf/simulated/floor/plating/airless)

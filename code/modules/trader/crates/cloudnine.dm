@@ -181,7 +181,6 @@ var/global/list/cloudnine_stuff = list(
 	req_access = list(access_engine_minor)
 	var/mode = OMNIMODE_TOOL
 	w_type = RECYK_ELECTRONIC
-	flammable = TRUE
 
 /obj/item/device/multitool/omnitool/attack_self(mob/user)
 	mode = !mode
@@ -308,8 +307,8 @@ var/list/omnitoolable = list(/obj/machinery/alarm,/obj/machinery/power/apc)
 				for(var/obj/effect/fire/F in T)
 					F.Extinguish()
 		removed = air_contents.remove_volume(20 * CELL_VOLUME)
-		if(removed && removed.temperature > T20C)
-			removed.temperature = T20C
+		if(removed && removed.temperature() > T20C)
+			removed.temperature() = T20C
 
 	else
 		if(!removed)

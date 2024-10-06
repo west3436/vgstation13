@@ -1022,7 +1022,7 @@
 			if(!can_move_shuttle())
 				continue
 
-			sleep(50)	//everyone is off, wait 5 more seconds so people don't get ZAS'd out the airlock
+			sleep(50)	//everyone is off, wait 5 more seconds so people don't get MILLA'd out the airlock
 			if(!can_move_shuttle())
 				continue
 			if(!transport_shuttle.move_to_dock(centcomdock))

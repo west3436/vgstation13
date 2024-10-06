@@ -18,7 +18,6 @@
 	item_state = "shard-glassnew"
 	starting_materials = list(MAT_GLASS = 3750)
 	w_type = RECYK_GLASS
-	melt_temperature = MELTPOINT_GLASS
 	siemens_coefficient = 0 //no conduct
 	attack_verb = list("stabs", "slashes", "slices", "cuts")
 	var/glass = /obj/item/stack/sheet/glass/glass
@@ -65,7 +64,6 @@
 	desc = "A bunch of tiny bits of shattered metal."
 	starting_materials = list(MAT_IRON = 5)
 	w_type=RECYK_METAL
-	melt_temperature=MELTPOINT_STEEL
 	glass = /obj/item/stack/sheet/metal
 
 /obj/item/weapon/shard/shrapnel/New()

@@ -264,10 +264,10 @@
 		// Heat output
 		var/datum/gas_mixture/env = loc?.return_air()
 		if(istype(env) && heating_power)
-			if(env.temperature != MAX_TEMP + T0C)
+			if(env.temperature() != MAX_TEMP + T0C)
 				var/energy_to_add
 
-				if(env.temperature < MAX_TEMP + T0C)
+				if(env.temperature() < MAX_TEMP + T0C)
 					energy_to_add = min(heating_power, env.get_thermal_energy_change(1000)) //Added min() check to try and avoid wacky superheating issues in low gas scenarios -- TLE
 				else
 					energy_to_add = -heating_power //add_thermal_energy() automatically prevents the temperature from falling below TCMB, so a similar check here is unnecessary.
@@ -276,7 +276,7 @@
 
 	// Checks heat from the environment and applies any integrity damage
 	var/datum/gas_mixture/environment = loc.return_air()
-	if(environment.temperature > (T20C + 20))
+	if(environment.temperature() > (T20C + 20))
 		lose_integrity(1)
 
 /obj/machinery/media/transmitter/broadcast/linkWith(var/mob/user, var/obj/O, var/list/context)

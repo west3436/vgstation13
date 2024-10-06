@@ -51,7 +51,7 @@
 /obj/item/stack/tile/wood/proc/build(turf/S as turf)
 	if(S.air)
 		var/datum/gas_mixture/GM = S.air
-		if(GM.pressure > HALF_ATM)
+		if(GM.pressure() > HALF_ATM)
 			S.ChangeTurf(/turf/simulated/floor/plating/deck)
 			return
 	S.ChangeTurf(/turf/simulated/floor/plating/deck/airless)

@@ -4,7 +4,6 @@
 	icon = 'icons/obj/stock_parts.dmi'
 	w_class = W_CLASS_SMALL
 	var/rating = 1
-	melt_temperature = MELTPOINT_STEEL
 
 /obj/item/weapon/stock_parts/New()
 	. = ..()

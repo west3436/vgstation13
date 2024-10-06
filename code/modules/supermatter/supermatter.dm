@@ -306,7 +306,7 @@
 		return 1
 
 	damage_archived = damage
-	damage = max( damage + ( (removed.temperature - 800) / 150 ) , 0 )
+	damage = max( damage + ( (removed.temperature() - 800) / 150 ) , 0 )
 	//Ok, 100% oxygen atmosphere = best reaction
 	//Maxes out at 100% oxygen pressure
 	oxygen = clamp((removed[GAS_OXYGEN] - removed[GAS_NITROGEN] * NITROGEN_RETARDATION_FACTOR) / MOLES_CELLSTANDARD, 0, 1) //0 unless O2>80%. At 99%, ~0.6
@@ -321,11 +321,11 @@
 		temp_factor = 60
 		icon_state = base_icon_state
 
-	power = max( (removed.temperature * temp_factor / T0C) * oxygen + power, 0) //Total laser power plus an overload
+	power = max( (removed.temperature() * temp_factor / T0C) * oxygen + power, 0) //Total laser power plus an overload
 
 	//We've generated power, now let's transfer it to the collectors for storing/usage
 	transfer_energy()
-	last_data["temperature"] = removed.temperature
+	last_data["temperature"] = removed.temperature()
 	last_data["oxygen"] = oxygen
 
 	var/device_energy = power * REACTION_POWER_MODIFIER
@@ -337,14 +337,14 @@
 
 	//Also keep in mind we are only adding this temperature to (efficiency)% of the one tile the rock
 	//is on. An increase of 4*C @ 25% efficiency here results in an increase of 1*C / (#tilesincore) overall.
-	removed.temperature += (device_energy / THERMAL_RELEASE_MODIFIER)
+	removed.temperature() += (device_energy / THERMAL_RELEASE_MODIFIER)
 
-	removed.temperature = max(0, min(removed.temperature, 2500))
+	removed.temperature() = max(0, min(removed.temperature(), 2500))
 
 	//Calculate how much gas to release
 	removed.adjust_multi(
 		GAS_PLASMA, max(device_energy / PLASMA_RELEASE_MODIFIER, 0),
-		GAS_OXYGEN, max((device_energy + removed.temperature - T0C) / OXYGEN_RELEASE_MODIFIER, 0))
+		GAS_OXYGEN, max((device_energy + removed.temperature() - T0C) / OXYGEN_RELEASE_MODIFIER, 0))
 
 	env.merge(removed)
 

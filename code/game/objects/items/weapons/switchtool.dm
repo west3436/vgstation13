@@ -17,7 +17,6 @@
 	throw_range = 6
 	starting_materials = list(MAT_IRON = 15000)
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	origin_tech = Tc_MATERIALS + "=5;" + Tc_BLUESPACE + "=3"
 	var/hmodule = null
 	var/index = 0

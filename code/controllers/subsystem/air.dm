@@ -1,63 +1,15 @@
-#define SSAIR_TILES     1
-#define SSAIR_DEFERRED  2
-#define SSAIR_EDGES     3
-//#define SSAIR_FIRE_ZONE 4 //This involves behavior to be added in a future PR.
-#define SSAIR_HOTSPOT   4 //These two should each be increased by one once that one is uncommented.
-#define SSAIR_ZONE      5 //These two should each be increased by one once that one is uncommented.
-
-#define SSAIR_FIRST_PART SSAIR_TILES //The first part to be processed.
-#define SSAIR_LAST_PART  SSAIR_ZONE  //The last part to be processed.
-
-#define SSAIR_PROCESS_KEEP SSAIR_EDGES, SSAIR_HOTSPOT //The lists for these parts are kept between ticks. Any parts not included here are wiped each tick.
+#define SSAIR_DEFERREDPIPENETS 1
+#define SSAIR_PIPENETS 2
+#define SSAIR_ATMOSMACHINERY 3
+#define SSAIR_INTERESTING_TILES 4
+#define SSAIR_HOTSPOTS 5
+#define SSAIR_BOUND_MIXTURES 6
+#define SSAIR_MILLA_TICK 7
 
 var/datum/subsystem/air/SSair
-var/tick_multiplier = 2
 
-/*
-Overview:
-	The air controller does everything. There are tons of procs in here.
-Class Vars:
-	zones - All zones currently holding one or more turfs.
-	edges - All processing edges.
-	processing_parts[SSAIR_TILES] - Tiles scheduled to update next tick.
-	processing_parts[SSAIR_ZONE] - Zones which have had their air changed and need air archival.
-	processing_parts[SSAIR_HOTSPOT] - All processing fire objects.
-	active_zones - The number of zones which were archived last tick. Used in debug verbs.
-	next_id - The next UID to be applied to a zone. Mostly useful for debugging purposes as zones do not need UIDs to function.
-Class Procs:
-	mark_for_update(turf/T)
-		Adds the turf to the update list. When updated, update_air_properties() will be called.
-		When stuff changes that might affect airflow, call this. It's basically the only thing you need.
-	add_zone(zone/Z) and remove_zone(zone/Z)
-		Adds zones to the zones list. Does not mark them for update.
-	air_blocked(turf/A, turf/B)
-		Returns a bitflag consisting of:
-		AIR_BLOCKED - The connection between turfs is physically blocked. No air can pass.
-		ZONE_BLOCKED - There is a door between the turfs, so zones cannot cross. Air may or may not be permeable.
-	has_valid_zone(turf/T)
-		Checks the presence and validity of T's zone.
-		May be called on unsimulated turfs, returning 0.
-	merge(zone/A, zone/B)
-		Called when zones have a direct connection and equivalent pressure and temperature.
-		Merges the zones to create a single zone.
-	connect(turf/simulated/A, turf/B)
-		Called by turf/update_air_properties(). The first argument must be simulated.
-		Creates a connection between A and B.
-	mark_zone_update(zone/Z)
-		Adds zone to the update list. Unlike mark_for_update(), this one is called automatically whenever
-		air is returned from a simulated turf.
-	equivalent_pressure(zone/A, zone/B)
-		Currently identical to A.air.compare(B.air). Returns 1 when directly connected zones are ready to be merged.
-	get_edge(zone/A, zone/B)
-	get_edge(zone/A, turf/B)
-		Gets a valid connection_edge between A and B, creating a new one if necessary.
-	has_same_air(turf/A, turf/B)
-		Used to determine if an unsimulated edge represents a specific turf.
-		Simulated edges use connection_edge/contains_zone() for the same purpose.
-		Returns 1 if A has identical gases and temperature to B.
-	remove_edge(connection_edge/edge)
-		Called when an edge is erased. Removes it from processing.
-*/
+var/obj/effect/overlay/plmaster
+var/obj/effect/overlay/slmaster
 
 /datum/subsystem/air
 	name          = "Air"
@@ -66,364 +18,550 @@ Class Procs:
 	wait          = 2 SECONDS
 	display_order = SS_DISPLAY_AIR
 
-	var/list/currentrun
-	var/currentpart = SSAIR_TILES
+	/// How long we took for a full pass through the subsystem. Custom-tracked version of `cost`.
+	var/datum/resumable_cost_counter/cost_full = new()
+	/// How long we spent sleeping while waiting for MILLA to finish the last tick, shown in SS Info's C block as ZZZ.
+	var/datum/resumable_cost_counter/time_slept = new()
+	/// The cost of a pass through bound gas mixtures, shown in SS Info's C block as BM.
+	var/datum/resumable_cost_counter/cost_bound_mixtures = new()
+	/// The cost of a MILLA tick in ms, shown in SS Info's C block as MT.
+	var/cost_milla_tick = 0
+	/// The cost of a pass through interesting tiles, shown in SS Info's C block as IT.
+	var/datum/resumable_cost_counter/cost_interesting_tiles = new()
+	/// The cost of a pass through hotspots, shown in SS Info's C block as HS.
+	var/datum/resumable_cost_counter/cost_hotspots = new()
+	/// The cost of a pass through pipenets, shown in SS Info's C block as PN.
+	var/datum/resumable_cost_counter/cost_pipenets = new()
+	/// The cost of a pass through building pipenets, shown in SS Info's C block as DPN.
+	var/datum/resumable_cost_counter/cost_pipenets_to_build = new()
+	/// The cost of a pass through atmos machinery, shown in SS Info's C block as AM.
+	var/datum/resumable_cost_counter/cost_atmos_machinery = new()
 
-	var/list/cost_parts = list(SSAIR_TILES     = 0,\
-	                           SSAIR_DEFERRED  = 0,\
-	                           SSAIR_EDGES     = 0,\
-/*	                           SSAIR_FIRE_ZONE = 0,*/\
-	                           SSAIR_HOTSPOT   = 0,\
-	                           SSAIR_ZONE      = 0)
+	/// The set of current bound mixtures. Shown in SS Info as BM:x+y, where x is the length at the start of the most recent processing, and y is the number of mixtures that have been added during processing.
+	var/list/bound_mixtures = list()
+	/// The original length of bound_mixtures.
+	var/original_bound_mixtures = 0
+	/// The number of bound mixtures we saw when we last stopped processing them.
+	var/last_bound_mixtures = 0
+	/// The number of bound mixtures that were added during this processing cycle.
+	var/added_bound_mixtures = 0
+	/// The length of the most recent interesting tiles list, shown in SS Info as IT.
+	var/interesting_tile_count = 0
+	/// The set of current active hotspots. Length shown in SS Info as HS.
+	var/list/hotspots = list()
+	/// The set of pipenets that need to be built. Length shown in SS Info as PTB.
+	var/list/pipenets_to_build = list()
+	/// The set of active pipenets. Length shown in SS Info as PN.
+	var/list/pipenets = list()
+	/// The set of active atmos machinery. Length shown in SS Info as AM.
+	var/list/atmos_machinery = list()
+	/// A list of atmos machinery to set up in Initialize.
+	var/list/machinery_to_construct = list()
 
-	var/list/zones = list()
-	var/list/edges = list()
+	/// An arbitrary list of stuff currently being processed.
+	var/list/currentrun = list()
 
-	//Geometry process lists
-	var/list/processing_parts = list(SSAIR_TILES     = list(),\
-	                                 SSAIR_DEFERRED  = list(),\
-	                                 SSAIR_EDGES     = list(),\
-/*	                                 SSAIR_FIRE_ZONE = list(),*/\
-	                                 SSAIR_HOTSPOT   = list(),\
-	                                 SSAIR_ZONE      = list())
+	/// Which step we're currently on, used to let us resume if our time budget elapses.
+	var/currentpart = SSAIR_DEFERREDPIPENETS
 
-	var/active_zones = 0
+	/// Is MILLA currently in synchronous mode? TRUE if data is fresh and changes can be made, FALSE if data is from last tick and changes cannot be made (because this tick is still processing).
+	var/is_synchronous = TRUE
 
-	var/current_cycle = 0
-	var/update_delay = 5 //How long between check should it try to process atmos again.
-	var/failed_ticks = 0 //How many ticks have runtimed?
+	/// Are we currently running in a MILLA-safe context, i.e. is is_synchronous *guaranteed* to be TRUE. Nothing outside of this file should change this.
+	VAR_PRIVATE/in_milla_safe_code = FALSE
 
-	var/next_id = 1 //Used to keep track of zone UIDs.
+	/// When did we start the last MILLA tick?
+	var/milla_tick_start = null
 
+	/// Is MILLA (and hence SSair) reliably healthy?
+	var/healthy = TRUE
 
+	/// When was MILLA last seen unhealthy?
+	var/last_unhealthy = 0
 
-/datum/subsystem/air/New()
-	NEW_SS_GLOBAL(SSair)
+	/// A list of callbacks waiting for MILLA to finish its tick and enter synchronous mode.
+	var/list/waiting_for_sync = list()
 
+/// A cost counter for resumable, repeating processes.
+/datum/resumable_cost_counter
+	var/last_complete_ms = 0
+	var/ongoing_ms = 0
+
+/// Updates the counter based on the time spent making progress and whether we finished the task.
+/datum/resumable_cost_counter/proc/record_progress(cost_ms, finished)
+	if(finished)
+		last_complete_ms = ongoing_ms + cost_ms
+		ongoing_ms = 0
+	else
+		ongoing_ms += cost_ms
+
+/// Gets a display string for this cost counter.
+/datum/resumable_cost_counter/proc/to_string()
+	if(ongoing_ms > last_complete_ms)
+		// We're in the middle of a task that's already longer than the prior one took in total, report the in-progress time instead, but mark that it's still incomplete with a +
+		return "[round(ongoing_ms, 1)]+"
+	return "[round(last_complete_ms, 1)]"
+
+/datum/subsystem/air/get_cost()
+	return cost_full.to_string()
 
 /datum/subsystem/air/stat_entry(msg)
-	var/list/p_tiles = processing_parts[SSAIR_TILES]
-	var/list/p_zone = processing_parts[SSAIR_ZONE]
-//	var/list/p_fire_zone = processing_parts[SSAIR_FIRE_ZONE]
-	var/list/p_hotspot = processing_parts[SSAIR_HOTSPOT]
-	var/list/p_edges = processing_parts[SSAIR_EDGES]
+	var/list/msg = list()
+	msg += "C:{"
+	msg += "ZZZ:[time_slept.to_string()]|"
+	msg += "BM:[cost_bound_mixtures.to_string()]|"
+	msg += "MT:[round(cost_milla_tick,1)]|"
+	msg += "IT:[cost_interesting_tiles.to_string()]|"
+	msg += "HS:[cost_hotspots.to_string()]|"
+	msg += "PN:[cost_pipenets.to_string()]|"
+	msg += "PTB:[cost_pipenets_to_build.to_string()]|"
+	msg += "AM:[cost_atmos_machinery.to_string()]"
+	msg += "} "
+	msg += "BM:[original_bound_mixtures]+[added_bound_mixtures]|"
+	msg += "IT:[interesting_tile_count]|"
+	msg += "HS:[length(hotspots)]|"
+	msg += "PN:[length(pipenets)]|"
+	msg += "AM:[length(atmos_machinery)]|"
+	return msg.Join("")
 
-	msg += "C:{\
-	        T:[round(cost_parts[SSAIR_TILES], 1)]|\
-	        D:[round(cost_parts[SSAIR_DEFERRED], 1)]|\
-	        E:[round(cost_parts[SSAIR_EDGES], 1)]|\
-"/*	        F:[round(cost_parts[SSAIR_FIRE_ZONE], 1)]|*/+"\
-	        H:[round(cost_parts[SSAIR_HOTSPOT], 1)]|\
-	        Z:[round(cost_parts[SSAIR_ZONE], 1)]|\
-	        } T:{\
-	        Z:[zones.len]|\
-	        E:[edges.len]\
-	        } \
-	        T:[p_tiles.len]|\
-	        Z:[p_zone.len]|\
-"/*	        F:[p_fire_zone.len]|*/+"\
-	        H:[p_hotspot.len]|\
-	        E:[p_edges.len]|\
-	        A:[active_zones]"
-	..(msg) //Note to self: Don't fuck that up when uncommenting after adding fire zones
+/datum/subsystem/air/Initialize()
+	in_milla_safe_code = TRUE
 
+	setup_overlays() // Assign icons and such for gas-turf-overlays
+	setup_allturfs()
+	setup_write_to_milla()
+	setup_atmos_machinery(machines)
+	setup_pipenets(machines)
+	for(var/obj/machinery/atmospherics/A in machinery_to_construct)
+		A.initialize_atmos_network()
 
-/datum/subsystem/air/Initialize(timeofday)
-	#ifndef ZASDBG
-	set background = 1 //The for loop later is sufficiently long to trip BYOND's infinite loop detection.
-	#endif
+	in_milla_safe_code = FALSE
 
-	to_chat(world, "<span class='danger'>Processing Geometry...</span>")
-	sleep(-1)
+/datum/subsystem/air/fire(resumed = 0)
+	// All atmos stuff assumes MILLA is synchronous. Ensure it actually is.
+	if(!is_synchronous)
+		var/timer = TICK_USAGE_REAL
 
-	var/simulated_turf_count = 0
+		while(!is_synchronous)
+			// Sleep for 1ms.
+			sleep(0.01)
+			if(MC_TICK_CHECK)
+				time_slept.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+				cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+				return
 
-	for(var/turf/simulated/S in world)
-		simulated_turf_count++
-		S.update_air_properties()
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+		time_slept.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), TRUE)
 
-	to_chat(world, {"<span class='info'>Total Simulated Turfs: [simulated_turf_count]
-Total Zones: [zones.len]
-Total Edges: [edges.len]
-Total Active Edges: [length(processing_parts[SSAIR_EDGES]) ? "<span class='danger'>[length(processing_parts[SSAIR_EDGES])]</span>" : "None"]
-Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_count]</span>"})
+	fire_sleepless(resumed)
 
-	..()
+/datum/subsystem/air/proc/fire_sleepless(resumed)
+	// Any proc that wants MILLA to be synchronous should not sleep.
+	//SHOULD_NOT_SLEEP(TRUE)
+	in_milla_safe_code = TRUE
+	var/timer = TICK_USAGE_REAL
 
+	if(currentpart == SSAIR_DEFERREDPIPENETS || !resumed)
+		timer = TICK_USAGE_REAL
 
-/datum/subsystem/air/fire(resumed = FALSE)
-	if (!resumed)
-		current_cycle++
-		currentpart = SSAIR_FIRST_PART
+		build_pipenets(resumed)
 
-	var/timer
+		cost_pipenets_to_build.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), state != SS_PAUSED && state != SS_PAUSING)
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+		if(state == SS_PAUSED || state == SS_PAUSING)
+			in_milla_safe_code = FALSE
+			return
+		resumed = 0
+		currentpart = SSAIR_PIPENETS
 
-	while(currentpart <= SSAIR_LAST_PART)
-		timer = world.tick_usage
+	if(currentpart == SSAIR_PIPENETS || !resumed)
+		timer = TICK_USAGE_REAL
 
-		if(!resumed)
-			currentrun = processing_parts[currentpart]
-			switch(currentpart)
-				if(SSAIR_PROCESS_KEEP)
-					currentrun = currentrun.Copy()
+		process_pipenets(resumed)
 
-		process_part(currentpart)
+		cost_pipenets.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), state != SS_PAUSED && state != SS_PAUSING)
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+		if(state == SS_PAUSED || state == SS_PAUSING)
+			in_milla_safe_code = FALSE
+			return
+		resumed = 0
+		currentpart = SSAIR_ATMOSMACHINERY
 
-		cost_parts[currentpart] = MC_AVERAGE(cost_parts[currentpart], TICK_DELTA_TO_MS(world.tick_usage - timer))
+	if(currentpart == SSAIR_ATMOSMACHINERY)
+		timer = TICK_USAGE_REAL
 
-		if(state != SS_RUNNING)
+		process_atmos_machinery(resumed)
+		cost_atmos_machinery.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), state != SS_PAUSED && state != SS_PAUSING)
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+		if(state == SS_PAUSED || state == SS_PAUSING)
+			in_milla_safe_code = FALSE
+			return
+		resumed = 0
+
+	if(currentpart == SSAIR_INTERESTING_TILES)
+		timer = TICK_USAGE_REAL
+		process_interesting_tiles(resumed)
+
+		cost_interesting_tiles.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), state != SS_PAUSED && state != SS_PAUSING)
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+		if(state == SS_PAUSED || state == SS_PAUSING)
+			in_milla_safe_code = FALSE
+			return
+		resumed = 0
+		currentpart = SSAIR_HOTSPOTS
+
+	if(currentpart == SSAIR_HOTSPOTS)
+		timer = TICK_USAGE_REAL
+
+		process_hotspots(resumed)
+
+		cost_hotspots.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), state != SS_PAUSED && state != SS_PAUSING)
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+		if(state == SS_PAUSED || state == SS_PAUSING)
+			in_milla_safe_code = FALSE
+			return
+		resumed = 0
+		currentpart = SSAIR_BOUND_MIXTURES
+
+	if(currentpart == SSAIR_BOUND_MIXTURES)
+		timer = TICK_USAGE_REAL
+
+		process_bound_mixtures(resumed)
+
+		cost_bound_mixtures.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), state != SS_PAUSED && state != SS_PAUSING)
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), FALSE)
+		if(state == SS_PAUSED || state == SS_PAUSING)
+			in_milla_safe_code = FALSE
+			return
+		resumed = 0
+		currentpart = SSAIR_MILLA_TICK
+
+	if(currentpart == SSAIR_MILLA_TICK)
+		timer = TICK_USAGE_REAL
+
+		spawn_milla_tick_thread()
+		is_synchronous = FALSE
+
+		cost_milla_tick = MC_AVERAGE(cost_milla_tick, get_milla_tick_time())
+		cost_full.record_progress(TICK_DELTA_TO_MS(TICK_USAGE_REAL - timer), state != SS_PAUSED && state != SS_PAUSING)
+		if(state == SS_PAUSED || state == SS_PAUSING)
+			in_milla_safe_code = FALSE
+			return
+		resumed = 0
+
+	currentpart = SSAIR_DEFERREDPIPENETS
+	in_milla_safe_code = FALSE
+
+/datum/subsystem/air/proc/build_pipenets(resumed = 0)
+	if(!resumed)
+		src.currentrun = pipenets_to_build.Copy()
+	//cache for sanic speed (lists are references anyways)
+	var/list/currentrun = src.currentrun
+	while(length(currentrun))
+		var/obj/machinery/atmospherics/A = currentrun[length(currentrun)]
+		currentrun.len--
+		if(A)
+			A.build_network(remove_deferral = TRUE)
+		else
+			pipenets_to_build.Remove(A)
+		if(MC_TICK_CHECK)
 			return
 
-		resumed = FALSE
-		currentpart++
-
-/datum/subsystem/air/proc/process_part(part = currentpart) //This whole proc is pretty disgusting, but I don't want to fuck EVERYTHING up at the same time. Rewrite later, maybe.
-	var/list/currentrun = src.currentrun //Accessing a proc var is faster than acccessing an object var. In the unlikely event Lummox ever fixes this, delete this line.
-
-	#define LOOP_DECLARATION(iter_type, iterator) var/iter_type/iterator; while(currentrun.len && !(MC_TICK_CHECK) && (iterator = currentrun[currentrun.len]) && currentrun.len--)
-		//The loop declaration is a macro so it can be duplicated without just copying+pasting. This removes the need for the following switch() to be evaluated every iteration.
-		//It's a huge mess in order to have all the checks and list manipulation built in. It's a bit slower than it would be if it were just copypasted due to the extra &&s, but only a bit.
-
-	switch(part)
-		if(SSAIR_TILES)
-			LOOP_DECLARATION(turf, T)
-				if(T.c_airblock(T) == ZONE_BLOCKED) //== instead of & because if it's also AIR_BLOCKED, it doesn't need to be deferred since it's just going to rebuild the zone.
-					processing_parts[SSAIR_DEFERRED] += T
-					continue
-
-				T.update_air_properties()
-				T.post_update_air_properties()
-				T.needs_air_update = 0
-				#ifdef ZASDBG
-				T.overlays -= mark
-				updated++
-				#endif
-				//sleep(1)
-
-		if(SSAIR_DEFERRED)
-			LOOP_DECLARATION(turf, T)
-				T.update_air_properties()
-				T.post_update_air_properties()
-				T.needs_air_update = 0
-				#ifdef ZASDBG
-				T.overlays -= mark
-				updated++
-				#endif
-
-		if(SSAIR_EDGES)
-			LOOP_DECLARATION(connection_edge, edge)
-				edge.tick()
-
-//		if(SSAIR_FIRE_ZONE)
-//			LOOP_DECLARATION(zone, Z)
-//				Z.process_fire()
-
-		if(SSAIR_HOTSPOT)
-			LOOP_DECLARATION(obj/effect/fire, fire)
-				fire.process()
-
-		if(SSAIR_ZONE)
-			LOOP_DECLARATION(zone, zone)
-				zone.tick()
-				zone.needs_update = 0
-
-#undef LOOP_DECLARATION //Let's pretend that never existed now
-
-/datum/subsystem/air/proc/add_zone(zone/z)
-	zones.Add(z)
-	z.name = "Zone [next_id++]"
-	mark_zone_update(z)
-
-
-/datum/subsystem/air/proc/remove_zone(zone/z)
-	zones.Remove(z)
-	processing_parts[SSAIR_ZONE] -= z
-
-
-/datum/subsystem/air/proc/air_blocked(turf/A, turf/B)
-	#ifdef ZASDBG
-	ASSERT(isturf(A))
-	ASSERT(isturf(B))
-	#endif
-	var/ablock = A.c_airblock(B)
-	if(ablock == BLOCKED)
-		return BLOCKED
-	return ablock | B.c_airblock(A)
-
-
-/datum/subsystem/air/proc/has_valid_zone(turf/simulated/T)
-	#ifdef ZASDBG
-	ASSERT(istype(T))
-	#endif
-	return istype(T) && T.zone && !T.zone.invalid
-
-
-/datum/subsystem/air/proc/merge(zone/A, zone/B)
-	#ifdef ZASDBG
-	ASSERT(istype(A))
-	ASSERT(istype(B))
-	ASSERT(!A.invalid)
-	ASSERT(!B.invalid)
-	ASSERT(A != B)
-	#endif
-	if(A.contents.len < B.contents.len)
-		A.c_merge(B)
-		mark_zone_update(B)
-	else
-		B.c_merge(A)
-		mark_zone_update(A)
-
-
-/datum/subsystem/air/proc/connect(turf/simulated/A, turf/simulated/B)
-	#ifdef ZASDBG
-	ASSERT(istype(A))
-	ASSERT(isturf(B))
-	ASSERT(A.zone)
-	ASSERT(!A.zone.invalid)
-	//ASSERT(B.zone)
-	ASSERT(A != B)
-	#endif
-
-	var/block = SSair.air_blocked(A,B)
-	if(block & AIR_BLOCKED)
-		return
-
-	var/direct = !(block & ZONE_BLOCKED)
-	var/space = !istype(B)
-
-	if(!space)
-//		if(min(A.zone.contents.len, B.zone.contents.len) < ZONE_MIN_SIZE || (direct && (equivalent_pressure(A.zone,B.zone) || current_cycle == 0))) //This is the new behavior, but I don't want to include a balance change with a system change where avoidable. To be uncommented later.
-		if(direct && (equivalent_pressure(A.zone,B.zone) || current_cycle == 0)) //This is the old behavior, albeit with one check moved down an if().
-			merge(A.zone,B.zone)
+/datum/subsystem/air/proc/process_pipenets(resumed = 0)
+	if(!resumed)
+		src.currentrun = pipenets.Copy()
+	//cache for sanic speed (lists are references anyways)
+	var/list/currentrun = src.currentrun
+	while(length(currentrun))
+		var/datum/pipeline/thing = currentrun[length(currentrun)]
+		currentrun.len--
+		if(thing)
+			thing.process()
+		else
+			pipenets.Remove(thing)
+		if(MC_TICK_CHECK)
 			return
 
-
-	if(!A.connections)
-		A.connections = list()
-	if(!B.connections)
-		B.connections = list()
-
-	if(B in A.connections)
-		return
-	if(A in B.connections)
-		return
-	if(!space)
-		if(A.zone == B.zone)
+/datum/subsystem/air/proc/process_atmos_machinery(resumed = 0)
+	var/seconds = wait * 0.1
+	if(!resumed)
+		src.currentrun = atmos_machinery.Copy()
+	//cache for sanic speed (lists are references anyways)
+	var/list/currentrun = src.currentrun
+	while(length(currentrun))
+		var/obj/machinery/atmospherics/M = currentrun[length(currentrun)]
+		currentrun.len--
+		if(isnull(M) || (M.process_atmos(seconds) == PROCESS_KILL))
+			atmos_machinery -= M
+		if(MC_TICK_CHECK)
 			return
 
+/datum/subsystem/air/proc/process_hotspots(resumed = 0)
+	if(!resumed)
+		src.currentrun = hotspots.Copy()
+	//cache for sanic speed (lists are references anyways)
+	var/list/currentrun = src.currentrun
+	while(length(currentrun))
+		var/obj/effect/hotspot/H = currentrun[length(currentrun)]
+		currentrun.len--
+		if(H)
+			H.process()
+		else
+			hotspots -= H
+		if(MC_TICK_CHECK)
+			return
 
-	var/connection/c = new /connection(A, B)
+/datum/subsystem/air/proc/process_interesting_tiles(resumed = 0)
+	if(!resumed)
+		// Fetch the list of interesting tiles from MILLA.
+		src.currentrun = get_interesting_atmos_tiles()
+		interesting_tile_count = length(src.currentrun) / MILLA_INTERESTING_TILE_SIZE
+	//cache for sanic speed (lists are references anyways)
+	var/list/currentrun = src.currentrun
+	while(length(currentrun))
+		// Pop a tile off the list.
+		var/offset = length(currentrun) - MILLA_INTERESTING_TILE_SIZE
+		var/turf/T = currentrun[offset + MILLA_INDEX_TURF]
+		if(!istype(T))
+			currentrun.len -= MILLA_INTERESTING_TILE_SIZE
+			if(MC_TICK_CHECK)
+				return
+			continue
 
-	A.connections[B] = c
-	B.connections[A] = c
+		var/reasons = currentrun[offset + MILLA_INDEX_INTERESTING_REASONS]
+		var/x_flow = currentrun[offset + MILLA_INDEX_AIRFLOW_X]
+		var/y_flow = currentrun[offset + MILLA_INDEX_AIRFLOW_Y]
+		var/milla_tile = currentrun.Copy(offset + 1, offset + 1 + MILLA_TILE_SIZE + 1)
+		currentrun.len -= MILLA_INTERESTING_TILE_SIZE
 
-	if(direct)
-		c.mark_direct()
+		// Bind the MILLA tile we got, if needed.
+		if(isnull(T.bound_air))
+			bind_turf(T, milla_tile)
+		else if(T.bound_air.lastread < times_fired)
+			T.bound_air.copy_from_milla(milla_tile)
+			T.bound_air.lastread = times_fired
+			T.bound_air.readonly = null
+			T.bound_air.dirty = FALSE
+			T.bound_air.synchronized = FALSE
 
+		if(reasons & MILLA_INTERESTING_REASON_DISPLAY)
+			var/turf/simulated/S = T
+			if(istype(S))
+				S.update_visuals()
 
-/datum/subsystem/air/proc/mark_for_update(turf/T)
-	#ifdef ZASDBG
-	ASSERT(isturf(T))
-	#endif
-	if(T.needs_air_update)
+		if(reasons & MILLA_INTERESTING_REASON_HOT)
+			var/datum/gas_mixture/air = T.get_readonly_air()
+			T.hotspot_expose(air.temperature(), CELL_VOLUME)
+			for(var/atom/movable/item in T)
+				item.temperature_expose(air, air.temperature(), CELL_VOLUME)
+			T.temperature_expose(air, air.temperature(), CELL_VOLUME)
+
+		if(reasons & MILLA_INTERESTING_REASON_WIND)
+			T.high_pressure_movements(x_flow, y_flow)
+
+		if(MC_TICK_CHECK)
+			return
+
+/datum/subsystem/air/proc/process_bound_mixtures(resumed = 0)
+	if(!resumed)
+		original_bound_mixtures = length(bound_mixtures)
+		last_bound_mixtures = length(bound_mixtures)
+	// Note that we do NOT copy this list to src.currentrun. We're fine with things being added to it as we work, because it all needs to get written before the next MILLA tick.
+	//cache for sanic speed (lists are references anyways)
+	var/list/currentrun = bound_mixtures
+	added_bound_mixtures = length(currentrun) - last_bound_mixtures
+	while(length(currentrun))
+		var/datum/gas_mixture/bound_to_turf/mixture = currentrun[length(currentrun)]
+		currentrun.len--
+		mixture.synchronized = FALSE
+		if(mixture.dirty)
+			// This is one of two places expected to call this otherwise-unsafe method.
+			mixture.private_unsafe_write()
+			mixture.dirty = FALSE
+		if(MC_TICK_CHECK)
+			last_bound_mixtures = length(bound_mixtures)
+			return
+
+/datum/subsystem/air/proc/setup_allturfs(list/turfs_to_init = block(locate(1, 1, 1), locate(world.maxx, world.maxy, world.maxz)))
+	for(var/turf/T as anything in turfs_to_init)
+		T.Initialize_Atmos(times_fired)
+		CHECK_TICK
+
+/datum/subsystem/air/proc/setup_allturfs_sleepless(list/turfs_to_init = block(locate(1, 1, 1), locate(world.maxx, world.maxy, world.maxz)))
+	for(var/turf/T as anything in turfs_to_init)
+		T.Initialize_Atmos(times_fired)
+
+/datum/subsystem/air/proc/setup_write_to_milla()
+	var/watch = start_watch()
+	log_startup_progress("Writing tiles to MILLA...")
+	//cache for sanic speed (lists are references anyways)
+	var/list/cache = bound_mixtures
+	var/count = length(cache)
+	while(length(cache))
+		var/datum/gas_mixture/bound_to_turf/mixture = cache[length(cache)]
+		cache.len--
+		if(mixture.dirty)
+			in_milla_safe_code = TRUE
+			// This is one of two places expected to call this otherwise-unsafe method.
+			mixture.private_unsafe_write()
+			in_milla_safe_code = FALSE
+		mixture.bound_turf.bound_air = null
+		mixture.bound_turf = null
+		CHECK_TICK
+
+	log_startup_progress("Wrote [count] tiles in [stop_watch(watch)]s.")
+
+/datum/subsystem/air/proc/setup_atmos_machinery(list/machines_to_init)
+	var/watch = start_watch()
+	log_startup_progress("Initializing atmospherics machinery...")
+	var/count = _setup_atmos_machinery(machines_to_init)
+	log_startup_progress("Initialized [count] atmospherics machines in [stop_watch(watch)]s.")
+// this underscored variant is so that we can have a means of late initing
+// atmos machinery without a loud announcement to the world
+/datum/subsystem/air/proc/_setup_atmos_machinery(list/machines_to_init)
+	var/count = 0
+	for(var/obj/machinery/atmospherics/A in machines_to_init)
+		A.atmos_init()
+		count++
+		CHECK_TICK
+	return count
+//this can't be done with setup_atmos_machinery() because
+//	all atmos machinery has to initalize before the first
+//	pipenet can be built.
+/datum/subsystem/air/proc/setup_pipenets(list/pipes)
+	var/watch = start_watch()
+	log_startup_progress("Initializing pipe pipenets...")
+	var/count = _setup_pipenets(pipes)
+	log_startup_progress("Initialized [count] pipenets in [stop_watch(watch)]s.")
+
+// An underscored wrapper that exists for the same reason
+// the machine init wrapper does
+/datum/subsystem/air/proc/_setup_pipenets(list/pipes)
+	var/count = 0
+	for(var/obj/machinery/atmospherics/machine in pipes)
+		machine.build_network()
+		count++
+	return count
+
+/obj/effect/overlay/turf
+	icon = 'icons/effects/tile_effects.dmi'
+	mouse_opacity = 0
+	anchored = TRUE  // should only appear in vis_contents, but to be safe
+	layer = FLY_LAYER
+	appearance_flags = TILE_BOUND | RESET_TRANSFORM | RESET_COLOR
+
+/obj/effect/overlay/turf/plasma
+	icon_state = "plasma"
+
+/obj/effect/overlay/turf/sleeping_agent
+	icon_state = "sleeping_agent"
+
+/datum/subsystem/air/proc/setup_overlays()
+	plmaster = new /obj/effect/overlay/turf/plasma
+	slmaster = new /obj/effect/overlay/turf/sleeping_agent
+
+/datum/subsystem/air/proc/bind_turf(turf/T, list/milla_tile = null)
+	var/datum/gas_mixture/bound_to_turf/B = new()
+	T.bound_air = B
+	B.bound_turf = T
+	if(isnull(milla_tile))
+		milla_tile = new/list(MILLA_TILE_SIZE)
+		get_tile_atmos(T, milla_tile)
+	B.copy_from_milla(milla_tile)
+	B.lastread = src.times_fired
+	B.readonly = null
+	B.dirty = FALSE
+	B.synchronized = FALSE
+
+/// Similar to addtimer, but triggers once MILLA enters synchronous mode.
+/datum/subsystem/air/proc/synchronize(datum/milla_safe/CB)
+	// Any proc that wants MILLA to be synchronous should not sleep.
+	SHOULD_NOT_SLEEP(TRUE)
+
+	if(is_synchronous)
+		var/was_safe = SSair.in_milla_safe_code
+		SSair.in_milla_safe_code = TRUE
+		// This is one of two intended places to call this otherwise-unsafe proc.
+		CB.private_unsafe_invoke()
+		SSair.in_milla_safe_code = was_safe
 		return
-	processing_parts[SSAIR_TILES] += T
-	#ifdef ZASDBG
-	T.overlays += mark
-	#endif
-	T.needs_air_update = 1
+	waiting_for_sync += CB
 
+/datum/subsystem/air/proc/is_in_milla_safe_code()
+	return in_milla_safe_code
 
-/datum/subsystem/air/proc/mark_zone_update(zone/Z)
-	#ifdef ZASDBG
-	ASSERT(istype(Z))
-	#endif
-	if(Z.needs_update)
-		return
-	processing_parts[SSAIR_ZONE] |= Z
-	Z.needs_update = 1
+/datum/subsystem/air/proc/on_milla_tick_finished()
+	is_synchronous = TRUE
+	in_milla_safe_code = TRUE
+	for(var/datum/milla_safe/CB as anything in waiting_for_sync)
+		// This is one of two intended places to call this otherwise-unsafe proc.
+		CB.private_unsafe_invoke()
+	waiting_for_sync.Cut()
+	in_milla_safe_code = FALSE
 
+/proc/milla_tick_finished()
+	// Any proc that wants MILLA to be synchronous should not sleep.
+	SHOULD_NOT_SLEEP(TRUE)
 
-/datum/subsystem/air/proc/mark_edge_sleeping(connection_edge/E)
-	#ifdef ZASDBG
-	ASSERT(istype(E))
-	#endif
-	if(E.sleeping)
-		return
-	processing_parts[SSAIR_EDGES] -= E
-	E.sleeping = 1
+	SSair.on_milla_tick_finished()
 
+/// Create a subclass of this and implement `on_run` to manipulate tile air safely.
+/datum/milla_safe
+	var/run_args = list()
 
-/datum/subsystem/air/proc/mark_edge_active(connection_edge/E)
-	#ifdef ZASDBG
-	ASSERT(istype(E))
-	#endif
-	if(!E.sleeping)
-		return
-	processing_parts[SSAIR_EDGES] |= E
-	E.sleeping = 0
-	#ifdef ZASDBG
-	if(istype(E, /connection_edge/zone/))
-		var/connection_edge/zone/ZE = E
-		world << "ZASDBG: Active edge! Areas: [get_area(pick(ZE.A.contents))] / [get_area(pick(ZE.B.contents))]"
-	else
-		world << "ZASDBG: Active edge! Area: [get_area(pick(E.A.contents))]"
-	#endif
+/// All subclasses should implement this.
+/datum/milla_safe/proc/on_run(...)
+	// Any proc that wants MILLA to be synchronous should not sleep.
+	SHOULD_NOT_SLEEP(TRUE)
 
+	CRASH("[src.type] does not implement on_run")
 
-/datum/subsystem/air/proc/equivalent_pressure(zone/A, zone/B)
-	return A.air.compare(B.air)
+/// Call this to make the subclass run when it's safe to do so. Args will be passed to on_run.
+/datum/milla_safe/proc/invoke_async(...)
+	run_args = args.Copy()
+	SSair.synchronize(src)
 
+/// Do not call this yourself. This is what is called to run your code from a safe context.
+/datum/milla_safe/proc/private_unsafe_invoke()
+	soft_assert_safe()
+	on_run(arglist(run_args))
 
-/datum/subsystem/air/proc/get_edge(zone/A, zone/B)
+/// Used internally to check that we're running safely, but without breaking things worse if we aren't.
+/datum/milla_safe/proc/soft_assert_safe()
+	ASSERT(SSair.is_in_milla_safe_code())
 
-	if(istype(B))
-		for(var/connection_edge/zone/edge in A.edges)
-			if(edge.contains_zone(B))
-				return edge
-		var/connection_edge/edge = new/connection_edge/zone(A,B)
-		edges.Add(edge)
-		edge.recheck()
-		return edge
-	else
-		for(var/connection_edge/unsimulated/edge in A.edges)
-			if(has_same_air(edge.B,B))
-				return edge
-		var/connection_edge/edge = new/connection_edge/unsimulated(A,B)
-		edges.Add(edge)
-		edge.recheck()
-		return edge
+/// Fetch the air for a turf. Only use from `on_run`.
+/datum/milla_safe/proc/get_turf_air(turf/T)
+	RETURN_TYPE(/datum/gas_mixture)
+	soft_assert_safe()
+	// This is one of two intended places to call this otherwise-unsafe proc.
+	var/datum/gas_mixture/bound_to_turf/air = T.private_unsafe_get_air()
+	if(air.lastread < SSair.times_fired)
+		var/list/milla_tile = new/list(MILLA_TILE_SIZE)
+		get_tile_atmos(T, milla_tile)
+		air.copy_from_milla(milla_tile)
+		air.lastread = SSair.times_fired
+		air.readonly = null
+		air.dirty = FALSE
+	if(!air.synchronized)
+		air.synchronized = TRUE
+		SSair.bound_mixtures += air
+	return air
 
+/// Add air to a turf. Only use from `on_run`.
+/datum/milla_safe/proc/add_turf_air(turf/T, datum/gas_mixture/air)
+	var/datum/gas_mixture/turf_air = get_turf_air(T)
+	turf_air.merge(air)
 
-/datum/subsystem/air/proc/has_same_air(turf/A, turf/B)
-	if(A.oxygen != B.oxygen)
-		return 0
-	if(A.nitrogen != B.nitrogen)
-		return 0
-	if(A.toxins != B.toxins)
-		return 0
-	if(A.carbon_dioxide != B.carbon_dioxide)
-		return 0
-	if(A.temperature != B.temperature)
-		return 0
-	return 1
+/// Completely replace the air for a turf. Only use from `on_run`.
+/datum/milla_safe/proc/set_turf_air(turf/T, datum/gas_mixture/air)
+	var/datum/gas_mixture/turf_air = get_turf_air(T)
+	turf_air.copy_from(air)
 
-
-/datum/subsystem/air/proc/remove_edge(connection_edge/E)
-	edges.Remove(E)
-	if(!E.sleeping)
-		processing_parts[SSAIR_EDGES] -= E
-
-
-/datum/subsystem/air/proc/add_hotspot(var/obj/effect/fire/H)
-	#ifdef ZASDBG
-	ASSERT(istype(H))
-	#endif
-	processing_parts[SSAIR_HOTSPOT] |= H
-
-
-/datum/subsystem/air/proc/remove_hotspot(var/obj/effect/fire/H)
-	#ifdef ZASDBG
-	ASSERT(istype(H))
-	#endif
-	processing_parts[SSAIR_HOTSPOT] -= H
+#undef SSAIR_DEFERREDPIPENETS
+#undef SSAIR_PIPENETS
+#undef SSAIR_ATMOSMACHINERY
+#undef SSAIR_INTERESTING_TILES
+#undef SSAIR_HOTSPOTS
+#undef SSAIR_BOUND_MIXTURES
+#undef SSAIR_MILLA_TICK

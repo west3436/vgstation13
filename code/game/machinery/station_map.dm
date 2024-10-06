@@ -302,7 +302,6 @@ var/list/station_holomaps = list()
 	throw_speed				= 3
 	starting_materials		= list(MAT_IRON = 50, MAT_GLASS = 20)
 	w_type					= RECYK_ELECTRONIC
-	melt_temperature		= MELTPOINT_SILICON
 	origin_tech				= Tc_MAGNETS + "=2;" + Tc_PROGRAMMING + "=2"
 
 	var/mob/watching_mob = null

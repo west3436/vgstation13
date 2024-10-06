@@ -34,12 +34,12 @@ Used In File(s): \code\modules\recycling\disposal.dm
 <div class='item'>
 	<div class='itemLabel'>Pressure:</div>
 	<div class='itemContent'>
-		{{:helper.displayBar(data.pressure, 0, 100, data.pressure == 100 ? 'good' : 'average')}}
-		{{if data.pressure == 100}}
+		{{:helper.displayBar(data.pressure(), 0, 100, data.pressure() == 100 ? 'good' : 'average')}}
+		{{if data.pressure() == 100}}
 			<span class='good'>
 		{{else}}
 			<span class='average'>
 		{{/if}}
-		{{:data.pressure}}%</span>
+		{{:data.pressure()}}%</span>
 	</div>
 </div>

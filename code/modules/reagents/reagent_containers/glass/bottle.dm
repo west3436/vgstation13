@@ -13,7 +13,6 @@
 	volume = 30
 	starting_materials = list(MAT_GLASS = 1000)
 	w_type = RECYK_GLASS
-	melt_temperature = MELTPOINT_GLASS
 	origin_tech = Tc_MATERIALS + "=1"
 
 /obj/item/weapon/reagent_containers/glass/bottle/New(loc,altvol)
@@ -595,7 +594,6 @@ var/datum/disease2/disease/wizarditis = null
 	icon_state = "bleachbottle"
 	starting_materials = list(MAT_PLASTIC = 1000)
 	w_type = RECYK_PLASTIC
-	melt_temperature = MELTPOINT_PLASTIC
 	volume = 100
 	controlled_splash = TRUE
 	flags = FPRINT//initially closed
@@ -618,7 +616,6 @@ var/datum/disease2/disease/wizarditis = null
 	icon_state = "acetonebottle"
 	starting_materials = list(MAT_PLASTIC = 1000)
 	w_type = RECYK_PLASTIC
-	melt_temperature = MELTPOINT_PLASTIC
 	volume = 100
 	controlled_splash = TRUE
 	flags = FPRINT//initially closed
@@ -641,7 +638,6 @@ var/datum/disease2/disease/wizarditis = null
 	icon_state = "pcpjug"
 	starting_materials = list(MAT_PLASTIC = 1000)
 	w_type = RECYK_PLASTIC
-	melt_temperature = MELTPOINT_PLASTIC
 	volume = 100
 
 /obj/item/weapon/reagent_containers/glass/bottle/pcp/update_icon()

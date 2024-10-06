@@ -15,7 +15,6 @@
 	throw_range         = 5
 	starting_materials  = list(MAT_IRON = 75000, MAT_GLASS = 30000)
 	w_type              = RECYK_ELECTRONIC
-	melt_temperature    = MELTPOINT_STEEL // Lots of metal
 	origin_tech         = Tc_ENGINEERING + "=4;" + Tc_MATERIALS + "=2"
 
 	var/frequency = 0

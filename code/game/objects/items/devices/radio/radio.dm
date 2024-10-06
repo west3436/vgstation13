@@ -30,7 +30,6 @@
 	w_class = W_CLASS_SMALL
 	starting_materials = list(MAT_IRON = 75, MAT_GLASS = 25)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_PLASTIC
 	flammable = TRUE
 
 	var/const/TRANSMISSION_DELAY = 5 // only 2/second/radio

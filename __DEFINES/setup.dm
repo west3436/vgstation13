@@ -118,6 +118,8 @@ var/global/disable_vents     = 0
 #define FIRE_CARBON_ENERGY_RELEASED	  500000 //Amount of heat released per mole of burnt carbon into the tile
 #define FIRE_PLASMA_ENERGY_RELEASED	 3000000 //Amount of heat released per mole of burnt plasma into the tile
 #define FIRE_GROWTH_RATE			40000 //For small fires
+#define FIRE_MINIMUM_TEMPERATURE_TO_SPREAD	(150+T0C)
+#define FIRE_MINIMUM_TEMPERATURE_TO_EXIST	(100+T0C)
 
 //#define WATER_BOIL_TEMP 393
 
@@ -1975,7 +1977,6 @@ var/list/weekend_days = list("Friday", "Saturday", "Sunday")
 #define PS_NARSIEHASRISEN1	"Nar-SieHasRisen1"
 #define PS_NARSIEHASRISEN2	"Nar-SieHasRisen2"
 #define PS_NARSIEHASRISEN3	"Nar-SieHasRisen3"
-#define PS_ZAS_DUST			"ZAS Dust"
 #define PS_DANDELIONS		"Dandelions"
 #define PS_CROSS_DUST		"Cross Dust"
 #define PS_CROSS_ORB		"Cross Orb"
@@ -1996,5 +1997,3 @@ var/list/weekend_days = list("Friday", "Saturday", "Sunday")
 #define PVAR_PIXEL_Y	"pixel_y"
 #define PVAR_LIFESPAN	"lifespan"
 #define PVAR_FADE		"fade"
-
-#define ZAS_DUST_TURFS_PER_TICK	20

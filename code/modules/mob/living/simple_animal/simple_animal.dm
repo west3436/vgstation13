@@ -318,8 +318,8 @@ var/global/list/animal_count = list() //Stores types, and amount of animals of t
 	var/atmos_suitable = 1
 
 	if(environment && check_environment_susceptibility())
-		if(abs(environment.temperature - bodytemperature) > 40)
-			bodytemperature += ((environment.temperature - bodytemperature) / 5)
+		if(abs(environment.temperature() - bodytemperature) > 40)
+			bodytemperature += ((environment.temperature() - bodytemperature) / 5)
 
 		if(min_oxy)
 			if(environment.molar_density(GAS_OXYGEN) < min_oxy / CELL_VOLUME)

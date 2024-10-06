@@ -11,7 +11,6 @@
 	source_temperature = TEMPERATURE_FLAME
 	light_color = LIGHT_COLOR_FIRE
 	w_type = RECYK_WAX
-	melt_temperature = MELTPOINT_WAX
 	starting_materials = list(MAT_WAX = CC_PER_SHEET_WAX)
 	color = COLOR_DEFAULT_CANDLE
 
@@ -234,7 +233,6 @@
 	w_class = W_CLASS_TINY
 	light_color = LIGHT_COLOR_FIRE
 	w_type = RECYK_METAL
-	melt_temperature = MELTPOINT_STEEL
 	starting_materials = list(MAT_IRON = 50)
 
 	var/wax = "red"

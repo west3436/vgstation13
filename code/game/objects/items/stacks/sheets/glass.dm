@@ -9,7 +9,6 @@
 
 /obj/item/stack/sheet/glass
 	w_type = RECYK_GLASS
-	melt_temperature = MELTPOINT_GLASS
 	var/reinforced = 0
 	var/rglass = 0
 	//For solars created from this glass type
@@ -119,7 +118,6 @@
 	origin_tech = Tc_MATERIALS + "=3;" + Tc_PLASMATECH + "=2"
 	rglass = /obj/item/stack/sheet/glass/plasmarglass
 	perunit = 2875 //average of plasma and glass
-	melt_temperature = MELTPOINT_STEEL + 500
 	glass_quality = 1.5 //Can you imagine a world in which plasmaglass is worse than rglass
 	shealth = 20
 	shard_type = /obj/item/weapon/shard/plasma
@@ -139,7 +137,6 @@
 	icon_state = "sheet-plasmarglass"
 	sname = "plasma_ref"
 	starting_materials = list(MAT_IRON = CC_PER_SHEET_METAL/2, MAT_GLASS = CC_PER_SHEET_GLASS, MAT_PLASMA = CC_PER_SHEET_PLASMA)
-	melt_temperature = MELTPOINT_STEEL+500 // I guess...?
 	origin_tech = Tc_MATERIALS + "=4;" + Tc_PLASMATECH + "=2"
 	perunit = 2875
 	reinforced = 1

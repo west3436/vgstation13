@@ -131,7 +131,6 @@ var/list/available_redphone_names3 = list("1","2","3","4","5","6","7","8","9")
 	w_class = W_CLASS_SMALL
 	starting_materials = list(MAT_IRON = 50)
 	w_type = RECYK_MISC
-	melt_temperature = MELTPOINT_STEEL
 	attack_verb = list("bludgeons", "whacks", "disciplines", "thrashes")
 
 /obj/item/weapon/disk
@@ -964,7 +963,6 @@ var/list/available_redphone_names3 = list("1","2","3","4","5","6","7","8","9")
 	throw_range = 20
 	starting_materials = list(MAT_IRON = 100)
 	w_type = RECYK_ELECTRONIC
-	melt_temperature=MELTPOINT_SILICON
 	origin_tech = Tc_MAGNETS + "=1"
 
 /obj/item/weapon/staff
@@ -1081,7 +1079,6 @@ var/list/available_redphone_names3 = list("1","2","3","4","5","6","7","8","9")
 	var/old_lay = null
 	starting_materials = list(MAT_IRON = 70)
 	w_type = RECYK_METAL
-	melt_temperature=MELTPOINT_STEEL
 	attack_verb = list("whips", "lashes", "disciplines", "tickles")
 
 /obj/item/weapon/wire/suicide_act(var/mob/living/user)

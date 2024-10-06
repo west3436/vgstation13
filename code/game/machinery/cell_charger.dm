@@ -212,7 +212,6 @@
 	throw_range = 15
 	throw_speed = 3
 	w_type = RECYK_ELECTRONIC
-	melt_temperature = MELTPOINT_SILICON
 	origin_tech = Tc_POWERSTORAGE + "=2"
 	var/obj/item/weapon/cell/stored = null
 	var/state = 0 //0 if up, 1 if down; only used for icons

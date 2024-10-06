@@ -637,7 +637,7 @@
 					Plasma: [round(plasma_level*100)]%<br>"}
 				if(unknown_level > 0.01)
 					dat += "OTHER: [round(unknown_level)]%<br>"
-			dat += "Temperature: [round(environment.temperature-T0C)]&deg;C<br>"
+			dat += "Temperature: [round(environment.temperature()-T0C)]&deg;C<br>"
 
 	dat += {"<a href='byond://?src=\ref[src];software=[SOFT_AS];sub=0'>Refresh Reading</a> <br>
 		<br>"}
