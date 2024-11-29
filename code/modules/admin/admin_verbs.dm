@@ -133,6 +133,7 @@ var/list/admin_verbs_fun = list(
 	/client/proc/add_centcomm_order,
 	/client/proc/apes,
 	/client/proc/force_next_map,
+	/client/proc/procmob_panel
 	)
 var/list/admin_verbs_spawn = list(
 	/datum/admins/proc/spawn_atom, // Allows us to spawn instances
@@ -1394,4 +1395,12 @@ var/list/admin_verbs_mod = list(
 		holder.admin_examine = !(holder.admin_examine)
 		to_chat(usr, "<span class='notice'>You toggle [holder.admin_examine ? "on" : "off"] admin examining.")
 	feedback_add_details("admin_verb","admin_examine")
+	return
+
+/client/proc/procmob_panel()
+	set name = "Procedurally-Generated Mobs Panel"
+	set category = "Fun"
+	if(holder)
+		holder.procmob_panel()
+	feedback_add_details("admin_verb","proc_mob")
 	return

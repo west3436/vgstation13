@@ -5,20 +5,6 @@ var/list/mob/living/simple_animal/hostile/procedural/procedural_mobs = list()
 #define PROCMOB_RANGED_CREATURE_TYPES list(/datum/procedural_mob_type/organic/ranged,/datum/procedural_mob_type/robotic/ranged)
 #define PROCMOB_BOSS_CREATURE_TYPES list(/datum/procedural_mob_type/organic/boss,/datum/procedural_mob_type/robotic/boss)
 
-//Mob buff flags for debug and research
-#define PROCMOB_BUFFED_BRUTE		1<<1
-#define PROCMOB_BUFFED_OXY			1<<2
-#define PROCMOB_BUFFED_BURN			1<<3
-#define PROCMOB_BUFFED_TOX			1<<4
-#define PROCMOB_BUFFED_SPEED		1<<5
-#define PROCMOB_BUFFED_DAMAGE		1<<6
-#define PROCMOB_BUFFED_HEALTH		1<<7
-#define PROCMOB_BUFFED_REGEN		1<<8
-#define PROCMOB_BUFFED_DMGTYPE		1<<9
-#define PROCMOB_BUFFED_SMASHING		1<<10
-#define PROCMOB_BUFFED_CAMO			1<<11
-#define PROCMOB_BUFFED_ATMOSIMMUNE	1<<12
-
 //DEBUG
 /turf/proc/spawn_procedural_mob(var/threat = 2)
 	var/to_spawn
@@ -53,6 +39,7 @@ var/list/mob/living/simple_animal/hostile/procedural/procedural_mobs = list()
 	desc = "An undentified creature - research it at a Xenobiology Scanner to learn more about it."
 
 	var/revealed_name = "" //name of the mob revealed after it has been studied
+	var/name_revealed = FALSE
 	var/power = 5 //relative strength of the mob
 	var/buff_flags = 0 //used to track a mob's increased stats
 	var/list/creature_typepaths = list()
@@ -76,10 +63,17 @@ var/list/mob/living/simple_animal/hostile/procedural/procedural_mobs = list()
 	generate_name()
 	if(revealed)
 		name = revealed_name
+		name_revealed = TRUE
 	procedural_mobs += src
 	power_up(powerlevel)
 	assign_special_ability()
 	pick_sounds()
+
+/mob/living/simple_animal/hostile/procedural/Destroy()
+	procedural_mobs -= src
+	qdel(mob_effect)
+	qdel(creature_type)
+	..()
 
 /mob/living/simple_animal/hostile/procedural/proc/pick_icon()
 	icon = creature_type.icon_path
@@ -119,14 +113,15 @@ var/list/mob/living/simple_animal/hostile/procedural/procedural_mobs = list()
 				break
 		if(!taken)
 			revealed_name = check_name
-			return
+			return+9
 
 /mob/living/simple_animal/hostile/procedural/proc/reveal_name()
 	name = revealed_name
-
-/mob/living/simple_animal/hostile/procedural/proc/power_up(var/buffcount)
+	name_revealed = TRUE
+h
+/1mob/living/simple_animal/hostile/procedural/proc/power_up(var/buffcount)
 	var/i = 0
-	while(buffcount)
+	0while(buffcount)
 		if(i >= 30) //circuit breaker
 			break
 		var/roll = rand(1,3)
@@ -288,6 +283,8 @@ var/list/mob/living/simple_animal/hostile/procedural/procedural_mobs = list()
 	ranged = TRUE
 	mob_effect_chance = 0
 	creature_typepaths = PROCMOB_RANGED_CREATURE_TYPES
+	retreat_distance = 2
+	minimum_distance = 2
 	var/possible_projectiles = list()
 
 /mob/living/simple_animal/hostile/procedural/ranged/New(var/revealed = FALSE, var/powerlevel = 5)
@@ -296,6 +293,8 @@ var/list/mob/living/simple_animal/hostile/procedural/procedural_mobs = list()
 	for(var/projectile_types in restrict_with_subtypes)
 		possible_projectiles -= typesof(projectile_types)
 	projectiletype = pick(possible_projectiles)
+	retreat_distance = rand(0,4)
+	minimum_distance = clamp(retreat_distance - rand(1,2),1,3)
 
 /mob/living/simple_animal/hostile/procedural/boss
 	icon = 'icons/mob/procedural/boss.dmi'

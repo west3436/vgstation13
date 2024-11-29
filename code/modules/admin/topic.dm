@@ -5883,6 +5883,27 @@ access_sec_doors,access_salvage_captain,access_cent_ert,access_syndicate,access_
 		else
 			toggle_tag_mode(usr)
 
+	else if (href_list["reveal_pmob_name"])
+		if (!check_rights(R_FUN))
+			to_chat(usr, "You don't have the necessary permissions to do this.")
+			return
+		else
+			var/mob/living/simple_animal/hostile/procedural/pmob = locate(href_list["reveal_pmob_name"])
+			if (!pmob)
+				return
+			else
+				for(var/mob/living/simple_animal/hostile/procedural/pmob_reveal in procedural_mobs)
+					if(pmob_reveal.name == pmob.name)
+						pmob_reveal.reveal_name()
+
+	else if (href_list["spawn_proc_mob"])
+		if (!check_rights(R_FUN))
+			to_chat(usr, "You don't have the necessary permissions to do this.")
+			return
+		else
+			var/turf/T = get_turf(usr)
+			T.spawn_procedural_mob()
+
 /datum/admins/proc/SendAdminGhostTo(var/turf/T,var/mob/M)
 	var/client/C = usr.client
 	if(!isobserver(usr) && isliving(usr))

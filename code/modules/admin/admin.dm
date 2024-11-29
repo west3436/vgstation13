@@ -1661,3 +1661,59 @@ var/alien_ship_location = 1 // 0 = base , 1 = mine
 		dat += "<br/>"
 
 	usr << browse(dat, "window=rodswindow;size=350x300")
+
+/datum/admins/proc/procmob_panel()
+	if(!check_rights(0))
+		return
+
+	var/dat = "<center><B>Procedurally-Generated Mobs Panel</B></center><hr>"
+	dat += "<center><B><a href='?_src_=\ref[src];spawn_proc_mob=1'>Spawn Mob</A></B></center><hr>"
+
+	for (var/mob/living/simple_animal/hostile/procedural/pmob in procedural_mobs)
+		dat += "<b>[pmob.name_revealed?"":"<i>"][pmob][pmob.name_revealed?"":"</i>"]</b>[pmob.name_revealed?"":"(<a href='?_src_=\ref[src];reveal_pmob_name=\ref[pmob]'>REVEAL NAME</A>)"] in [get_area(pmob)] (<a href='?_src_=vars;Vars=\ref[pmob]'>\[VV\]</A>)<br>"
+		if(pmob.mob_effect)
+			dat += "The [pmob] has the [pmob.mob_effect.effecttype] effect (<a href='?_src_=vars;Vars=\ref[pmob.mob_effect]'>\[VV\]</A>). It can be activated in the following ways:[pmob.mob_effect.effect = ARTIFACT_EFFECT_PULSE?"<b> PULSE</b>":""][pmob.mob_effect.effect = ARTIFACT_EFFECT_TOUCH?"<b> TOUCH</b>":""][pmob.mob_effect.effect = ARTIFACT_EFFECT_AURA?"<b> AURA</b>":""]<br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_BRUTE))
+			dat += "The [pmob] has increased brute damage resistance. <b>WAS: [initial(pmob.brute_damage_modifier)] | IS: [pmob.brute_damage_modifier]</b><br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_OXY))
+			dat += "The [pmob] has increased oxygen damage resistance. <b>WAS: [initial(pmob.oxy_damage_modifier)] | IS: [pmob.oxy_damage_modifier]</b><br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_BURN))
+			dat += "The [pmob] has increased burn damage resistance. <b>WAS: [initial(pmob.burn_damage_modifier)] | IS: [pmob.burn_damage_modifier]</b><br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_TOX))
+			dat += "The [pmob] has increased toxin damage resistance. <b>WAS: [initial(pmob.tox_damage_modifier)] | IS: [pmob.tox_damage_modifier]</b><br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_DAMAGE))
+			dat += "The [pmob] has increased attack damage. <b>WAS: [initial(pmob.melee_damage_lower)]-[initial(pmob.melee_damage_upper)] dmg per hit | IS: [pmob.melee_damage_lower]-[pmob.melee_damage_upper] dmg per hit</b><br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_REGEN))
+			dat += "The [pmob] can regenerate its health.<br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_DMGTYPE))
+			var/dmgtype = ""
+			switch(pmob.melee_damage_type)
+				if(BURN)
+					dmgtype = "BURN"
+				if(TOX)
+					dmgtype = "TOX"
+				if(OXY)
+					dmgtype = "OXY"
+				if(CLONE)
+					dmgtype = "CLONE"
+				if(HALLOSS)
+					dmgtype = "HALLOSS"
+				if(BRAIN)
+					dmgtype = "BRAIN"
+			dat += "The [pmob] has a modified damage type. <b>WAS: BRUTE | IS: [dmgtype]</b><br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_SMASHING)) //todo
+			// var/smashtype = ""
+			// switch(pmob.environment_smash_flags)
+			// 	if(0)
+			// 	if(0)
+			// 	if(0)
+			// 	if(0)
+			dat += "The [pmob] has increased environmental smashing abilities. CAN SMASH: <br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_CAMO))
+			dat += "The [pmob] has digital camo and cannot be tracked on cameras.<br>"
+		if((pmob.buff_flags&PROCMOB_BUFFED_ATMOSIMMUNE))
+			dat += "The [pmob] is immune to atmos effects.<br>"
+		dat += "<br/>"
+		dat += "<hr>"
+
+	usr << browse(dat, "window=pmobwindow;size=500x500")
