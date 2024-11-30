@@ -118,8 +118,8 @@ var/list/mob/living/simple_animal/hostile/procedural/procedural_mobs = list()
 /mob/living/simple_animal/hostile/procedural/proc/reveal_name()
 	name = revealed_name
 	name_revealed = TRUE
-h
-/1mob/living/simple_animal/hostile/procedural/proc/power_up(var/buffcount)
+
+/mob/living/simple_animal/hostile/procedural/proc/power_up(var/buffcount)
 	var/i = 0
 	0while(buffcount)
 		if(i >= 30) //circuit breaker
