@@ -9,6 +9,25 @@
 	var/shattered = FALSE
 	/// Whether or not using this mirror makes you permanently bald or not.
 	var/norwood_cursed = FALSE
+	var/datum/weakref/ref
+	vis_flags = VIS_HIDE
+
+/obj/structure/mirror/New()
+	var/obj/effect/reflection/reflection = new(loc)
+	reflection.setup_visuals(src)
+	ref = makeweakref(reflection)
+
+	register_event(/event/entered,reflection,nameof(reflection::check_vampire_enter()))
+	register_event(/event/exited,reflection,nameof(reflection::check_vampire_exit()))
+
+/obj/structure/mirror/Destroy()
+	var/obj/effect/reflection/reflection = ref.get()
+	if(istype(reflection))
+		unregister_event(/event/entered,reflection,nameof(reflection::check_vampire_enter()))
+		unregister_event(/event/exited,reflection,nameof(reflection::check_vampire_exit()))
+		qdel(reflection)
+	ref = null
+	return ..()
 
 /obj/structure/mirror/proc/can_use(mob/living/user, mob/living/carbon/human/target)
 	if(shattered)
@@ -258,3 +277,80 @@
 				targ.pick_appearance(M)
 
 		to_chat(targ, "<span class='notice'>You gaze into the [src].</span>")
+
+/obj/effect/reflection
+	name = "reflection"
+	appearance_flags = KEEP_TOGETHER|TILE_BOUND|PIXEL_SCALE
+	mouse_opacity = 0
+	vis_flags = VIS_HIDE
+	layer = ABOVE_OBJ_LAYER
+	var/alpha_icon = 'icons/obj/watercloset.dmi'
+	var/alpha_icon_state = "mirror_mask"
+	var/obj/mirror
+	desc = "Why are you locked in the bathroom?"
+	anchored = TRUE
+
+	var/blur_filter
+
+/obj/effect/reflection/proc/setup_visuals(target)
+	mirror = target
+
+	if(mirror.pixel_x > 0)
+		dir = WEST
+	else if (mirror.pixel_x < 0)
+		dir = EAST
+
+	if(mirror.pixel_y > 0)
+		dir = SOUTH
+	else if (mirror.pixel_y < 0)
+		dir = NORTH
+
+	pixel_x = mirror.pixel_x
+	pixel_y = mirror.pixel_y
+
+	blur_filter = filter(type="blur", size = 1)
+
+	update_mirror_filters()
+
+/obj/effect/reflection/proc/update_mirror_filters()
+	filters = null
+
+	vis_contents = null
+
+	if(!mirror)
+		return
+
+	var/matrix/M = matrix()
+	if(dir == WEST || dir == EAST)
+		M.Scale(-1, 1)
+	else if(dir == SOUTH|| dir == NORTH)
+		M.Scale(1, -1)
+		pixel_y = mirror.pixel_y + 5
+
+	transform = M
+
+	filters += filter("type" = "alpha", "icon" = icon(alpha_icon, alpha_icon_state), "x" = 0, "y" = 0)
+	for(var/mob/living/carbon/human/H in loc)
+		check_vampire_enter(H.loc, H)
+
+	vis_contents += get_turf(mirror)
+
+/obj/effect/reflection/proc/check_vampire_enter(var/turf/T, var/mob/living/carbon/human/H)
+	if(!istype(H))
+		return
+	var/datum/role/vampire/V = isvampire(H)
+	if(V && !(locate(/datum/power/vampire/mature) in V.current_powers))
+		if(isthrall(H))
+			filters += blur_filter
+		else
+			H.vis_flags |= VIS_HIDE
+
+/obj/effect/reflection/proc/check_vampire_exit(var/turf/T, var/mob/living/carbon/human/H)
+	if(!istype(H))
+		return
+	var/datum/role/vampire/V = isvampire(H)
+	if(V && !(locate(/datum/power/vampire/mature) in V.current_powers))
+		if(isthrall(H))
+			filters -= blur_filter
+		else
+			H.vis_flags &= ~VIS_HIDE
