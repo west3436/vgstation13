@@ -1772,6 +1772,45 @@ var/global/num_vending_terminals = 1
     	)
 	pack = /obj/structure/vendomatpack/cigarette
 
+	var/use_mindui = TRUE // Flag to enable MindUI interface
+
+/obj/machinery/vending/cigarette/attack_hand(mob/living/user as mob)
+	if (!use_mindui)
+		return ..()
+
+	if (stat & (BROKEN))
+		to_chat(user, "<span class='notice'>The glass in \the [src] is broken, it refuses to work.</span>")
+		return
+
+	if (stat & (NOPOWER|FORCEDISABLE))
+		to_chat(user, "<span class='notice'>\The [src] is dark and unresponsive.</span>")
+		return
+
+	if (!isAdminGhost(usr) && (user.lying || user.incapacitated()))
+		return
+
+	if (seconds_electrified > 0)
+		if (shock(user, 100))
+			return
+	else if (seconds_electrified)
+		seconds_electrified = 0
+
+	if (!user.mind)
+		to_chat(user, "<span class='warning'>You don't have the mental capacity to use this machine.</span>")
+		return
+
+	var/datum/mind_ui/vending/cigarette/ui
+	if ("Cigarette Vending" in user.mind.activeUIs)
+		ui = user.mind.activeUIs["Cigarette Vending"]
+		ui.vendor_ref = src
+	else
+		ui = new /datum/mind_ui/vending/cigarette(user.mind, src)
+
+	if (!ui.Valid())
+		ui.Hide()
+	else
+		ui.Display()
+
 /obj/machinery/vending/medical
 	name = "\improper NanoMed Plus"
 	desc = "A vending machine containing medical supplies."

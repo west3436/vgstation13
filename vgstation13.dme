@@ -186,6 +186,8 @@
 #include "code\_onclick\mindUI\soulblade.dm"
 #include "code\_onclick\mindUI\bloodcult\cultist.dm"
 #include "code\_onclick\mindUI\bloodcult\draw_runes.dm"
+#include "code\_onclick\mindUI\vending\cigarette.dm"
+#include "code\_onclick\mindUI\vending\vending.dm"
 #include "code\controllers\configuration.dm"
 #include "code\controllers\radio_controller.dm"
 #include "code\controllers\shuttle_controller.dm"
