@@ -103,6 +103,56 @@
 	ui.input_str += "[value]"
 	ui.clear_display()
 
+	// Show price preview if 2 digits entered
+	if (length(ui.input_str) == 2)
+		show_price_preview(ui)
+
+/obj/abstract/mind_ui_element/hoverable/vending/keypad_button/numerical/proc/show_price_preview(var/datum/mind_ui/vending/ui)
+	if (!ui || !ui.vendor_ref)
+		return
+
+	var/product_code = text2num(ui.input_str)
+	if (isnull(product_code))
+		return
+
+	var/list/products
+	switch(ui.inv_displayed)
+		if(VEND_CAT_NORMAL)
+			products = ui.vendor_ref.product_records
+		if(VEND_CAT_HIDDEN)
+			products = ui.vendor_ref.hidden_records
+		if(VEND_CAT_COIN)
+			products = ui.vendor_ref.coin_records
+		if(VEND_CAT_HOLIDAY)
+			products = ui.vendor_ref.holiday_records
+		else
+			products = ui.vendor_ref.product_records
+
+	if (product_code < 1 || product_code > products.len)
+		return
+
+	var/datum/data/vending_product/selected = products[product_code]
+	if (!selected)
+		return
+
+	// Show the price for 1 second with cr overlay
+	var/price_to_show = selected.price ? selected.price : 0
+	for (var/datum/mind_ui/vending/keypad/keypad_ui in ui.subUIs)
+		for (var/obj/abstract/mind_ui_element/vending/keypad/input_display/display in keypad_ui.elements)
+			display.ShowPrice(price_to_show)
+
+	// Add cr overlay to main UI element
+	var/obj/abstract/mind_ui_element/base_element = ui.primary()
+	if (base_element)
+		var/image/cr_overlay = image(icon = base_element.icon, icon_state = "cr", layer = MIND_UI_FRONT)
+		base_element.overlays += cr_overlay
+
+	spawn(10) // 1 second
+		ui.clear_display()
+		// Clear the cr overlay
+		if (base_element)
+			base_element.UpdateIcon()
+
 /obj/abstract/mind_ui_element/hoverable/vending/keypad_button/clear
 	icon_state = "clear"
 	tooltip_title = "Clear"

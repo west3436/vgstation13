@@ -9,8 +9,10 @@
 	)
 	sub_uis_to_spawn = list(
 		/datum/mind_ui/vending/navigation,
+		/datum/mind_ui/vending/inventory_selector/cigarette,
 		/datum/mind_ui/vending/keypad/cigarette,
 		/datum/mind_ui/vending/products/cigarette,
+		/obj/abstract/mind_ui_element/vending/shelf/cigarette,
 	)
 
 /datum/mind_ui/vending/cigarette/New(var/datum/mind/M, var/obj/machinery/vending/cigarette/vendor)
@@ -35,6 +37,13 @@
 	flags = VEND_PRODUCT_RING|VEND_PRODUCT_LABEL|VEND_PRODUCT_ICON
 	vend_target_x = 15
 	vend_target_y = -90
+	element_types_to_spawn = list(
+		/obj/abstract/mind_ui_element/vending/shelf/cigarette
+	)
+
+/datum/mind_ui/vending/inventory_selector/cigarette
+	offset_x = 8
+	offset_y = 55
 
 //////////////////////////////////////////
 //~~~~~~~~~~~~~~ ELEMENTS ~~~~~~~~~~~~~~//
@@ -58,3 +67,7 @@
 // Product display
 /obj/abstract/mind_ui_element/hoverable/vending/product_display/cigarette
 	icon = 'icons/ui/vending/cigarette/products.dmi'
+
+/obj/abstract/mind_ui_element/vending/shelf/cigarette
+	icon = 'icons/ui/vending/cigarette/base.dmi'
+	icon_state = "inventory"

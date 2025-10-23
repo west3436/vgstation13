@@ -32,19 +32,49 @@
 	populate_products()
 	..()
 
+/datum/mind_ui/vending/products/proc/clear_products()
+	for (var/obj/abstract/mind_ui_element/element in elements)
+		// Preserve shelf elements - they should persist across inventory changes
+		if (istype(element, /obj/abstract/mind_ui_element/vending/shelf))
+			continue
+		if (mind?.current?.client)
+			mind.current.client.screen -= element
+		qdel(element)
+	// Remove all non-shelf elements from the list
+	for (var/obj/abstract/mind_ui_element/element in elements)
+		if (!istype(element, /obj/abstract/mind_ui_element/vending/shelf))
+			elements -= element
+
+/datum/mind_ui/vending/products/proc/refresh_products()
+	clear_products()
+	populate_products()
+	for (var/obj/abstract/mind_ui_element/element in elements)
+		if (mind?.current?.client)
+			mind.current.client.screen += element
+
 /datum/mind_ui/vending/products/proc/populate_products()
 	var/datum/mind_ui/vending/parent_ui = parent
 	if (!parent_ui || !istype(parent_ui))
-		message_admins("DEBUG: parent_ui check failed. parent=[parent], istype=[istype(parent, /datum/mind_ui/vending)]")
 		return
 	var/obj/machinery/vending/vendor = parent_ui.vendor_ref
 	if (!vendor)
-		message_admins("DEBUG: vendor_ref is null")
 		return
 
-	var/list/products = vendor.product_records.Copy()
+	// Get the appropriate product list based on current inventory
+	var/list/products
+	switch(parent_ui.inv_displayed)
+		if(VEND_CAT_NORMAL)
+			products = vendor.product_records.Copy()
+		if(VEND_CAT_HIDDEN)
+			products = vendor.hidden_records.Copy()
+		if(VEND_CAT_COIN)
+			products = vendor.coin_records.Copy()
+		if(VEND_CAT_HOLIDAY)
+			products = vendor.holiday_records.Copy()
+		else
+			products = vendor.product_records.Copy()
+
 	var/total_products = products.len
-	message_admins("DEBUG: populate_products called, total_products=[total_products]")
 
 	// Setup spacing
 	var/max_rows = round((total_products + products_per_row - 1) / products_per_row)
@@ -113,8 +143,6 @@
 				mind.current.client.screen += id_label
 
 		index++
-
-	message_admins("DEBUG: Created [index] products with [elements.len] total elements")
 
 
 /////////// Product Element ///////////
@@ -222,7 +250,8 @@
 	if (!product || product.amount <= 0)
 		ui.Error("Product out of stock")
 		return
-	ui.input_str = "[product_code]"
+	// Zero-pad to 2 digits
+	ui.input_str = length("[product_code]") == 1 ? "0[product_code]" : "[product_code]"
 	ui.clear_display()
 
 /////////// Dispenser Element ///////////
@@ -257,3 +286,44 @@
 	overlays.len = 0
 	if (product_id > 0)
 		overlays += String2Image("[product_id]", spacing = 6, _color = "#FFFFFF", _pixel_x = 16, _pixel_y = 0, shadows = FALSE)
+
+/////////// Shelf Element ///////////
+/obj/abstract/mind_ui_element/vending/shelf
+	// icon and icon_state should be defined by vendor-specific subtypes
+	layer = MIND_UI_GROUP_A + 1
+	width = 100
+	height = 100
+	mouse_opacity = 0
+
+/obj/abstract/mind_ui_element/vending/shelf/Appear()
+	..()
+	// Position at origin of base vending UI (negate products UI offset)
+	var/datum/mind_ui/vending/products/products_ui = parent
+	if (products_ui && istype(products_ui))
+		offset_x = -products_ui.offset_x
+		offset_y = -products_ui.offset_y
+	else
+		offset_x = 0
+		offset_y = 0
+	UpdateUIScreenLoc()
+	UpdateIcon()
+
+/obj/abstract/mind_ui_element/vending/shelf/UpdateIcon(var/appear = FALSE)
+	..()
+	var/datum/mind_ui/vending/products/products_ui = parent
+	if (!products_ui || !istype(products_ui))
+		return
+	var/datum/mind_ui/vending/parent_ui = products_ui.parent
+	if (!parent_ui || !istype(parent_ui))
+		return
+
+	var/icon_state_to_use = "inventory"
+	switch(parent_ui.inv_displayed)
+		if(VEND_CAT_HIDDEN) //contraband
+			icon_state_to_use += "_contraband"
+		if(VEND_CAT_COIN) //premium
+			icon_state_to_use += "_premium"
+		if(VEND_CAT_HOLIDAY) //special
+			icon_state_to_use += "_holiday"
+
+	icon_state = icon_state_to_use
