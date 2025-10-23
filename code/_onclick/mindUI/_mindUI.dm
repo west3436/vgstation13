@@ -255,6 +255,9 @@ var/list/mind_ui_ID2type = list()
 	var/offset_x = 0
 	var/offset_y = 0
 
+	var/width = 32
+	var/height = 32
+
 /obj/abstract/mind_ui_element/New(turf/loc, var/datum/mind_ui/P)
 	if (!istype(P))
 		qdel(src)
@@ -302,13 +305,16 @@ var/list/mind_ui_ID2type = list()
 /obj/abstract/mind_ui_element/proc/UpdateIcon(var/appear = FALSE)
 	return
 
-/obj/abstract/mind_ui_element/proc/String2Image(var/string,var/spacing=6,var/image_font='icons/ui/font_8x8.dmi',var/_color="#FFFFFF",var/_pixel_x = 0,var/_pixel_y = 0) // only supports numbers right now
+/obj/abstract/mind_ui_element/proc/String2Image(var/string,var/spacing=6,var/image_font='icons/ui/font_8x8.dmi',var/_color="#FFFFFF",var/_pixel_x = 0,var/_pixel_y = 0, var/shadows = TRUE) // only supports numbers right now
 	if (!string)
 		return image(image_font,"")
 
 	var/image/result = image(image_font,"")
 	for (var/i = 1 to length(string))
-		var/image/I = image(image_font,copytext(string,i,i+1))
+		var/char = copytext(string,i,i+1)
+		if(!shadows)
+			char = char + "_ns"
+		var/image/I = image(image_font,char)
 		I.pixel_x = (i - 1) * spacing
 		result.overlays += I
 	result.color = _color
@@ -426,6 +432,7 @@ var/list/mind_ui_ID2type = list()
 
 /obj/abstract/mind_ui_element/hoverable/movable
 	var/move_whole_ui = FALSE
+	var/move_all_uis = FALSE	// If move_whole_ui is TRUE, setting this to TRUE will cause all ancestor UIs to move along with the element, not just the immediate parent UI.
 	var/moving = FALSE
 	var/icon/movement
 
@@ -514,6 +521,8 @@ var/list/mind_ui_ID2type = list()
 
 	//and calculate the offset between the two, which we can then add to either the element or the whole UI
 	if (move_whole_ui)
+		if(move_all_uis)
+			parent = parent.GetAncestor()
 		parent.offset_x += dest_x_val - start_x_val
 		parent.offset_y += dest_y_val - start_y_val
 		parent.UpdateUIScreenLoc()
@@ -529,6 +538,8 @@ var/list/mind_ui_ID2type = list()
 
 /obj/abstract/mind_ui_element/hoverable/movable/proc/ResetLoc()
 	if (move_whole_ui)
+		if(move_all_uis)
+			parent = parent.GetAncestor()
 		parent.offset_x = 0
 		parent.offset_y = 0
 		parent.UpdateUIScreenLoc()

@@ -1,9 +1,3 @@
-#define CAT_NORMAL 	1
-#define CAT_HIDDEN 	2
-#define CAT_COIN   	3
-#define CAT_VOUCH  	4
-#define CAT_HOLIDAY	5
-
 //Maximum price you can assign to an item
 #define MAX_ITEM_PRICE 1000000000
 
@@ -108,7 +102,7 @@ var/global/num_vending_terminals = 1
 	var/amount = 0
 	var/price = 0
 	var/display_color = null //string, "red", "green", "blue", etc
-	var/category = CAT_NORMAL //available on holidays, by default, contraband, or premium (requires a coin)
+	var/category = VEND_CAT_NORMAL //available on holidays, by default, contraband, or premium (requires a coin)
 	var/subcategory = null
 	var/mini_icon = null
 	var/assignedholiday = null //Add an item to the 'specials' list to make it only show up on a certain holiday/month
@@ -399,24 +393,24 @@ var/global/num_vending_terminals = 1
 		if (!R.display_color)
 			R.display_color = pick("red", "blue", "green")
 		if (hidden)
-			R.category=CAT_HIDDEN
+			R.category=VEND_CAT_HIDDEN
 			hidden_records  += R
 		else if (req_coin)
-			R.category=CAT_COIN
+			R.category=VEND_CAT_COIN
 			coin_records    += R
 		else if (voucher_only)
 			voucher_records += R
-			R.category=CAT_VOUCH
+			R.category=VEND_CAT_VOUCH
 		else if (R.assignedholiday)
 			var/curmonth = time2text(world.realtime,"MM")
-			R.category=CAT_HOLIDAY
+			R.category=VEND_CAT_HOLIDAY
 			R.display_color = pick("orange", "purple", "navy")
 			if(Holiday && R.assignedholiday == Holiday )
 				holiday_records += R //only add it to the lists if today's our day
 			if(R.assignedholiday == curmonth)
 				holiday_records += R //only add it to the lists if today's our month
 		else
-			R.category = CAT_NORMAL
+			R.category = VEND_CAT_NORMAL
 			product_records.Add(R)
 
 		var/obj/item/initializer = typepath
@@ -711,13 +705,13 @@ var/global/num_vending_terminals = 1
 /obj/machinery/vending/proc/GetProductIndex(var/datum/data/vending_product/P)
 	var/list/plist
 	switch(P.category)
-		if(CAT_HOLIDAY)
+		if(VEND_CAT_HOLIDAY)
 			plist=holiday_records
-		if(CAT_NORMAL)
+		if(VEND_CAT_NORMAL)
 			plist=product_records
-		if(CAT_HIDDEN)
+		if(VEND_CAT_HIDDEN)
 			plist=hidden_records
-		if(CAT_COIN)
+		if(VEND_CAT_COIN)
 			plist=coin_records
 		else
 			warning("UNKNOWN CATEGORY [P.category] IN TYPE [P.product_path] INSIDE [type]!")
@@ -725,13 +719,13 @@ var/global/num_vending_terminals = 1
 
 /obj/machinery/vending/proc/GetProductByID(var/pid, var/category)
 	switch(category)
-		if(CAT_HOLIDAY)
+		if(VEND_CAT_HOLIDAY)
 			return holiday_records[pid]
-		if(CAT_NORMAL)
+		if(VEND_CAT_NORMAL)
 			return product_records[pid]
-		if(CAT_HIDDEN)
+		if(VEND_CAT_HIDDEN)
 			return hidden_records[pid]
-		if(CAT_COIN)
+		if(VEND_CAT_COIN)
 			return coin_records[pid]
 		else
 			warning("UNKNOWN PRODUCT: PID: [pid], CAT: [category] INSIDE [type]!")

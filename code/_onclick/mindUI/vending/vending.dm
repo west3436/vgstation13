@@ -1,31 +1,62 @@
+/////////////////////////////////////////
+//~~~~~~~~~~~~~~ MAIN UI ~~~~~~~~~~~~~~//
+/////////////////////////////////////////
 /datum/mind_ui/vending
 	var/obj/machinery/vending/vendor_ref = null
-	var/list/contraband_elements = list()
-	var/list/premium_elements = list()
-	var/ui_height = 200
-	var/ui_width = 200
-	var/icon_to_use
+	x = "CENTER"
+	y = "CENTER"
+	var/input_str = ""
+	var/primary_element_type = /obj/abstract/mind_ui_element/vending //main ui screen
+	var/inv_displayed = VEND_CAT_NORMAL
 
-/datum/mind_ui/vending/proc/UpdateDynamicProducts()
-	for (var/obj/abstract/mind_ui_element/E in contraband_elements)
-		elements -= E
-		if (mind && mind.current && mind.current.client)
-			mind.current.client.screen -= E
-		qdel(E)
-	contraband_elements.len = 0
+/datum/mind_ui/vending/Valid()
+	var/obj/machinery/vending/vendor = vendor_ref
+	if (!vendor && parent && istype(parent, /datum/mind_ui/vending))
+		var/datum/mind_ui/vending/parent_ui = parent
+		vendor = parent_ui.vendor_ref
 
-	for (var/obj/abstract/mind_ui_element/E in premium_elements)
-		elements -= E
-		if (mind && mind.current && mind.current.client)
-			mind.current.client.screen -= E
-		qdel(E)
-	premium_elements.len = 0
+	if (!vendor)
+		return FALSE
+	if (!mind?.current)
+		return FALSE
+	if (!(mind.current.Adjacent(vendor)))
+		return FALSE
+	if (vendor.stat & (BROKEN|NOPOWER|FORCEDISABLE))
+		return FALSE
+	return TRUE
 
-/datum/mind_ui/vending/proc/ShowError()
-	return
+/datum/mind_ui/vending/proc/Vend(var/product_code)
+	for (var/datum/mind_ui/vending/products/products_ui in subUIs)
+		for (var/obj/abstract/mind_ui_element/hoverable/vending/product_display/display in products_ui.elements)
+			if (display.product_code == product_code && display.dispenser)
+				display.dispenser.dispense()
+				spawn(5)
+					display.vend_front_item()
 
-/datum/mind_ui/vending/proc/ShowVend()
-	return
+/datum/mind_ui/vending/proc/Error(var/message = "Error")
+	if (mind?.current)
+		to_chat(mind.current, "<span class='warning'>\The [vendor_ref] displays: [message]</span>")
+
+	input_str = ""
+
+	var/obj/abstract/mind_ui_element/base_element = primary()
+	base_element.UpdateIcon()
+	var/image/error_overlay = image(icon = base_element.icon, icon_state = "error", layer = MIND_UI_FRONT)
+	base_element.overlays += error_overlay
+	hide_input_display()
+
+	spawn(15)
+		base_element.UpdateIcon()
+
+/datum/mind_ui/vending/proc/clear_display()
+	for(var/datum/mind_ui/vending/keypad/ui in subUIs)
+		if(istype(ui))
+			ui.clear_display()
+
+/datum/mind_ui/vending/proc/hide_input_display()
+	for(var/datum/mind_ui/vending/keypad/ui in subUIs)
+		for(var/obj/abstract/mind_ui_element/vending/keypad/input_display/display in ui.elements)
+			display.HideText()
 
 /datum/mind_ui/vending/proc/premium_check()
 	if (!vendor_ref || !istype(vendor_ref))
@@ -37,145 +68,122 @@
 		return FALSE
 	return vendor_ref.extended_inventory
 
+/datum/mind_ui/vending/proc/ProcessVend()
+	if (!vendor_ref || !istype(vendor_ref))
+		return
+	if (!input_str || length(input_str) == 0)
+		Error("No product code entered")
+		return
+	var/product_code = text2num(input_str)
+	if (isnull(product_code))
+		Error("Invalid product code")
+		return
 
-//////////////// BASE (move and close buttons) ////////////////
-/datum/mind_ui/vending/base
-	element_types_to_spawn = list(
-		/obj/abstract/mind_ui_element/hoverable/close/vending,
-		/obj/abstract/mind_ui_element/hoverable/movable/drag/vending,
-	)
+	var/list/products = vendor_ref.product_records.Copy()
 
-/obj/abstract/mind_ui_element/hoverable/close/vending
-	icon = 'icons/ui/16x16.dmi'
-	icon_state = "close"
-	layer = MIND_UI_BUTTON
-	hover_state = TRUE
+	if (product_code < 1 || product_code > products.len)
+		Error("Invalid product code")
+		return
 
-/obj/abstract/mind_ui_element/hoverable/close/vending/New()
+	var/datum/data/vending_product/selected = products[product_code]
+	if (!selected || selected.amount <= 0)
+		Error("Product out of stock")
+		return
+
+	for (var/datum/mind_ui/vending/keypad/keypad_ui in subUIs)
+		for (var/obj/abstract/mind_ui_element/vending/keypad/input_display/display in keypad_ui.elements)
+			display.ShowPrice(selected.price)
+	var/obj/abstract/mind_ui_element/base_element = primary()
+	if (base_element)
+		var/image/cr_overlay = image(icon = base_element.icon, icon_state = "cr", layer = MIND_UI_FRONT)
+		base_element.overlays += cr_overlay
+
+	spawn(10)
+		base_element.UpdateIcon()
+
+		// Vend the product
+		Vend(product_code)
+		vendor_ref.vend(selected, mind.current)
+
+		// Add "vend" overlay to the main UI element
+		if (base_element)
+			var/image/vend_overlay = image(icon = base_element, icon_state = "vend", layer = MIND_UI_FRONT)
+			base_element.overlays += vend_overlay
+			hide_input_display()
+
+		// Wait 1 second, then reset display
+		spawn(10)  // 1 second delay
+			input_str = ""
+			base_element.UpdateIcon()  // Clear the vend overlay
+
+
+/////////// Sub-UI Locators ///////////
+// Used to quickly find and manipulate sub-UIs
+/datum/mind_ui/vending/proc/keypad() //returns the keypad sub-ui
+	for (var/datum/mind_ui/vending/keypad/keypad_ui in subUIs)
+		return keypad_ui
+
+/datum/mind_ui/vending/proc/products() //returns the products sub-ui
+	for (var/datum/mind_ui/vending/products/products_ui in subUIs)
+		return products_ui
+
+/datum/mind_ui/vending/proc/navigation() //returns the navigation sub-ui
+	for (var/datum/mind_ui/vending/navigation/base_ui in subUIs)
+		return base_ui
+
+
+/////////// Element Locators ///////////
+/datum/mind_ui/vending/proc/primary() //returns the primary element
+	for( var/obj/abstract/mind_ui_element/element in elements)
+		if (istype(element,primary_element_type))
+			return element
+
+//////////////////////////////////////////
+//~~~~~~~~~~~~~~ Elements ~~~~~~~~~~~~~~//
+//////////////////////////////////////////
+/obj/abstract/mind_ui_element/vending
+	layer = MIND_UI_BACK
+
+/obj/abstract/mind_ui_element/vending/UpdateIcon(var/appear = FALSE)
 	..()
-	var/datum/mind_ui/vending/P = parent
-	if(!P || !istype(P,/datum/mind_ui/vending))
-		qdel(src)
-	offset_x = P.ui_width / 2
-	offset_y = P.ui_height - 100
+	overlays.len = 0
+	underlays.len = 0
 
-/obj/abstract/mind_ui_element/hoverable/close/vending/Click()
-	var/datum/mind_ui/ancestor = parent.GetAncestor()
-	ancestor.Hide()
+	var/datum/mind_ui/vending/ui = parent
+	if(!ui?.vendor_ref)
+		return
+	ui.clear_display()
 
-/obj/abstract/mind_ui_element/hoverable/movable/drag/vending
-	icon = 'icons/ui/16x16.dmi'
-	icon_state = "move"
-	layer = MIND_UI_BUTTON
-	offset_x = -88
-	offset_y = 92
-	move_whole_ui = TRUE
-	hover_state = TRUE
+	// Add drop shadow beneath all UI elements
+	var/image/shadow = image(icon, src, icon_state)
+	shadow.layer = MIND_UI_BACK
+	shadow.color = "#000000"
+	shadow.alpha = 128
+	shadow.pixel_x = 2
+	shadow.pixel_y = -2
+	shadow.filters = list(filter(type="blur", size=1))
+	underlays += shadow
 
-/obj/abstract/mind_ui_element/hoverable/movable/drag/vending/New()
-	..()
-	var/datum/mind_ui/vending/P = parent
-	if(!P || !istype(P,/datum/mind_ui/vending))
-		qdel(src)
-	offset_x = -(P.ui_width / 2)
-	offset_y = P.ui_height - 100
+	// Where the items drop
+	var/image/bin = image(icon, src, "bin")
+	bin.layer = MIND_UI_GROUP_B
+	underlays += bin
 
-//////////////// KEYPADS ////////////////
-/datum/mind_ui/vending/keypad
-	var/button_size = 9 //in px, assumes squares
-	var/horizontal_spacing = 6
-	var/vertical_spacing = 6
-	display_with_parent = TRUE
-	never_move = FALSE
-	offset_layer = MIND_UI_FRONT
+	// Behind the sliding inventory shelves
+	var/image/inventory_back = image(icon, src, "inventory_back")
+	inventory_back.layer = MIND_UI_GROUP_A
+	overlays += inventory_back
 
-/datum/mind_ui/vending/keypad/New(var/datum/mind/M, var/obj/machinery/vending/vendor)
-	..()
-	// Buttons 1-6
-	for(var/i = 1 to 6)
-		var/obj/abstract/mind_ui_element/vending/keypad_button/numerical/key = new()
-		key.value = i
-		key.icon = icon_to_use
-		key.icon_state = "[i]"
-		elements += key
+	var/icon_state_to_use = "inventory"
+	switch(ui.inv_displayed)
+		if(VEND_CAT_HIDDEN) //contraband
+			icon_state_to_use += "_contraband"
+		if(VEND_CAT_COIN) //premium
+			icon_state_to_use += "_premium"
+		if(VEND_CAT_HOLIDAY) //special
+			icon_state_to_use += "_holiday"
 
-	// Bottom row: Clear, 0, Enter
-	var/list/bottom_row = list(
-		new /obj/abstract/mind_ui_element/hoverable/vending/keypad_button/clear(),
-		new /obj/abstract/mind_ui_element/vending/keypad_button/numerical(),
-		new /obj/abstract/mind_ui_element/hoverable/vending/keypad_button/enter()
-	)
-	for(var/obj/abstract/mind_ui_element/elem in bottom_row)
-		elem.icon = icon_to_use
-
-	// Set 0 button properties
-	var/obj/abstract/mind_ui_element/vending/keypad_button/numerical/zero_key = bottom_row[2]
-	zero_key.value = 0
-	zero_key.icon_state = "0"
-
-	elements += bottom_row
-
-/datum/mind_ui/vending/Valid()
-	if (!vendor_ref)
-		return FALSE
-	if (!mind?.current)
-		return FALSE
-	if (!(mind.current.Adjacent(vendor_ref)))
-		return FALSE
-	if (vendor_ref.stat & (BROKEN|NOPOWER|FORCEDISABLE))
-		return FALSE
-	return TRUE
-
-/obj/abstract/mind_ui_element/vending/keypad_button
-
-/obj/abstract/mind_ui_element/vending/keypad_button/numerical
-	var/value = 0
-
-/obj/abstract/mind_ui_element/hoverable/vending/keypad_button/clear
-	icon_state = "clear"
-	tooltip_title = "Clear"
-	tooltip_content = "Clear the current input"
-	element_flags = MINDUI_FLAG_TOOLTIP
-
-/obj/abstract/mind_ui_element/hoverable/vending/keypad_button/enter
-	icon_state = "enter"
-	tooltip_title = "Enter"
-	tooltip_content = "Vend the selected product"
-	element_flags = MINDUI_FLAG_TOOLTIP
-
-//////////////// PRODUCT DISPLAYS ////////////////
-/datum/mind_ui/vending/products
-	var/product_size = 32 //in px, assumes squares
-	var/horizontal_spacing = 4
-	var/vertical_spacing = 4
-	display_with_parent = TRUE
-	never_move = FALSE
-	offset_layer = MIND_UI_BUTTON
-
-/datum/mind_ui/vending/products/New(var/datum/mind/M, var/obj/machinery/vending/vendor)
-	..()
-	var/list/products = vendor.products
-	for (var/obj/item/product in products)
-		var/obj/abstract/mind_ui_element/hoverable/vending/product_display/display = new(null,src)
-		display.set_product(product)
-		display.icon = icon_to_use
-		display.icon_state = product.icon_state
-		elements += display
-
-/obj/abstract/mind_ui_element/hoverable/vending/product_display
-	var/obj/item/product = null
-	tooltip_title = "Product"
-	tooltip_content = "A product from the vending machine."
-	element_flags = MINDUI_FLAG_TOOLTIP
-
-/obj/abstract/mind_ui_element/hoverable/vending/product_display/proc/set_product(var/obj/item/product_input)
-	product = product_input
-	tooltip_title = product.name
-	tooltip_content = product.desc
-
-/obj/abstract/mind_ui_element/vending/dispenser
-	icon = 'icons/ui/vending/32x32.dmi'
-	icon_state = "dispenser"
-
-/obj/abstract/mind_ui_element/vending/dispenser/proc/dispense()
-	flick("dispenser_moving", src)
+	// Where the items are shown
+	var/image/inventory = image(icon, src, icon_state_to_use)
+	inventory.layer = MIND_UI_GROUP_B
+	overlays += inventory
