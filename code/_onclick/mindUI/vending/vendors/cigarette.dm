@@ -73,13 +73,12 @@
 	icon = 'icons/ui/vending/cigarette/base.dmi'
 	icon_state = "inventory"
 
-/obj/abstract/mind_ui_element/shelf/cigarette/Appear()
-	..()
-	// Add alignment adjustments specific to cigarette vendor
-	offset_x += 4  // Move 4 pixels right
-	offset_y += 3  // Move 3 pixels up
-	UpdateUIScreenLoc()
 
 /obj/abstract/mind_ui_element/vending/coinslot/cigarette
 	icon = 'icons/ui/vending/cigarette/base.dmi'
 	icon_state = "coin"
+	coin_overlay_type = /obj/abstract/mind_ui_element/vending/coin_overlay/cigarette
+
+/obj/abstract/mind_ui_element/vending/coin_overlay/cigarette
+	icon = 'icons/ui/vending/cigarette/base.dmi'
+	icon_state = "insert_coin"

@@ -8,6 +8,7 @@
 	var/input_str = ""
 	var/primary_element_type = /obj/abstract/mind_ui_element/vending //main ui screen
 	var/inv_displayed = VEND_CAT_NORMAL
+	var/last_inventory_change = 0  // Track when inventory was last changed for cooldown
 
 /datum/mind_ui/vending/Valid()
 	var/obj/machinery/vending/vendor = vendor_ref
@@ -86,9 +87,12 @@
 	return inventories
 
 /datum/mind_ui/vending/proc/cycle_inventory(var/direction = 1)
+	if (world.time < last_inventory_change + 30)
+		return
+
 	var/list/available = get_available_inventories()
 	if (available.len <= 1)
-		return // Nothing to cycle to
+		return
 
 	var/current_index = available.Find(inv_displayed)
 	if (!current_index)
@@ -103,9 +107,10 @@
 	var/old_inventory = inv_displayed
 	inv_displayed = available[new_index]
 
+	last_inventory_change = world.time
+
 	update_selector_label()
 
-	// Update shelf immediately
 	var/obj/abstract/mind_ui_element/shelf/shelf_element = shelf()
 	if (shelf_element)
 		shelf_element.UpdateIcon()
@@ -127,22 +132,53 @@
 	if (!products_ui)
 		return
 
-	// Animate the shelf and products moving down
 	for (var/obj/abstract/mind_ui_element/element in products_ui.elements)
-		animate(element, pixel_y = element.pixel_y - 96, time = 5)
+		var/anim_layer = MIND_UI_GROUP_A - 1  // Products go behind everything, including the bin
+		if (istype(element, /obj/abstract/mind_ui_element/shelf))
+			anim_layer = MIND_UI_GROUP_A + 1  // Keep shelf visible above inventory_back
+		element.SlideUIElement(element.offset_x, element.offset_y - 50, duration = 5, layer = anim_layer, hide_after = TRUE)
 
-	// Wait for animation to complete, pause, then bring new inventory up
-	spawn(15) // 5 ticks down + 10 tick pause (1 second)
-		// Update the UI to show new inventory shelf
+	spawn(20)
 		base_element.UpdateIcon()
 
-		// Refresh products for new inventory
 		products_ui.refresh_products()
 
-		// Animate new products rising up from below
 		for (var/obj/abstract/mind_ui_element/element in products_ui.elements)
-			element.pixel_y -= 96
-			animate(element, pixel_y = element.pixel_y + 96, time = 5)
+			element.invisibility = 101
+
+		// Manually recalculate shelf position without calling Appear() to avoid visibility issues
+		for (var/obj/abstract/mind_ui_element/element in products_ui.elements)
+			if (istype(element, /obj/abstract/mind_ui_element/shelf))
+				// Reset shelf position based on products UI offset (same logic as base shelf Appear())
+				element.offset_x = -products_ui.offset_x
+				element.offset_y = -products_ui.offset_y
+				// Don't add vendor-specific adjustments here - they were already applied in the initial Appear()
+				// and are causing the 4px/3px drift
+				element.UpdateUIScreenLoc()
+				element.UpdateIcon()
+
+		// Slide new products from 50 pixels below up to their desired location
+		for (var/obj/abstract/mind_ui_element/element in products_ui.elements)
+			// Use element's current offset as target
+			var/target_x = element.offset_x
+			var/target_y = element.offset_y
+
+			// Use appropriate layer for each element type
+			var/anim_layer = MIND_UI_GROUP_A - 1  // Products start behind everything, including the bin
+			if (istype(element, /obj/abstract/mind_ui_element/shelf))
+				anim_layer = MIND_UI_GROUP_A + 1  // Keep shelf visible above inventory_back
+
+			// Position them 50 pixels below their target
+			element.offset_x = target_x
+			element.offset_y = target_y - 50
+			element.UpdateUIScreenLoc()
+			// Slide them up to their target position, keeping them hidden during animation
+			element.SlideUIElement(target_x, target_y, duration = 5, layer = anim_layer, hide_after = TRUE)
+
+		// After the slide-up animation completes (5 ticks duration + extra buffer), make elements visible at their proper layers
+		spawn(10)
+			for (var/obj/abstract/mind_ui_element/element in products_ui.elements)
+				element.invisibility = 0
 
 /datum/mind_ui/vending/proc/ProcessVend()
 	if (!vendor_ref || !istype(vendor_ref))
@@ -296,26 +332,44 @@
 	inventory_back.layer = MIND_UI_GROUP_A
 	overlays += inventory_back
 
-	// Glass pane over the products
-	var/image/glass = image(icon, src, "glass")
-	glass.layer = MIND_UI_FRONT + 1
-	overlays += glass
-
-/obj/abstract/mind_ui_element/coinslot
+/obj/abstract/mind_ui_element/vending/coinslot
 	icon = 'icons/ui/vending/base.dmi'
 	layer = MIND_UI_FRONT
-
-/obj/abstract/mind_ui_element/vending/spark_overlay
-	icon = 'icons/effects/effects.dmi'
-	icon_state = "blank"
-	layer = MIND_UI_FRONT + 2
-	mouse_opacity = 0
+	var/coin_overlay_type = /obj/abstract/mind_ui_element/vending/coin_overlay
 
 /obj/abstract/mind_ui_element/vending/coinslot/UpdateIcon(var/appear = FALSE)
 	// Skip the parent's UpdateIcon to avoid adding vending overlays
 	// The base UpdateIcon just returns, so we only need to clear overlays
 	overlays.len = 0
 	underlays.len = 0
+
+/obj/abstract/mind_ui_element/vending/coin_overlay
+	icon = 'icons/ui/vending/base.dmi'
+	icon_state = "insert_coin"
+	layer = MIND_UI_FRONT + 2
+
+/obj/abstract/mind_ui_element/vending/coinslot/proc/show_coin()
+	var/obj/abstract/mind_ui_element/vending/coin_overlay/coin = new coin_overlay_type(null, parent)
+	coin.offset_x = 0
+	coin.offset_y = 0
+	coin.UpdateUIScreenLoc()
+
+	parent.elements += coin
+	var/mob/user = GetUser()
+	if (user && user.client)
+		user.client.screen += coin
+
+	spawn(7)
+		parent.elements -= coin
+		if (user && user.client)
+			user.client.screen -= coin
+		qdel(coin)
+
+/obj/abstract/mind_ui_element/vending/spark_overlay
+	icon = 'icons/effects/effects.dmi'
+	icon_state = "blank"
+	layer = MIND_UI_FRONT + 2
+	mouse_opacity = 0
 
 /obj/abstract/mind_ui_element/vending/coinslot/proc/show_sparks()
 	// Create a temporary visual element for the spark effect
@@ -367,6 +421,7 @@
 		show_sparks()
 		ui.vendor_ref.attackby(held_item, user, params)
 	else if(is_type_in_list(held_item, ui.vendor_ref.accepted_coins))
+		show_coin()
 		ui.vendor_ref.attackby(held_item, user, params)
 
 /datum/mind_ui/processor/vending
