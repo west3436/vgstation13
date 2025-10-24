@@ -269,10 +269,14 @@ var/list/mind_ui_ID2type = list()
 
 	if (element_flags & MINDUI_FLAG_PROCESSING)
 		processing_objects.Add(src)
+	if (element_flags & MINDUI_FLAG_FAST_PROCESSING)
+		fast_objects.Add(src)
 
 /obj/abstract/mind_ui_element/Destroy()
 	if (element_flags & MINDUI_FLAG_PROCESSING)
 		processing_objects.Remove(src)
+	if (element_flags & MINDUI_FLAG_FAST_PROCESSING)
+		fast_objects.Remove(src)
 	..()
 
 /obj/abstract/mind_ui_element/proc/CanAppear()
@@ -547,3 +551,114 @@ var/list/mind_ui_ID2type = list()
 		offset_x = initial(offset_x)
 		offset_y = initial(offset_y)
 		UpdateUIScreenLoc()
+
+////////////////////////////////////////////////////////////////////
+//																  //
+//					         PROCESSOR		     				  //
+//																  //
+////////////////////////////////////////////////////////////////////
+
+//Used to help with machine interfaces
+/datum/mind_ui/processor
+	uniqueID = "Processor"
+	element_types_to_spawn = list(
+		/obj/abstract/mind_ui_element/processor,
+		)
+	display_with_parent = TRUE
+
+/obj/abstract/mind_ui_element/processor
+	icon = 'icons/ui/32x32.dmi'
+	icon_state = "blank"
+	mouse_opacity = 0
+	element_flags = MINDUI_FLAG_FAST_PROCESSING
+	var/cursor_modified = FALSE
+
+/obj/abstract/mind_ui_element/processor/process()
+	var/mob/user = GetUser()
+	if (!user || !user.client)
+		return
+
+	var/obj/item/held_item = user.get_active_hand()
+
+	if (!held_item)
+		if (cursor_modified)
+			user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+			cursor_modified = FALSE
+		return
+	if (istype(held_item, /obj/item/weapon/coin))
+		var/icon/cursor_icon = icon('icons/obj/coins.dmi', "coin_silver")
+		cursor_icon.Scale(cursor_icon.Width() * 3, cursor_icon.Height() * 3)
+		user.client.mouse_pointer_icon = cursor_icon
+		cursor_modified = TRUE
+		return
+	if (istype(held_item, /obj/item/weapon/card/emag))
+		var/icon/cursor_icon = icon('icons/obj/card.dmi', "emag")
+		cursor_icon.Scale(cursor_icon.Width() * 3, cursor_icon.Height() * 3)
+		user.client.mouse_pointer_icon = cursor_icon
+		cursor_modified = TRUE
+		return
+	if (held_item.is_screwdriver(user))
+		var/icon/cursor_icon = icon('icons/obj/items.dmi',"screwdriver")
+		cursor_icon.Scale(cursor_icon.Width() * 3, cursor_icon.Height() * 3)
+		user.client.mouse_pointer_icon = cursor_icon
+		cursor_modified = TRUE
+		return
+	if (held_item.is_wirecutter(user))
+		var/icon/cursor_icon = icon('icons/obj/items.dmi',"cutters")
+		cursor_icon.Scale(cursor_icon.Width() * 3, cursor_icon.Height() * 3)
+		user.client.mouse_pointer_icon = cursor_icon
+		cursor_modified = TRUE
+		return
+	if (held_item.is_multitool(user))
+		var/icon/cursor_icon = icon('icons/obj/device.dmi',"multitool")
+		cursor_icon.Scale(cursor_icon.Width() * 3, cursor_icon.Height() * 3)
+		user.client.mouse_pointer_icon = cursor_icon
+		cursor_modified = TRUE
+		return
+	if (cursor_modified)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+		cursor_modified = FALSE
+
+	// If we're invisible, we shouldn't be processing
+	if (invisibility)
+		if (cursor_modified)
+			if (user && user.client)
+				user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+				cursor_modified = FALSE
+		fast_objects.Remove(src)
+		return
+
+/obj/abstract/mind_ui_element/processor/Appear()
+	..()
+	if ((element_flags & MINDUI_FLAG_PROCESSING) && !(src in processing_objects))
+		processing_objects.Add(src)
+	if ((element_flags & MINDUI_FLAG_FAST_PROCESSING) && !(src in fast_objects))
+		fast_objects.Add(src)
+
+/obj/abstract/mind_ui_element/processor/Hide()
+	var/mob/user = GetUser()
+	if (user && user.client && cursor_modified)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+		cursor_modified = FALSE
+	if (element_flags & MINDUI_FLAG_PROCESSING)
+		processing_objects.Remove(src)
+	if (element_flags & MINDUI_FLAG_FAST_PROCESSING)
+		fast_objects.Remove(src)
+	..()
+
+/obj/abstract/mind_ui_element/processor/Destroy()
+	var/mob/user = GetUser()
+	if (user && user.client && cursor_modified)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+		cursor_modified = FALSE
+	..()
+
+/obj/abstract/mind_ui_element/processor/Disappear()
+	var/mob/user = GetUser()
+	if (user && user.client && cursor_modified)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+		cursor_modified = FALSE
+	if (element_flags & MINDUI_FLAG_PROCESSING)
+		processing_objects.Remove(src)
+	if (element_flags & MINDUI_FLAG_FAST_PROCESSING)
+		fast_objects.Remove(src)

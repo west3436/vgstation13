@@ -112,6 +112,10 @@
 	var/datum/mind_ui/vending/ui = parent.parent
 	if (!ui || !istype(ui))
 		return
+	// Check adjacency
+	var/mob/user = GetUser()
+	if (!user || !ui.vendor_ref || !user.Adjacent(ui.vendor_ref))
+		return null
 	ui.cycle_inventory(-1)
 
 /obj/abstract/mind_ui_element/hoverable/vending/selector_next
@@ -126,6 +130,10 @@
 	var/datum/mind_ui/vending/ui = parent.parent
 	if (!ui || !istype(ui))
 		return
+	// Check adjacency
+	var/mob/user = GetUser()
+	if (!user || !ui.vendor_ref || !user.Adjacent(ui.vendor_ref))
+		return null
 	ui.cycle_inventory(1)
 
 /obj/abstract/mind_ui_element/vending/selector_label

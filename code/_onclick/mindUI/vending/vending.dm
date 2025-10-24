@@ -106,7 +106,7 @@
 	update_selector_label()
 
 	// Update shelf immediately
-	var/obj/abstract/mind_ui_element/vending/shelf/shelf_element = shelf()
+	var/obj/abstract/mind_ui_element/shelf/shelf_element = shelf()
 	if (shelf_element)
 		shelf_element.UpdateIcon()
 
@@ -206,7 +206,7 @@
 			update_selector_label()
 
 			// Update shelf to show standard inventory
-			var/obj/abstract/mind_ui_element/vending/shelf/shelf_element = shelf()
+			var/obj/abstract/mind_ui_element/shelf/shelf_element = shelf()
 			if (shelf_element)
 				shelf_element.UpdateIcon()
 
@@ -246,7 +246,7 @@
 /datum/mind_ui/vending/proc/shelf() //returns the shelf element
 	var/datum/mind_ui/vending/products/products_ui = products()
 	if (products_ui)
-		for (var/obj/abstract/mind_ui_element/vending/shelf/shelf_element in products_ui.elements)
+		for (var/obj/abstract/mind_ui_element/shelf/shelf_element in products_ui.elements)
 			return shelf_element
 	return null
 
@@ -300,3 +300,184 @@
 	var/image/glass = image(icon, src, "glass")
 	glass.layer = MIND_UI_FRONT + 1
 	overlays += glass
+
+/obj/abstract/mind_ui_element/coinslot
+	icon = 'icons/ui/vending/base.dmi'
+	layer = MIND_UI_FRONT
+
+/obj/abstract/mind_ui_element/vending/spark_overlay
+	icon = 'icons/effects/effects.dmi'
+	icon_state = "blank"
+	layer = MIND_UI_FRONT + 2
+	mouse_opacity = 0
+
+/obj/abstract/mind_ui_element/vending/coinslot/UpdateIcon(var/appear = FALSE)
+	// Skip the parent's UpdateIcon to avoid adding vending overlays
+	// The base UpdateIcon just returns, so we only need to clear overlays
+	overlays.len = 0
+	underlays.len = 0
+
+/obj/abstract/mind_ui_element/vending/coinslot/proc/show_sparks()
+	// Create a temporary visual element for the spark effect
+	var/obj/abstract/mind_ui_element/vending/spark_overlay/spark = new(null, parent)
+	spark.offset_x = offset_x + 100  // ADJUST THESE to align horizontally
+	spark.offset_y = offset_y + 40   // ADJUST THESE to align vertically
+	spark.UpdateUIScreenLoc()
+
+	// Add to parent elements and send to client
+	parent.elements += spark
+	var/mob/user = GetUser()
+	if (user && user.client)
+		user.client.screen += spark
+
+	// Play spark animation and sound
+	flick("sparks", spark)
+	playsound(user, "sparks", 100, 1)
+
+	// Remove after animation completes
+	spawn(7)
+		parent.elements -= spark
+		if (user && user.client)
+			user.client.screen -= spark
+		qdel(spark)
+
+/obj/abstract/mind_ui_element/vending/coinslot/MouseDown(location, control, params)
+	. = ..()
+
+	var/datum/mind_ui/vending/ui = parent
+	if(!ui?.vendor_ref)
+		return
+
+	var/mob/user = GetUser()
+	if(!user)
+		return
+
+	// Adjacency check
+	if (!user.Adjacent(ui.vendor_ref))
+		return
+
+	if(user.a_intent == I_HURT)
+		return
+
+	var/obj/item/held_item = user.get_active_hand()
+	if(!held_item)
+		return
+
+	if(isEmag(held_item))
+		show_sparks()
+		ui.vendor_ref.attackby(held_item, user, params)
+	else if(is_type_in_list(held_item, ui.vendor_ref.accepted_coins))
+		ui.vendor_ref.attackby(held_item, user, params)
+
+/datum/mind_ui/processor/vending
+	uniqueID = "Vending Processor"
+	element_types_to_spawn = list(
+		/obj/abstract/mind_ui_element/processor/vending,
+		)
+
+/obj/abstract/mind_ui_element/processor/vending
+	// Track vending machine state for UI updates
+	var/last_extended_inventory = FALSE
+	var/last_coin_state = FALSE
+
+/obj/abstract/mind_ui_element/processor/vending/New(turf/loc, var/datum/mind_ui/P)
+	if (!istype(P))
+		qdel(src)
+		return
+	// Temporarily clear the processing flag to prevent auto-add
+	var/temp_flags = element_flags
+	element_flags = 0
+	..()
+	// Restore the flag - we'll manually handle adding to processing_objects in Appear()
+	element_flags = temp_flags
+
+/obj/abstract/mind_ui_element/processor/vending/process()
+	..()
+	var/datum/mind_ui/vending/vending_ui = get_vending_ui()
+	if (!vending_ui)
+		return
+
+	var/obj/machinery/vending/vendor = vending_ui.vendor_ref
+	if (!vendor)
+		return
+
+	var/mob/user = GetUser()
+	if (!user || !user.client)
+		return
+
+	if (!user.Adjacent(vendor))
+		vending_ui.Hide()
+		return
+
+	// INVENTORY CHANGE DETECTION
+	var/current_extended = vendor.extended_inventory ? TRUE : FALSE
+	var/current_coin = vendor.coin ? TRUE : FALSE
+
+	if (current_extended != last_extended_inventory || current_coin != last_coin_state)
+		last_extended_inventory = current_extended
+		last_coin_state = current_coin
+
+		var/datum/mind_ui/vending/inventory_selector/selector_ui = vending_ui.inventory_selector()
+		if (selector_ui)
+			var/list/available = vending_ui.get_available_inventories()
+			if (available.len > 1)
+				selector_ui.Display()
+			else
+				selector_ui.Hide()
+
+		vending_ui.update_selector_label()
+
+		var/list/available_invs = vending_ui.get_available_inventories()
+		if (!(vending_ui.inv_displayed in available_invs))
+			vending_ui.inv_displayed = VEND_CAT_NORMAL
+			vending_ui.update_selector_label()
+
+			var/obj/abstract/mind_ui_element/shelf/shelf_element = vending_ui.shelf()
+			if (shelf_element)
+				shelf_element.UpdateIcon()
+
+			var/datum/mind_ui/vending/products/products_ui = vending_ui.products()
+			if (products_ui)
+				products_ui.refresh_products()
+
+/obj/abstract/mind_ui_element/processor/vending/proc/get_vending_ui()
+	var/datum/mind_ui/current = parent
+	while (current)
+		if (istype(current, /datum/mind_ui/vending))
+			return current
+		current = current.parent
+	return null
+
+/obj/abstract/mind_ui_element/processor/vending/Appear()
+	..()
+	var/datum/mind_ui/vending/vending_ui = get_vending_ui()
+	if (vending_ui && vending_ui.vendor_ref)
+		last_extended_inventory = vending_ui.vendor_ref.extended_inventory ? TRUE : FALSE
+		last_coin_state = vending_ui.vendor_ref.coin ? TRUE : FALSE
+	if ((element_flags & MINDUI_FLAG_PROCESSING) && !(src in processing_objects))
+		processing_objects.Add(src)
+
+/obj/abstract/mind_ui_element/processor/vending/Hide()
+	var/mob/user = GetUser()
+	if (user && user.client && cursor_modified)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+		cursor_modified = FALSE
+	if (element_flags & MINDUI_FLAG_PROCESSING)
+		processing_objects.Remove(src)
+	..()
+
+/obj/abstract/mind_ui_element/processor/vending/Destroy()
+	var/mob/user = GetUser()
+	if (user && user.client && cursor_modified)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+		cursor_modified = FALSE
+	..()
+
+/obj/abstract/mind_ui_element/processor/vending/Disappear()
+	var/mob/user = GetUser()
+	if (user && user.client && cursor_modified)
+		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+		cursor_modified = FALSE
+	if (element_flags & MINDUI_FLAG_PROCESSING)
+		processing_objects.Remove(src)
+	..()

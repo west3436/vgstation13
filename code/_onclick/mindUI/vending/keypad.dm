@@ -94,6 +94,10 @@
 	var/datum/mind_ui/vending/ui = parent?.parent
 	if (!ui || !istype(ui))
 		return
+	// Check adjacency
+	var/mob/user = GetUser()
+	if (!user || !ui.vendor_ref || !user.Adjacent(ui.vendor_ref))
+		return null
 	if (length(ui.input_str) >= 2)
 		return
 	icon_state = "[base_icon_state]_pressed"
@@ -164,6 +168,10 @@
 	var/datum/mind_ui/vending/ui = parent?.parent
 	if (!ui || !istype(ui))
 		return
+	// Check adjacency
+	var/mob/user = GetUser()
+	if (!user || !ui.vendor_ref || !user.Adjacent(ui.vendor_ref))
+		return null
 	icon_state = "[base_icon_state]_pressed"
 	spawn(2)
 		icon_state = base_icon_state
@@ -182,6 +190,10 @@
 	var/datum/mind_ui/vending/ui = parent?.parent
 	if (!ui || !istype(ui))
 		return
+	// Check adjacency
+	var/mob/user = GetUser()
+	if (!user || !ui.vendor_ref || !user.Adjacent(ui.vendor_ref))
+		return null
 	icon_state = "[base_icon_state]_pressed"
 	spawn(2)
 		icon_state = base_icon_state

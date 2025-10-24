@@ -35,14 +35,14 @@
 /datum/mind_ui/vending/products/proc/clear_products()
 	for (var/obj/abstract/mind_ui_element/element in elements)
 		// Preserve shelf elements - they should persist across inventory changes
-		if (istype(element, /obj/abstract/mind_ui_element/vending/shelf))
+		if (istype(element, /obj/abstract/mind_ui_element/shelf))
 			continue
 		if (mind?.current?.client)
 			mind.current.client.screen -= element
 		qdel(element)
 	// Remove all non-shelf elements from the list
 	for (var/obj/abstract/mind_ui_element/element in elements)
-		if (!istype(element, /obj/abstract/mind_ui_element/vending/shelf))
+		if (!istype(element, /obj/abstract/mind_ui_element/shelf))
 			elements -= element
 
 /datum/mind_ui/vending/products/proc/refresh_products()
@@ -212,6 +212,12 @@
 
 	var/datum/mind_ui/vending/products/ui = parent
 
+	// Update the stack visual immediately to show one fewer item
+	update_stack_visual()
+	if (product)
+		var/price_display = product.price ? product.price : 0
+		tooltip_content = "Stock: [product.amount] | Price: [price_display] credits"
+
 	// Create temporary animated element at the front position
 	var/obj/abstract/mind_ui_element/vending/product_vend_anim/temp_item = new(null, ui)
 	temp_item.icon = icon
@@ -231,13 +237,6 @@
 	// Animate the temp item to the bin
 	temp_item.SlideUIElement(ui.vend_target_x + rand(-15,15), ui.vend_target_y, duration = 3, layer = MIND_UI_GROUP_D, hide_after = FALSE)
 
-	// Update the stack visual to show one fewer item after a short delay
-	spawn(1)
-		update_stack_visual()
-		if (product)
-			var/price_display = product.price ? product.price : 0
-			tooltip_content = "Stock: [product.amount] | Price: [price_display] credits"
-
 	// Clean up the temp element after animation
 	spawn(3 SECONDS)
 		ui.elements -= temp_item
@@ -247,6 +246,10 @@
 	var/datum/mind_ui/vending/ui = parent?.parent
 	if (!ui || !istype(ui))
 		return
+	// Check adjacency
+	var/mob/user = GetUser()
+	if (!user || !ui.vendor_ref || !user.Adjacent(ui.vendor_ref))
+		return null
 	if (!product || product.amount <= 0)
 		ui.Error("Product out of stock")
 		return
@@ -288,14 +291,14 @@
 		overlays += String2Image("[product_id]", spacing = 6, _color = "#FFFFFF", _pixel_x = 16, _pixel_y = 0, shadows = FALSE)
 
 /////////// Shelf Element ///////////
-/obj/abstract/mind_ui_element/vending/shelf
+/obj/abstract/mind_ui_element/shelf
 	// icon and icon_state should be defined by vendor-specific subtypes
 	layer = MIND_UI_GROUP_A + 1
 	width = 100
 	height = 100
 	mouse_opacity = 0
 
-/obj/abstract/mind_ui_element/vending/shelf/Appear()
+/obj/abstract/mind_ui_element/shelf/Appear()
 	..()
 	// Position at origin of base vending UI (negate products UI offset)
 	var/datum/mind_ui/vending/products/products_ui = parent
@@ -308,7 +311,7 @@
 	UpdateUIScreenLoc()
 	UpdateIcon()
 
-/obj/abstract/mind_ui_element/vending/shelf/UpdateIcon(var/appear = FALSE)
+/obj/abstract/mind_ui_element/shelf/UpdateIcon(var/appear = FALSE)
 	..()
 	var/datum/mind_ui/vending/products/products_ui = parent
 	if (!products_ui || !istype(products_ui))
