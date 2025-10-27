@@ -232,6 +232,20 @@ var/list/mind_ui_ID2type = list()
 	ASSERT(mind && mind.current)
 	return mind.current
 
+/datum/mind_ui/proc/get_width()
+	var/width_out = 0
+	for(var/obj/abstract/mind_ui_element/element in elements)
+		if(element.width > width_out)
+			width_out = element.width
+	return width_out
+
+/datum/mind_ui/proc/get_height()
+	var/height_out = 0
+	for(var/obj/abstract/mind_ui_element/element in elements)
+		if(element.height > height_out)
+			height_out = element.height
+	return height_out
+
 ////////////////////////////////////////////////////////////////////
 //																  //
 //							 UI ELEMENT							  //

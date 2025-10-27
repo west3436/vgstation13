@@ -30,6 +30,11 @@
 
 /datum/mind_ui/vending/products/Display()
 	populate_products()
+	// Ensure shelf position is properly recalculated
+	for(var/obj/abstract/mind_ui_element/shelf/shelf_element in elements)
+		shelf_element.offset_x = -offset_x
+		shelf_element.offset_y = -offset_y
+		shelf_element.UpdateUIScreenLoc()
 	..()
 
 /datum/mind_ui/vending/products/proc/clear_products()

@@ -1,6 +1,7 @@
 /datum/wires/vending
 	holder_type = /obj/machinery/vending
 	wire_count = 4
+	var/list/wire_states = list()
 
 /datum/wires/vending/New()
 	wire_names=list(
@@ -8,6 +9,12 @@
 		"[VENDING_WIRE_CONTRABAND]" = "Contraband",
 		"[VENDING_WIRE_ELECTRIFY]" 	= "Shock",
 		"[VENDING_WIRE_IDSCAN]" 	= "ID Scan"
+	)
+	wire_states = list(
+		"[VENDING_WIRE_THROW]" = WIRES_NORMAL,
+		"[VENDING_WIRE_CONTRABAND]" = WIRES_NORMAL,
+		"[VENDING_WIRE_ELECTRIFY]" = WIRES_NORMAL,
+		"[VENDING_WIRE_IDSCAN]" = WIRES_NORMAL
 	)
 	..()
 
@@ -51,15 +58,29 @@ var/const/VENDING_WIRE_IDSCAN = 8
 	switch(index)
 		if(VENDING_WIRE_THROW)
 			V.shoot_inventory = !mended
+			if(mended)
+				SetStatus(VENDING_WIRE_THROW, WIRES_NORMAL)
+			else
+				SetStatus(VENDING_WIRE_THROW, WIRES_CUT)
 		if(VENDING_WIRE_CONTRABAND)
 			V.extended_inventory = 0
+			if(mended)
+				SetStatus(VENDING_WIRE_CONTRABAND, WIRES_NORMAL)
+			else
+				SetStatus(VENDING_WIRE_CONTRABAND, WIRES_CUT)
 		if(VENDING_WIRE_ELECTRIFY)
 			if(mended)
 				V.seconds_electrified = 0
+				SetStatus(VENDING_WIRE_ELECTRIFY, WIRES_NORMAL)
 			else
 				V.seconds_electrified = -1
+				SetStatus(VENDING_WIRE_ELECTRIFY, WIRES_CUT)
 		if(VENDING_WIRE_IDSCAN)
 			V.scan_id = 1
+			if(mended)
+				SetStatus(VENDING_WIRE_IDSCAN, WIRES_NORMAL)
+			else
+				SetStatus(VENDING_WIRE_IDSCAN, WIRES_CUT)
 
 
 /datum/wires/vending/UpdatePulsed(var/index)
@@ -70,9 +91,36 @@ var/const/VENDING_WIRE_IDSCAN = 8
 	switch(index)
 		if(VENDING_WIRE_THROW)
 			V.shoot_inventory = !V.shoot_inventory
+			SetStatus(VENDING_WIRE_THROW, WIRES_PULSED)
 		if(VENDING_WIRE_CONTRABAND)
 			V.extended_inventory = !V.extended_inventory
+			SetStatus(VENDING_WIRE_CONTRABAND, WIRES_PULSED)
 		if(VENDING_WIRE_ELECTRIFY)
 			V.seconds_electrified = 30
+			SetStatus(VENDING_WIRE_ELECTRIFY, WIRES_PULSED)
 		if(VENDING_WIRE_IDSCAN)
 			V.scan_id = !V.scan_id
+			SetStatus(VENDING_WIRE_IDSCAN, WIRES_PULSED)
+
+/datum/wires/vending/proc/SetStatus(var/index, var/action)
+	switch(index)
+		if(VENDING_WIRE_THROW)
+			wire_states["[VENDING_WIRE_THROW]"] = action
+		if(VENDING_WIRE_CONTRABAND)
+			wire_states["[VENDING_WIRE_CONTRABAND]"] = action
+		if(VENDING_WIRE_ELECTRIFY)
+			wire_states["[VENDING_WIRE_ELECTRIFY]"] = action
+		if(VENDING_WIRE_IDSCAN)
+			wire_states["[VENDING_WIRE_IDSCAN]"] = action
+
+/datum/wires/vending/proc/GetStatus(var/index)
+	switch(index)
+		if(VENDING_WIRE_THROW)
+			return wire_states["[VENDING_WIRE_THROW]"]
+		if(VENDING_WIRE_CONTRABAND)
+			return wire_states["[VENDING_WIRE_CONTRABAND]"]
+		if(VENDING_WIRE_ELECTRIFY)
+			return wire_states["[VENDING_WIRE_ELECTRIFY]"]
+		if(VENDING_WIRE_IDSCAN)
+			return wire_states["[VENDING_WIRE_IDSCAN]"]
+	return WIRES_NORMAL

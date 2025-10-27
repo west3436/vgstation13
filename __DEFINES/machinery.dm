@@ -20,3 +20,7 @@
 #define VEND_PRODUCT_RING	(1<<1) //does the vended product have a ring dispenser
 #define VEND_PRODUCT_LABEL	(1<<2) //does the vended product have a label
 #define VEND_PRODUCT_ICON 	(1<<3) //does the vended product have a custom icon
+
+#define WIRES_NORMAL 0
+#define WIRES_CUT    1
+#define WIRES_PULSED 2

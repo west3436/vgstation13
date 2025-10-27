@@ -190,6 +190,7 @@
 #include "code\_onclick\mindUI\vending\navigation.dm"
 #include "code\_onclick\mindUI\vending\product.dm"
 #include "code\_onclick\mindUI\vending\vending.dm"
+#include "code\_onclick\mindUI\vending\wires.dm"
 #include "code\_onclick\mindUI\vending\vendors\cigarette.dm"
 #include "code\controllers\configuration.dm"
 #include "code\controllers\radio_controller.dm"

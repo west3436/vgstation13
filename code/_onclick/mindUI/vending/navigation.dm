@@ -7,13 +7,16 @@
 /////////// Navigation UI ///////////
 /datum/mind_ui/vending/navigation
 	display_with_parent = TRUE
+	offset_layer = MIND_UI_FRONT
 	element_types_to_spawn = list(
 		/obj/abstract/mind_ui_element/hoverable/close,
 		/obj/abstract/mind_ui_element/hoverable/movable/drag,
 	)
 
 /datum/mind_ui/vending/navigation/Valid()
-	if (!parent || !istype(parent, /datum/mind_ui/vending))
+	if (!parent)
+		return FALSE
+	if (!istype(parent, /datum/mind_ui/vending) && !istype(parent, /datum/mind_ui/wires/vending))
 		return FALSE
 	return parent.Valid()
 
@@ -22,21 +25,20 @@
 /obj/abstract/mind_ui_element/hoverable/close
 	icon = 'icons/ui/16x16.dmi'
 	icon_state = "close"
-	layer = MIND_UI_BUTTON
+	layer = MIND_UI_FRONT
 	hover_state = TRUE
 	width = 16
 	height = 16
 
 /obj/abstract/mind_ui_element/hoverable/close/Appear()
 	..()
-	var/datum/mind_ui/vending/ui = parent?.parent
+	var/datum/mind_ui/ui = parent?.parent
 	if (!ui || !istype(ui))
 		return
-	var/obj/abstract/mind_ui_element/primary = ui.primary()
-	if (!primary)
-		return
-	offset_x = round(primary.width - (width / 2))
-	offset_y = round(primary.height - (height / 2))
+	var/w = ui.get_width()
+	var/h = ui.get_height()
+	offset_x = round(w - (width / 2))
+	offset_y = round(h - (height / 2))
 	UpdateUIScreenLoc()
 
 /obj/abstract/mind_ui_element/hoverable/close/Click()
@@ -46,7 +48,7 @@
 /obj/abstract/mind_ui_element/hoverable/movable/drag
 	icon = 'icons/ui/16x16.dmi'
 	icon_state = "move"
-	layer = MIND_UI_BUTTON
+	layer = MIND_UI_FRONT
 	hover_state = TRUE
 	move_whole_ui = TRUE
 	move_all_uis = TRUE
@@ -55,14 +57,12 @@
 
 /obj/abstract/mind_ui_element/hoverable/movable/drag/Appear()
 	..()
-	var/datum/mind_ui/vending/ui = parent?.parent
+	var/datum/mind_ui/ui = parent?.parent
 	if (!ui || !istype(ui))
 		return
-	var/obj/abstract/mind_ui_element/primary = ui.primary()
-	if (!primary)
-		return
+	var/h = ui.get_height()
 	offset_x = round(-width/2)
-	offset_y = round(primary.height - (height / 2))
+	offset_y = round(h - (height / 2))
 	UpdateUIScreenLoc()
 
 

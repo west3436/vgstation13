@@ -332,6 +332,11 @@
 	inventory_back.layer = MIND_UI_GROUP_A
 	overlays += inventory_back
 
+/obj/abstract/mind_ui_element/vending/maintenance_panel
+
+/obj/abstract/mind_ui_element/vending/maintenance_panel/proc/update_visibility()
+	return
+
 /obj/abstract/mind_ui_element/vending/coinslot
 	icon = 'icons/ui/vending/base.dmi'
 	layer = MIND_UI_FRONT
@@ -434,6 +439,7 @@
 	// Track vending machine state for UI updates
 	var/last_extended_inventory = FALSE
 	var/last_coin_state = FALSE
+	var/last_panel_open = FALSE
 
 /obj/abstract/mind_ui_element/processor/vending/New(turf/loc, var/datum/mind_ui/P)
 	if (!istype(P))
@@ -494,6 +500,25 @@
 			var/datum/mind_ui/vending/products/products_ui = vending_ui.products()
 			if (products_ui)
 				products_ui.refresh_products()
+
+	// PANEL STATE CHANGE DETECTION
+	var/current_panel_open = vendor.panel_open ? TRUE : FALSE
+	if (current_panel_open != last_panel_open)
+		last_panel_open = current_panel_open
+
+		// Update maintenance panel visibility
+		for(var/obj/abstract/mind_ui_element/vending/maintenance_panel/P in vending_ui.elements)
+			P.update_visibility()
+
+		// Refresh wires UI elements
+		for(var/datum/mind_ui/vending/wires/wires_ui in vending_ui.subUIs)
+			wires_ui.refresh_elements()
+
+		// Close main wires UI if panel was closed
+		if(!current_panel_open && ("Vending Wires" in user.mind.activeUIs))
+			var/datum/mind_ui/wires/vending/main_wires_ui = user.mind.activeUIs["Vending Wires"]
+			if(main_wires_ui && main_wires_ui.vendor_ref == vendor)
+				main_wires_ui.Hide()
 
 /obj/abstract/mind_ui_element/processor/vending/proc/get_vending_ui()
 	var/datum/mind_ui/current = parent
