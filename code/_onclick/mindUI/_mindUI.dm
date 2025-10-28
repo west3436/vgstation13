@@ -588,10 +588,12 @@ var/list/mind_ui_ID2type = list()
 	var/cursor_modified = FALSE
 
 /obj/abstract/mind_ui_element/processor/process()
+	if(!parent)
+		qdel(src)
 	var/mob/user = GetUser()
 	if (!user || !user.client)
 		return
-
+	message_admins("Processing processor for [user.name]'s UI element [src]")
 	var/obj/item/held_item = user.get_active_hand()
 
 	if (!held_item)
@@ -651,9 +653,8 @@ var/list/mind_ui_ID2type = list()
 
 /obj/abstract/mind_ui_element/processor/Hide()
 	var/mob/user = GetUser()
-	if (user && user.client && cursor_modified)
-		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
-		cursor_modified = FALSE
+	user?.client?.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+	cursor_modified = FALSE
 	if (element_flags & MINDUI_FLAG_PROCESSING)
 		processing_objects.Remove(src)
 	if (element_flags & MINDUI_FLAG_FAST_PROCESSING)
@@ -662,16 +663,13 @@ var/list/mind_ui_ID2type = list()
 
 /obj/abstract/mind_ui_element/processor/Destroy()
 	var/mob/user = GetUser()
-	if (user && user.client && cursor_modified)
-		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
-		cursor_modified = FALSE
+	user?.client?.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
 	..()
 
 /obj/abstract/mind_ui_element/processor/Disappear()
 	var/mob/user = GetUser()
-	if (user && user.client && cursor_modified)
-		user.client.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
-		cursor_modified = FALSE
+	user?.client?.mouse_pointer_icon = initial(user.client.mouse_pointer_icon)
+	cursor_modified = FALSE
 	if (element_flags & MINDUI_FLAG_PROCESSING)
 		processing_objects.Remove(src)
 	if (element_flags & MINDUI_FLAG_FAST_PROCESSING)

@@ -159,6 +159,9 @@ Class Procs:
 	var/obj/item/weapon/card/id/scan = null	//ID inserted for identification, if applicable
 	var/id_tag = null // Identify the machine
 
+	var/mindui_type = null // The mind UI type this machine uses, if any
+	var/mindui_wires_type = null // The mind UI type this machine uses for the wire interface, if any
+
 /obj/machinery/cultify()
 	var/list/random_structure = list(
 		/obj/structure/cult_legacy/talisman,
@@ -933,3 +936,16 @@ Class Procs:
 				table_shift()
 		else
 			table_unshift()
+
+/obj/machinery/proc/open_mindui(mob/living/user)
+	if(!mindui_type)
+		return FALSE
+
+	var/datum/mind_ui/machinery/ui = new mindui_type(user, src)
+	ui.machine_ref = src
+
+	if (!ui.Valid())
+		ui.Hide()
+	else
+		ui.Display()
+	return TRUE

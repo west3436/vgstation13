@@ -540,7 +540,6 @@
 	element_flags = temp_flags
 
 /obj/abstract/mind_ui_element/processor/wires/vending/process()
-	..()
 	var/datum/mind_ui/wires/vending/wires_ui = get_wires_ui()
 	if(!wires_ui)
 		return
@@ -562,6 +561,8 @@
 	if(!vendor.panel_open)
 		wires_ui.Hide()
 		return
+
+	..()
 
 	// Refresh wires if needed
 	var/current_panel_open = vendor.panel_open ? TRUE : FALSE

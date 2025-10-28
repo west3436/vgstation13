@@ -233,11 +233,11 @@
 	temp_item.UpdateUIScreenLoc()
 
 	// Add to parent's elements temporarily
-	ui.elements += temp_item
+	ui.elements |= temp_item
 
 	// Send to client
 	if (ui.mind?.current?.client)
-		ui.mind.current.client.screen += temp_item
+		ui.mind.current.client.screen |= temp_item
 
 	// Animate the temp item to the bin
 	temp_item.SlideUIElement(ui.vend_target_x + rand(-15,15), ui.vend_target_y, duration = 3, layer = MIND_UI_GROUP_D, hide_after = FALSE)

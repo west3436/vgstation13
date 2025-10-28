@@ -33,6 +33,7 @@
 				display.dispenser.dispense()
 				spawn(5)
 					display.vend_front_item()
+					return
 
 /datum/mind_ui/vending/proc/Error(var/message = "Error")
 	if (mind?.current)
@@ -453,7 +454,6 @@
 	element_flags = temp_flags
 
 /obj/abstract/mind_ui_element/processor/vending/process()
-	..()
 	var/datum/mind_ui/vending/vending_ui = get_vending_ui()
 	if (!vending_ui)
 		return
@@ -469,6 +469,8 @@
 	if (!user.Adjacent(vendor))
 		vending_ui.Hide()
 		return
+
+	..()
 
 	// INVENTORY CHANGE DETECTION
 	var/current_extended = vendor.extended_inventory ? TRUE : FALSE
