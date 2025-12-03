@@ -23,6 +23,10 @@
 #define CAVE_HEAT_THRESHOLD_WARM 0.5
 #define CAVE_HEAT_THRESHOLD_HOT 0.75
 
+#define MINOR_THREAT_REDUCTION 20
+#define MODERATE_THREAT_REDUCTION 30
+#define MAJOR_THREAT_REDUCTION 40
+
 
 /datum/planetGenerator
 	/// Higher values of this variable result in larger biomes.
@@ -105,6 +109,9 @@
 	var/actual_terrain
 	var/actual_atmosphere
 
+	var/remaining_threat = 0
+	var/base_threat = PLANET_THREAT_NONE
+
 /datum/planetGenerator/New(var/terrain = 0, var/humidity = 0, var/heat = 0, var/atmos_filter = 0)
 	// Initialize perlin noise seeds with random values
 	height_seed = rand(0, 50000)
@@ -118,15 +125,12 @@
 
 	// Generate cellular automaton data for caves if they are enabled
 	mountain_height = get_height()
-	message_admins("Mountain height set to [mountain_height]")
 	if(mountain_height < 1)
 		cave_automaton_data = rustg_cnoise_generate("[initial_closed_chance]", "[smoothing_iterations]", "[birth_limit]", "[death_limit]", "[SECTOR_SIZE]", "[SECTOR_SIZE]")
 
 	heat_mod = get_heat_mod()
-	message_admins("Heat mod: [heat_mod]")
 
 	humidity_mod = get_humidity_mod()
-	message_admins("Humidity mod: [humidity_mod]")
 
 	// Initialize area instances
 	primary_area = new primary_area_type
@@ -137,8 +141,9 @@
 
 	// Setup atmos
 	atmosphere = get_atmosphere()
-	message_admins("Planet atmosphere set to [atmosphere]")
-	message_admins("temp: [atmosphere[1]], oxy: [atmosphere[2]], nitro: [atmosphere[3]], co2: [atmosphere[4]], toxic: [atmosphere[5]], radioactive: [atmosphere[6]]")
+
+	calculate_threat_level()
+
 	return ..()
 
 /datum/planetGenerator/proc/generate_turf(turf/gen_turf)
@@ -158,7 +163,7 @@
 	var/datum/biome/turf_biome = get_biome(gen_turf)
 	if(!turf_biome)
 		return
-	turf_biome.populate_turf(gen_turf, created_features, created_mobs, planet_loot, planet_faction)
+	remaining_threat -= turf_biome.populate_turf(gen_turf, created_features, created_mobs, planet_loot, planet_faction, remaining_threat)
 
 /datum/planetGenerator/proc/post_process(datum/allocation/allocation)
 	return
@@ -386,6 +391,24 @@
 
 	return list(temp,o2,n2,co2,toxins,radon)
 
+/datum/planetGenerator/proc/calculate_threat_level()
+	remaining_threat = rand(0,100) + base_threat
+	switch(actual_atmosphere)
+		if(PLANET_ATMOSPHERE_NONE)
+			remaining_threat -= MODERATE_THREAT_REDUCTION
+		if(PLANET_ATMOSPHERE_THIN)
+			remaining_threat -= MINOR_THREAT_REDUCTION
+		if(PLANET_ATMOSPHERE_TOXIC)
+			remaining_threat -= MAJOR_THREAT_REDUCTION
+		if(PLANET_ATMOSPHERE_RADIOACTIVE)
+			remaining_threat -= MAJOR_THREAT_REDUCTION
+	switch(actual_heat)
+		if(PLANET_VERY_LOW_TEMPERATURE)
+			remaining_threat -= MINOR_THREAT_REDUCTION
+		if(PLANET_VERY_HIGH_TEMPERATURE)
+			remaining_threat -= MINOR_THREAT_REDUCTION
+	remaining_threat = max(0, remaining_threat)
+
 #undef BIOME_RANDOM_SQUARE_DRIFT
 #undef PERLIN_NOISE_MIN
 #undef PERLIN_NOISE_MAX
@@ -401,3 +424,6 @@
 #undef CAVE_HEAT_THRESHOLD_COLD
 #undef CAVE_HEAT_THRESHOLD_WARM
 #undef CAVE_HEAT_THRESHOLD_HOT
+#undef MINOR_THREAT_REDUCTION
+#undef MODERATE_THREAT_REDUCTION
+#undef MAJOR_THREAT_REDUCTION

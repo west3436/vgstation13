@@ -6,6 +6,7 @@
 	base_humidity = PLANET_HIGH_HUMIDITY
 	base_terrain = PLANET_TERRAIN_FLAT
 	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
+	base_threat = PLANET_THREAT_LOW
 
 	biome_table = list(
 		BIOME_COLDEST = list(
@@ -96,7 +97,7 @@
 	)
 	flora_spawn_chance = 25
 	mob_spawn_chance = 2
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/mouse/common = 50,
 		/mob/living/simple_animal/hostile/deer = 10,
 		/mob/living/simple_animal/cockroach = 10,
@@ -111,14 +112,16 @@
 		/mob/living/simple_animal/corgi = 15,
 		/mob/living/simple_animal/corgi/puppy = 5,
 		/mob/living/simple_animal/hamster = 10,
-		/mob/living/simple_animal/hostile/pitbull = 5,
 		/mob/living/simple_animal/hostile/retaliate/cockatrice = 5,
 		/mob/living/simple_animal/hostile/retaliate/cockatrice/chick = 5,
 		/mob/living/simple_animal/hostile/retaliate/goat = 25,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/wendigo = 5,
 		/mob/living/simple_animal/hostile/wendigo/alpha = 1,
 		/mob/living/simple_animal/hostile/wendigo/evolved = 2,
 		/mob/living/simple_animal/hostile/wendigo/human = 5,
+		/mob/living/simple_animal/hostile/pitbull = 5,
 	)
 	loot_spawners = list(
 		/obj/abstract/loot_spawner/bedsheet = 1,
@@ -170,16 +173,18 @@
 	)
 	flora_spawn_chance = 60
 	mob_spawn_chance = 3
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/mouse/common = 15,
 		/mob/living/simple_animal/hostile/deer = 20,
-		/mob/living/simple_animal/hostile/deer/flesh = 1,
-		/mob/living/simple_animal/hostile/bear/brownbear = 8,
 		/mob/living/simple_animal/cockroach = 10,
-		/mob/living/simple_animal/hostile/wolf = 5,
 		/mob/living/simple_animal/hostile/mushroom = 10,
 		/mob/living/simple_animal/cricket = 15,
 		/mob/living/simple_animal/snail = 12,
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/deer/flesh = 1,
+		/mob/living/simple_animal/hostile/bear/brownbear = 8,
+		/mob/living/simple_animal/hostile/wolf = 5,
 	)
 
 /datum/biome/grass/lush
@@ -227,18 +232,20 @@
 	)
 	flora_spawn_chance = 80
 	mob_spawn_chance = 5
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/mouse/common = 10,
 		/mob/living/simple_animal/hostile/deer = 15,
-		/mob/living/simple_animal/hostile/bear/brownbear = 10,
 		/mob/living/simple_animal/cockroach = 20,
 		/mob/living/simple_animal/bee = 15,
 		/mob/living/simple_animal/hostile/lizard = 20,
-		/mob/living/simple_animal/hostile/wolf = 8,
 		/mob/living/simple_animal/hostile/mushroom = 12,
 		/mob/living/simple_animal/cricket = 15,
 		/mob/living/simple_animal/snail = 10,
 		/mob/living/simple_animal/parrot = 5,
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/bear/brownbear = 10,
+		/mob/living/simple_animal/hostile/wolf = 8,
 		/mob/living/simple_animal/hostile/spacehog/adult = 1,
 		/mob/living/simple_animal/hostile/spacehog/adult/mama =1,
 		/mob/living/simple_animal/hostile/spacehog/piglet = 1
@@ -259,17 +266,19 @@
 	)
 	flora_spawn_chance = 85
 	mob_spawn_chance = 6
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/mouse/common = 10,
 		/mob/living/simple_animal/cockroach = 25,
 		/mob/living/simple_animal/bee = 30,
 		/mob/living/simple_animal/hostile/lizard = 30,
-		/mob/living/simple_animal/hostile/bear/brownbear = 8,
 		/mob/living/simple_animal/hostile/lizard/frog = 15,
 		/mob/living/simple_animal/cricket = 20,
 		/mob/living/simple_animal/snail = 15,
 		/mob/living/simple_animal/parrot = 10,
 		/mob/living/simple_animal/capybara = 5
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/bear/brownbear = 8,
 	)
 
 // Cave biomes
@@ -285,13 +294,15 @@
 		/obj/effect/glowshroom = 5
 	)
 	mob_spawn_chance = 3
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/cockroach = 25,
 		/mob/living/simple_animal/mouse/common = 20,
-		/mob/living/simple_animal/hostile/asteroid/basilisk = 15,
-		/mob/living/simple_animal/hostile/scarybat/cave = 20,
 		/mob/living/simple_animal/hostile/mushroom = 15,
 		/mob/living/simple_animal/hostile/asteroid/pillow = 1,
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/asteroid/basilisk = 15,
+		/mob/living/simple_animal/hostile/scarybat/cave = 20,
 		/mob/living/simple_animal/hostile/asteroid/hivelordbrood = 1,
 	)
 
@@ -307,13 +318,15 @@
 		/obj/effect/glowshroom = 10
 	)
 	mob_spawn_chance = 5
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/cockroach = 20,
 		/mob/living/simple_animal/mouse/common = 25,
-		/mob/living/simple_animal/hostile/asteroid/basilisk = 12,
-		/mob/living/simple_animal/hostile/scarybat/cave = 18,
 		/mob/living/simple_animal/hostile/mushroom = 20,
 		/mob/living/simple_animal/snail = 10
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/asteroid/basilisk = 12,
+		/mob/living/simple_animal/hostile/scarybat/cave = 18,
 	)
 
 /datum/biome/cave/grass/fungi
@@ -329,13 +342,15 @@
 		/obj/effect/glowshroom = 10
 	)
 	mob_spawn_chance = 4
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/cockroach = 30,
 		/mob/living/simple_animal/mouse/common = 20,
-		/mob/living/simple_animal/hostile/asteroid/basilisk = 8,
-		/mob/living/simple_animal/hostile/scarybat/cave = 15,
 		/mob/living/simple_animal/hostile/mushroom = 35,
 		/mob/living/simple_animal/snail = 12
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/asteroid/basilisk = 8,
+		/mob/living/simple_animal/hostile/scarybat/cave = 15,
 	)
 
 /datum/biome/cave/grass/wet
@@ -355,13 +370,15 @@
 		/obj/effect/glowshroom = 10
 	)
 	mob_spawn_chance = 6
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/cockroach = 25,
 		/mob/living/simple_animal/mouse/common = 18,
-		/mob/living/simple_animal/hostile/asteroid/basilisk = 18,
 		/mob/living/simple_animal/snail = 30,
 		/mob/living/simple_animal/snail/greasy = 8,
-		/mob/living/simple_animal/hostile/scarybat/cave = 20,
 		/mob/living/simple_animal/hostile/mushroom = 25,
 		/mob/living/simple_animal/hostile/lizard/frog = 15
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/asteroid/basilisk = 18,
+		/mob/living/simple_animal/hostile/scarybat/cave = 20,
 	)

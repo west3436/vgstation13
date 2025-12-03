@@ -1017,7 +1017,6 @@ var/global/floorIsLava = 0
 		// Display existing planets with their allocation data
 		for(var/datum/planet_type/planet in SSmapping.planets)
 			var/z_level = "Unknown"
-			var/sector = "Unknown"
 			var/planet_name = planet.planet_name
 			var/current_weather = "N/A"
 			var/current_time = "N/A"
@@ -1056,7 +1055,6 @@ var/global/floorIsLava = 0
 
 			var/datum/allocation/alloc = planet.allocation
 			z_level = alloc.z
-			sector = "[alloc.sector[1]], [alloc.sector[2]]"
 
 			if(!alloc)
 				CRASH("Planet [planet_name] has no allocation!")

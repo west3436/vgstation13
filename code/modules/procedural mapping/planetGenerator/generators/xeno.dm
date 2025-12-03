@@ -6,6 +6,7 @@
 	base_humidity = PLANET_LOW_HUMIDITY
 	base_terrain = PLANET_TERRAIN_HILLY
 	base_atmosphere = PLANET_ATMOSPHERE_TOXIC
+	base_threat = PLANET_THREAT_HIGH
 
 	biome_table = list(
 		BIOME_COLDEST = list(
@@ -94,11 +95,11 @@
 		/obj/structure/acid_puddle = 5
 	)
 	mob_spawn_chance = 20
-	mob_spawn_list = list(
-		/mob/living/simple_animal/hostile/mothership_saucerdrone = 50,
-		/mob/living/simple_animal/hostile/mothership_hoverdisc = 50,
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/retaliate/polyp = 100,
 		/mob/living/simple_animal/hostile/retaliate/cattle_specimen = 50,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/humanoid/grey = 25,
 		/mob/living/simple_animal/hostile/humanoid/grey/prisoner = 25,
 		/mob/living/simple_animal/hostile/humanoid/grey/prisoner/melee = 25,
@@ -115,6 +116,8 @@
 		/mob/living/simple_animal/hostile/humanoid/grey/researcher/chemist = 15,
 		/mob/living/simple_animal/hostile/humanoid/grey/researcher/surgeon = 15,
 		/mob/living/simple_animal/hostile/humanoid/grey/leader = 1,
+		/mob/living/simple_animal/hostile/mothership_saucerdrone = 50,
+		/mob/living/simple_animal/hostile/mothership_hoverdisc = 50,
 	)
 	loot_spawn_chance = 1
 	loot_spawners = list(
@@ -130,7 +133,7 @@
 		/obj/structure/flora/rock/pile = 1,
 	)
 	mob_spawn_chance = 1
-	mob_spawn_list = list(
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/humanoid/grey = 1,
 		/mob/living/simple_animal/hostile/humanoid/grey/explorer = 1,
 		/mob/living/simple_animal/hostile/humanoid/grey/soldier/pacifier/explorer = 1,
@@ -147,9 +150,11 @@
 		/obj/structure/flora/xeno_flora/red = 10,
 		/obj/structure/flora/xeno_flora/orange = 10,
 	)
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/vox/armalis = 20,
 		/mob/living/simple_animal/hostile/retaliate/box = 100,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/humanoid/vox/spaceraider/medic = 5,
 		/mob/living/simple_animal/hostile/humanoid/vox/spaceraider/assassin = 5,
 		/mob/living/simple_animal/hostile/humanoid/vox/spaceraider/breacher = 5,
@@ -166,7 +171,7 @@
 		/turf/unsimulated/mineral/random/high_chance/xeno = 1,
 	)
 	mob_spawn_chance = 20
-	mob_spawn_list = list(
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/humanoid/grey = 25,
 		/mob/living/simple_animal/hostile/humanoid/grey/prisoner = 25,
 		/mob/living/simple_animal/hostile/humanoid/grey/prisoner/melee = 25,
@@ -198,7 +203,7 @@
 
 /datum/biome/cave/xeno/nest
 	open_turf_types = list(/turf/unsimulated/floor/planetary/cave/xeno = 1)
-	mob_spawn_list = list(
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/alien/drone = 30,
 		/mob/living/simple_animal/hostile/alien = 30,
 		/mob/living/simple_animal/hostile/alien/queen = 5,

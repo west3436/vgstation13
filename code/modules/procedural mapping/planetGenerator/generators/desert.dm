@@ -6,6 +6,7 @@
 	base_humidity = PLANET_VERY_LOW_HUMIDITY
 	base_terrain = PLANET_TERRAIN_FLAT
 	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
+	base_threat = PLANET_THREAT_LOW
 
 	biome_table = list(
 		BIOME_COLDEST = list(
@@ -95,14 +96,16 @@
 	)
 	flora_spawn_chance = 4
 	mob_spawn_chance = 2
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/cockroach = 20,
 		/mob/living/simple_animal/hostile/lizard = 35,
 		/mob/living/simple_animal/mouse/common = 25,
 		/mob/living/simple_animal/cricket = 20,
-		/mob/living/simple_animal/hostile/asteroid/goliath = 10,
 		/mob/living/simple_animal/hostile/lizard/frog = 10,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/warriorbug = 1,
+		/mob/living/simple_animal/hostile/asteroid/goliath = 10,
 	)
 	loot_spawners = list(
 		/obj/abstract/loot_spawner/engineering = 1,
@@ -121,12 +124,14 @@
 	)
 	flora_spawn_chance = 1
 	mob_spawn_chance = 1
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/cockroach = 20,
 		/mob/living/simple_animal/hostile/lizard = 35,
-		/mob/living/simple_animal/hostile/asteroid/goliath = 10,
 		/mob/living/simple_animal/hostile/lizard/frog = 10,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/warriorbug = 1,
+		/mob/living/simple_animal/hostile/asteroid/goliath = 10,
 	)
 	loot_spawn_chance = 1
 	loot_spawners = list(/obj/abstract/loot_spawner/trash/on_ground) //it's bleak
@@ -142,13 +147,15 @@
 		/obj/effect/glowshroom = 5
 		)
 	mob_spawn_chance = 3
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/cockroach = 25,
+		/mob/living/simple_animal/hostile/mushroom = 10,
+		/mob/living/simple_animal/mouse/common = 15,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/asteroid/goliath = 25,
 		/mob/living/simple_animal/hostile/monster/skrite = 1,
 		/mob/living/simple_animal/hostile/scarybat/cave = 20,
 		/mob/living/simple_animal/hostile/asteroid/hivelord = 8,
-		/mob/living/simple_animal/hostile/mushroom = 10,
-		/mob/living/simple_animal/mouse/common = 15,
 		/mob/living/simple_animal/hostile/warriorbug = 1
 	)

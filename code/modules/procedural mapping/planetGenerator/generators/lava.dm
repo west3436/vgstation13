@@ -6,6 +6,7 @@
 	base_humidity = PLANET_HIGH_HUMIDITY
 	base_terrain = PLANET_TERRAIN_HILLY
 	base_atmosphere = PLANET_ATMOSPHERE_THIN
+	base_threat = PLANET_THREAT_MODERATE
 
 	biome_table = list(
 		BIOME_COLDEST = list(
@@ -107,15 +108,17 @@
 		/obj/structure/flora/rock/hell = 14
 	)
 	mob_spawn_chance = 3
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/asteroid/pillow = 5,
+		/mob/living/simple_animal/cockroach = 15,
+		/mob/living/simple_animal/mouse/common = 10,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/asteroid/goliath = 40,
 		/mob/living/simple_animal/hostile/asteroid/basilisk = 35,
 		/mob/living/simple_animal/hostile/asteroid/magmaw = 25,
 		/mob/living/simple_animal/hostile/asteroid/hivelord = 12,
 		/mob/living/simple_animal/hostile/asteroid/hivelordbrood = 3,
-		/mob/living/simple_animal/hostile/asteroid/pillow = 5,
-		/mob/living/simple_animal/cockroach = 15,
-		/mob/living/simple_animal/mouse/common = 10,
 		/mob/living/simple_animal/hostile/creature = 8,
 		/mob/living/simple_animal/hostile/syphoner = 5
 	)
@@ -249,16 +252,18 @@
 		/turf/unsimulated/mineral/random/high_chance/cave = 1,
 	)
 	mob_spawn_chance = 4
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
+		/mob/living/simple_animal/cockroach = 20,
+		/mob/living/simple_animal/mouse/common = 12,
+		/mob/living/simple_animal/hostile/mushroom = 15,
+		/mob/living/simple_animal/hostile/asteroid/pillow = 5,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/asteroid/goliath = 45,
 		/mob/living/simple_animal/hostile/asteroid/basilisk = 35,
 		/mob/living/simple_animal/hostile/asteroid/magmaw = 30,
 		/mob/living/simple_animal/hostile/asteroid/hivelord = 15,
-		/mob/living/simple_animal/hostile/asteroid/pillow = 5,
 		/mob/living/simple_animal/hostile/scarybat/cave = 20,
-		/mob/living/simple_animal/cockroach = 20,
-		/mob/living/simple_animal/mouse/common = 12,
-		/mob/living/simple_animal/hostile/mushroom = 15
 	)
 	flora_spawn_chance = 1
 	flora_spawn_list = list(

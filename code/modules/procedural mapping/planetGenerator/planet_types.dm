@@ -11,8 +11,6 @@
 	var/default_baseturf = null
 	// The type of loot this planet can spawn
 	var/loot_type
-	//Value that gets added to loot rolls on this planet.
-	var/loot_modifier = 0
 	//Climate datum
 	var/datum/climate/climate
 	var/climate_type = null
@@ -41,6 +39,7 @@
 	var/actual_humidity
 	var/actual_terrain
 	var/actual_atmosphere
+	var/threat_level
 	// Whether this planet is hidden from the deep space scanner
 	var/hidden = FALSE
 
@@ -296,7 +295,6 @@
 	default_baseturf = /turf/unsimulated/floor/planetary/desert
 	loot_type = LOOT_TYPE_DESERT
 	climate_type = /datum/climate/desert
-	loot_modifier = 5
 	icon_state = "desert"
 	possible_heat = list(
 		PLANET_VERY_HIGH_TEMPERATURE
@@ -346,7 +344,6 @@
 	default_baseturf = /turf/unsimulated/floor/jungle/grass
 	loot_type = LOOT_TYPE_JUNGLE
 	climate_type = /datum/climate/tropical
-	loot_modifier = 10
 	icon_state = "jungle2"
 	possible_heat = list(
 		PLANET_HIGH_TEMPERATURE
@@ -369,7 +366,6 @@
 	default_baseturf = /turf/unsimulated/floor/planetary/basalt
 	loot_type = LOOT_TYPE_LAVA
 	climate_type = /datum/climate/lava
-	loot_modifier = 15
 	icon_state = "lava"
 	possible_heat = list(
 		PLANET_VERY_HIGH_TEMPERATURE
@@ -397,7 +393,6 @@
 	default_baseturf = /turf/unsimulated/floor/snow
 	loot_type = LOOT_TYPE_SNOW
 	climate_type = /datum/climate/arctic
-	loot_modifier = 5
 	icon_state = "snow"
 	possible_heat = list(
 		PLANET_VERY_LOW_TEMPERATURE
@@ -424,7 +419,6 @@
 	default_baseturf = /turf/unsimulated/floor/planetary/wasteland
 	loot_type = LOOT_TYPE_URBAN
 	climate_type = /datum/climate/wasteland
-	loot_modifier = 10
 	icon_state = "barren"
 	possible_heat = list(
 		PLANET_LOW_TEMPERATURE,
@@ -451,7 +445,6 @@
 	default_baseturf = /turf/unsimulated/floor/grey_sand
 	loot_type = LOOT_TYPE_XENO
 	climate_type = /datum/climate/xeno
-	loot_modifier = 20
 	icon_state = "xeno1"
 	possible_heat = list(
 		PLANET_LOW_TEMPERATURE,

@@ -25,9 +25,13 @@
 	/// EXPANDED (no values) list of features that this biome can spawn
 	var/list/feature_spawn_list_expanded
 	/// WEIGHTED list of mobs that this biome can spawn. Mobs have multi-layered logic for determining if they can be spawned on a given tile. Mob spawners should go HERE, not in features, despite them not being mobs.
-	var/list/mob_spawn_list
+	var/list/friendly_mob_spawn_list
 	/// EXPANDED (no values) list of mobs that this biome can spawn
-	var/list/mob_spawn_list_expanded
+	var/list/friendly_mob_spawn_list_expanded
+	/// WEIGHTED list of mobs that this biome can spawn. Mobs have multi-layered logic for determining if they can be spawned on a given tile. Mob spawners should go HERE, not in features, despite them not being mobs.
+	var/list/hostile_mob_spawn_list
+	/// EXPANDED (no values) list of mobs that this biome can spawn
+	var/list/hostile_mob_spawn_list_expanded
 	// Loot tables that can spawn in this biome
 	var/list/loot_spawners
 
@@ -53,8 +57,10 @@
 		flora_spawn_list_expanded = expand_weights(flora_spawn_list)
 	if(length(feature_spawn_list))
 		feature_spawn_list_expanded = expand_weights(feature_spawn_list)
-	if(length(mob_spawn_list))
-		mob_spawn_list_expanded = expand_weights(mob_spawn_list)
+	if(length(hostile_mob_spawn_list))
+		hostile_mob_spawn_list_expanded = expand_weights(hostile_mob_spawn_list)
+	if(length(friendly_mob_spawn_list))
+		friendly_mob_spawn_list_expanded = expand_weights(friendly_mob_spawn_list)
 
 /**
  * Changes the passed turf according to the biome's internal logic and adds it to the passed area
@@ -200,25 +206,40 @@
 			return FALSE
 	return TRUE
 
-/**
- * Attempts to spawn a mob on the given turf
- *
- * Mobs use complex distance checking to prevent spawning too close to other mobs or spawners.
- * Arguments:
- * * floor_turf - The floor turf to spawn the mob on
- * * area_flags - The flags from the turf's area
- * * mob_list - List of existing mobs (for distance checking)
- * * planet_faction - Optional faction to assign to spawned mobs
- */
-/datum/biome/proc/try_spawn_mob(turf/simulated/floor/floor_turf, area_flags, list/mob_list, planet_faction = null)
-	if(!length(mob_spawn_list_expanded))
+/datum/biome/proc/try_spawn_friendly_mob(turf/simulated/floor/floor_turf, area_flags, list/mob_list, planet_faction = null)
+	if(!length(friendly_mob_spawn_list_expanded))
 		return null
 	if(!prob(mob_spawn_chance))
 		return null
 	if(!(area_flags & MOB_SPAWN_ALLOWED))
 		return null
 
-	var/atom/picked_mob = pick(mob_spawn_list_expanded)
+	var/atom/picked_mob = pick(friendly_mob_spawn_list_expanded)
+
+	if(!can_spawn_mob(floor_turf, picked_mob, mob_list))
+		return null
+
+	var/atom/spawned = new picked_mob(floor_turf)
+
+	// Assign planet faction to the spawned mob if provided
+	if(planet_faction && ismob(spawned))
+		var/mob/M = spawned
+		M.faction = planet_faction
+
+	// Insert at the head of the list, so the most recent mobs get checked first
+	mob_list.Insert(1, spawned)
+	floor_turf.turf_flags |= NO_LAVA_GEN
+	return spawned
+
+/datum/biome/proc/try_spawn_hostile_mob(turf/simulated/floor/floor_turf, area_flags, list/mob_list, planet_faction = null)
+	if(!length(hostile_mob_spawn_list_expanded))
+		return null
+	if(!prob(mob_spawn_chance))
+		return null
+	if(!(area_flags & MOB_SPAWN_ALLOWED))
+		return null
+
+	var/atom/picked_mob = pick(hostile_mob_spawn_list_expanded)
 
 	if(!can_spawn_mob(floor_turf, picked_mob, mob_list))
 		return null
@@ -274,7 +295,8 @@
  * * loot_to_spawn - Optional loot table datum (currently unused)
  * * planet_faction - Optional faction to assign to spawned mobs
  */
-/datum/biome/proc/populate_turf(turf/gen_turf, list/feature_list, list/mob_list, var/datum/loot_table/loot_to_spawn, planet_faction = null)
+/datum/biome/proc/populate_turf(turf/gen_turf, list/feature_list, list/mob_list, var/datum/loot_table/loot_to_spawn, planet_faction = null, threat_to_use = 0)
+	var/used_threat = 0
 	gen_turf.turf_flags &= ~DEFER_EDGING
 	gen_turf.update_edges()
 	if(!can_populate_turf(gen_turf))
@@ -303,11 +325,24 @@
 
 	// Mob spawning (only if no flora, feature, or loot was spawned)
 	if(!spawned_flora && !spawned_feature && !spawned_loot)
-		spawned_mob = try_spawn_mob(floor_turf, area_flags, mob_list, planet_faction)
+		if(threat_to_use > 30 && prob(1))
+			// High threat areas have a chance to spawn a procedurally generated forgotten beast
+			var/datum/procedural_mobspawn/beast_datum = new()
+			beast_datum.gen_monster(floor_turf)
+			used_threat += 30
+		else
+			if(prob(threat_to_use))
+				spawned_mob = try_spawn_hostile_mob(floor_turf, area_flags, mob_list, planet_faction, TRUE)
+				if(spawned_mob)
+					used_threat += 1
+			else
+				spawned_mob = try_spawn_friendly_mob(floor_turf, area_flags, mob_list, planet_faction, FALSE)
 
 	// Second flora spawn attempt
 	if(!spawned_mob && !spawned_loot)
 		spawned_flora = try_spawn_flora(floor_turf, area_flags)
+
+	return used_threat
 
 /**
  * Cave biome subtype

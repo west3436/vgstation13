@@ -6,6 +6,7 @@
 	base_humidity = PLANET_VERY_HIGH_HUMIDITY
 	base_terrain = PLANET_TERRAIN_FLAT
 	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
+	base_threat = PLANET_THREAT_NONE
 
 	biome_table = list(
 		BIOME_COLDEST = list(
@@ -86,7 +87,7 @@
 /datum/biome/beach
 	biome_temperature = T20C + 5
 	open_turf_types = list(/turf/unsimulated/beach/sand = 1)
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/crab = 25,
 		/mob/living/simple_animal/capybara = 10,
 		/mob/living/simple_animal/snail = 5,
@@ -141,7 +142,7 @@
 		/obj/structure/flora/tree/palm = 1,
 	)
 	flora_spawn_chance = 25
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/mouse/common = 20,
 		/mob/living/simple_animal/cow = 10,
 		/mob/living/simple_animal/hostile/deer = 15,
@@ -158,11 +159,8 @@
 
 /datum/biome/beach/grass/dense
 	flora_spawn_chance = 70
-	mob_spawn_list = list(
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/mouse/common = 20,
-		/mob/living/simple_animal/hostile/spacehog/piglet = 5,
-		/mob/living/simple_animal/hostile/spacehog/adult = 3,
-		/mob/living/simple_animal/hostile/spacehog/adult/mama = 1,
 		/mob/living/simple_animal/rampagingspacehog = 1,
 		/mob/living/simple_animal/chicken = 15,
 		/mob/living/simple_animal/chick = 10,
@@ -170,6 +168,11 @@
 		/mob/living/simple_animal/cat/kitten = 3,
 		/mob/living/simple_animal/hostile/deer = 10,
 		/mob/living/simple_animal/hostile/retaliate/goat = 10
+	)
+	hostile_mob_spawn_list = list(
+		/mob/living/simple_animal/hostile/spacehog/piglet = 5,
+		/mob/living/simple_animal/hostile/spacehog/adult = 3,
+		/mob/living/simple_animal/hostile/spacehog/adult/mama = 1,
 	)
 	mob_spawn_chance = 3
 	feature_spawn_chance = 1.2
@@ -196,18 +199,20 @@
 		/obj/effect/glowshroom = 5
 		)
 	mob_spawn_chance = 2
-	mob_spawn_list = list(
-		/mob/living/simple_animal/hostile/bear/brownbear = 10,
+	friendly_mob_spawn_list = list(
 		/mob/living/simple_animal/crab = 10,
-		/mob/living/simple_animal/hostile/scarybat/cave = 1,
 		/mob/living/simple_animal/cockroach = 25,
 		/mob/living/simple_animal/mouse/common = 20,
-		/mob/living/simple_animal/hostile/mushroom = 5,
 		/mob/living/simple_animal/snail/greasy = 1,
+	)
+	hostile_mob_spawn_list = list(
 		/mob/living/simple_animal/hostile/frog/centurion = 15,
 		/mob/living/simple_animal/hostile/frog/javelineer = 15,
 		/mob/living/simple_animal/hostile/scarybat = 20,
 		/mob/living/simple_animal/hostile/scarybat/cave = 5,
+		/mob/living/simple_animal/hostile/scarybat/cave = 1,
+		/mob/living/simple_animal/hostile/bear/brownbear = 10,
+		/mob/living/simple_animal/hostile/mushroom = 5,
 	)
 
 /datum/biome/cave/beach/cove
