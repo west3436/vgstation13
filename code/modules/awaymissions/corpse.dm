@@ -1045,6 +1045,26 @@
 	corpseback = /obj/item/weapon/tank/oxygen
 	corpsemask = /obj/item/clothing/mask/breath
 
+//////////////////Ninja Corpses///////////////////////////
+
+/obj/effect/landmark/corpse/ninja
+	name = "Ninja"
+	corpseuniform = /obj/item/clothing/under/color/black
+	corpsesuit = /obj/item/clothing/suit/space/ninja/apprentice
+	corpseshoes = /obj/item/clothing/shoes/swat
+	corpsegloves = /obj/item/clothing/gloves/swat
+	corpsemask = /obj/item/clothing/mask/gas/syndicate
+	corpseback = /obj/item/weapon/tank/jetpack/oxygen
+
+/obj/effect/landmark/corpse/ninja/unequipped
+	name = "Ninja"
+	corpseuniform = /obj/item/clothing/under/color/black
+	corpsesuit = null
+	corpseshoes = /obj/item/clothing/shoes/black
+	corpsegloves = /obj/item/clothing/gloves/black
+	corpsemask = /obj/item/clothing/mask/breath
+	corpseback = null
+
 //////////////////Grey Corpses///////////////////////////
 
 /obj/effect/landmark/corpse/grey

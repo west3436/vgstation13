@@ -193,6 +193,7 @@ var/datum/subsystem/mapping/SSmapping
 			if(current_ruin_type)
 				var/datum/map_element/ruin/used_ruin = ispath(current_ruin_type) ? (new current_ruin_type) : current_ruin_type
 				place_ruin_in_allocation(used_ruin, current_allocation)
+			place_story_ruins(current_allocation)
 
 			current_stage = STAGE_POPULATION
 			queue_index = 1
@@ -550,6 +551,62 @@ var/datum/subsystem/mapping/SSmapping
 		CRASH("Failed to load ruin [ruin.name] at [ruin_turf.x], [ruin_turf.y]")
 
 /**
+ * Places story ruins in a planet allocation
+ *
+ * Selects a random story theme, finds compatible ruins, places one,
+ * and processes any story landmarks to spawn mobs or corpses based on the story's age.
+ *
+ * Arguments:
+ * * allocation - The allocation containing the planet's data
+ */
+/datum/subsystem/mapping/proc/place_story_ruins(datum/allocation/allocation)
+	if(!allocation || !allocation.ptype)
+		return
+
+	// Find all available story ruin types
+	var/list/story_ruin_types = subtypesof(/datum/map_element/ruin/story)
+	if(!story_ruin_types.len)
+		return
+
+	// Pick a random story ruin
+	var/ruin_type = pick(story_ruin_types)
+	var/datum/map_element/ruin/story/story_ruin = new ruin_type()
+
+	// Get a compatible story theme for this ruin
+	var/datum/story_theme/theme = get_compatible_story_theme(story_ruin.theme)
+	if(!theme)
+		qdel(story_ruin)
+		return
+
+	// Calculate the story year (between 1 and 200 years ago)
+	var/max_age = 200
+	var/story_year = game_year - rand(1, max_age)
+
+	// Generate the character name for this story
+	var/character_name = theme.generate_character_name()
+
+	// Assign theme and year to the ruin
+	story_ruin.assigned_theme = theme
+	story_ruin.story_year = story_year
+
+	// Place the ruin and get the spawned objects
+	var/list/result = place_ruin_in_allocation(story_ruin, allocation)
+	if(!result)
+		qdel(story_ruin)
+		return
+
+	var/list/spawned_objects = result["objects"]
+
+	// Process all story landmarks in the spawned ruin
+	for(var/atom/A in spawned_objects)
+		if(istype(A, /obj/effect/landmark/story))
+			var/obj/effect/landmark/story/landmark = A
+			landmark.assigned_theme = theme
+			landmark.story_year = story_year
+			landmark.character_name = character_name
+			landmark.spawn_story_entity()
+
+/**
  * Assigns a planet to a sector
  *
  * Allocates a sector in the procgen grid for a planet, calculates the sector coordinates,
@@ -795,6 +852,7 @@ var/datum/subsystem/mapping/SSmapping
 	var/list/turf/turfs = list()
 	/// Tracks persistent shuttle landing zones - associative list: shuttle_type -> docking_port
 	var/list/shuttle_landing_zones = list()
+	var/obj/machinery/telecomms/relay/planetary/comms_relay
 
 #undef STAGE_TERRAIN
 #undef STAGE_RUIN
