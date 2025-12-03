@@ -80,24 +80,22 @@ export const Gps = (props) => {
                     onCommit={(value) => (act('set_tag', { new_tag: value }))}
                   />
             {(beacon_ready !== undefined) && (
-              <>
-                {beacon_active ? (
-                  <Button
-                    icon="times-circle"
-                    color="bad"
-                    onClick={() => act('cancel_beacon')}>
-                    Cancel Beacon ({beacon_time_remaining}s remaining)
-                  </Button>
-                ) : (
-                  <Button
-                    icon="broadcast-tower"
-                    color={beacon_ready ? "bad" : "average"}
-                    disabled={!beacon_ready}
-                    onClick={() => act('distress_beacon')}>
-                    {beacon_ready ? "Distress Beacon" : `Beacon Cooldown: ${beacon_cooldown}s`}
-                  </Button>
-                )}
-              </>
+              beacon_active ? (
+                <Button
+                  icon="times-circle"
+                  color="bad"
+                  onClick={() => act('cancel_beacon')}>
+                  Cancel Beacon ({beacon_time_remaining}s remaining)
+                </Button>
+              ) : (
+                <Button
+                  icon="broadcast-tower"
+                  color={beacon_ready ? "bad" : "average"}
+                  disabled={!beacon_ready}
+                  onClick={() => act('distress_beacon')}>
+                  {beacon_ready ? "Distress Beacon" : `Beacon Cooldown: ${beacon_cooldown}s`}
+                </Button>
+              )
             )}
           </Section>
         )}

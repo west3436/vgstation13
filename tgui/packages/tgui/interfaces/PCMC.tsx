@@ -135,8 +135,8 @@ export const PCMC = (context) => {
 				    <Divider color="#4972A1" />
 				  </Table.Cell>
 				</Table.Row>
-          {data.detectedcrew.map(crew => (
-			      <Table.Row backgroundColor={crew.count % 2 ? "rgba(17,17,17,0.6)" : "rgba(33,33,33,0.6)"}>
+          {data.detectedcrew.map((crew, index) => (
+			      <Table.Row key={index} backgroundColor={crew.count % 2 ? "rgba(17,17,17,0.6)" : "rgba(33,33,33,0.6)"}>
 				    <Table.Cell bold>
 				      {crew.name}
 				    </Table.Cell>
@@ -144,15 +144,15 @@ export const PCMC = (context) => {
 				      {crew.assignment}
 				    </Table.Cell>
 				    <Table.Cell bold>
-					    {crew.vitals == 0 && <Box>
-				          Alive
-                              </Box>}
-					    {crew.vitals == 1 && <Box color="red">
-				          Critical
-                              </Box>}
-					    {crew.vitals == 2 && <Box color="red">
-				          DEAD
-                              </Box>}
+					    {crew.vitals === 0 && <Box>
+			          Alive
+                               </Box>}
+					    {crew.vitals === 1 && <Box color="red">
+			          Critical
+                               </Box>}
+					    {crew.vitals === 2 && <Box color="red">
+			          DEAD
+                               </Box>}
 				    </Table.Cell>
 				    {crew.sensor < 2 && (
 					  <Table.Cell>
