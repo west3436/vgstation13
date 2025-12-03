@@ -1,5 +1,4 @@
 /datum/planetGenerator/snow
-	mountain_height = 0.45
 	perlin_zoom = 55
 
 	initial_closed_chance = 45
@@ -8,6 +7,10 @@
 	death_limit = 3
 
 	primary_area_type = /area/planet/snow
+	base_heat = PLANET_VERY_LOW_TEMPERATURE
+	base_humidity = PLANET_MEDIUM_HUMIDITY
+	base_terrain = PLANET_TERRAIN_FLAT
+	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
 
 /datum/planetGenerator/snow
 	biome_table = list(

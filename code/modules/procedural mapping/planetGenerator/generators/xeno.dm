@@ -1,8 +1,11 @@
 /datum/planetGenerator/xeno
-	mountain_height = 0.5
 	perlin_zoom = 80
 
 	primary_area_type = /area/planet/xeno
+	base_heat = PLANET_MEDIUM_TEMPERATURE
+	base_humidity = PLANET_LOW_HUMIDITY
+	base_terrain = PLANET_TERRAIN_HILLY
+	base_atmosphere = PLANET_ATMOSPHERE_TOXIC
 
 	biome_table = list(
 		BIOME_COLDEST = list(

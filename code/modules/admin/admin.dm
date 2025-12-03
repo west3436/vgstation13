@@ -1012,7 +1012,7 @@ var/global/floorIsLava = 0
 	if(SSmapping.planets.len)
 		has_planets = TRUE
 		dat += "<table border='1' style='width:100%'>"
-		dat += "<tr><th>Planet Name</th><th>Planet Type</th><th>Z-Level</th><th>Sector</th><th>Weather</th><th>Time</th><th>Actions</th></tr>"
+		dat += "<tr><th>Planet Name</th><th>Planet Type</th><th>Heat</th><th>Humidity</th><th>Terrain</th><th>Atmosphere</th><th>Weather</th><th>Time</th><th>Actions</th></tr>"
 
 		// Display existing planets with their allocation data
 		for(var/datum/planet_type/planet in SSmapping.planets)
@@ -1021,6 +1021,38 @@ var/global/floorIsLava = 0
 			var/planet_name = planet.planet_name
 			var/current_weather = "N/A"
 			var/current_time = "N/A"
+
+			// Get planet properties as labels
+			var/heat_label = "N/A"
+			var/humidity_label = "N/A"
+			var/terrain_label = "N/A"
+			var/atmosphere_label = "N/A"
+
+			switch(planet.actual_heat)
+				if(PLANET_VERY_LOW_TEMPERATURE) heat_label = "Very Cold"
+				if(PLANET_LOW_TEMPERATURE) heat_label = "Cold"
+				if(PLANET_MEDIUM_TEMPERATURE) heat_label = "Temperate"
+				if(PLANET_HIGH_TEMPERATURE) heat_label = "Hot"
+				if(PLANET_VERY_HIGH_TEMPERATURE) heat_label = "Very Hot"
+
+			switch(planet.actual_humidity)
+				if(PLANET_VERY_LOW_HUMIDITY) humidity_label = "Very Dry"
+				if(PLANET_LOW_HUMIDITY) humidity_label = "Dry"
+				if(PLANET_MEDIUM_HUMIDITY) humidity_label = "Moderate"
+				if(PLANET_HIGH_HUMIDITY) humidity_label = "Humid"
+				if(PLANET_VERY_HIGH_HUMIDITY) humidity_label = "Very Humid"
+
+			switch(planet.actual_terrain)
+				if(PLANET_TERRAIN_FLAT) terrain_label = "Flat"
+				if(PLANET_TERRAIN_HILLY) terrain_label = "Hilly"
+				if(PLANET_TERRAIN_MOUNTAINOUS) terrain_label = "Mountainous"
+
+			switch(planet.actual_atmosphere)
+				if(PLANET_ATMOSPHERE_NONE) atmosphere_label = "None"
+				if(PLANET_ATMOSPHERE_THIN) atmosphere_label = "Thin"
+				if(PLANET_ATMOSPHERE_BREATHABLE) atmosphere_label = "Breathable"
+				if(PLANET_ATMOSPHERE_TOXIC) atmosphere_label = "Toxic"
+				if(PLANET_ATMOSPHERE_RADIOACTIVE) atmosphere_label = "Radioactive"
 
 			var/datum/allocation/alloc = planet.allocation
 			z_level = alloc.z
@@ -1046,11 +1078,13 @@ var/global/floorIsLava = 0
 			dat += "<tr>"
 			dat += "<td>[planet_name]</td>"
 			dat += "<td>[planet.name]</td>"
-			dat += "<td>[z_level]</td>"
-			dat += "<td>[sector]</td>"
+			dat += "<td>[heat_label]</td>"
+			dat += "<td>[humidity_label]</td>"
+			dat += "<td>[terrain_label]</td>"
+			dat += "<td>[atmosphere_label]</td>"
 			dat += "<td>[current_weather] <A href='?_src_=holder;procgen_weather=\ref[planet]'>\[Change\]</A></td>"
 			dat += "<td>[current_time] <A href='?_src_=holder;procgen_time=\ref[planet]'>\[Change\]</A></td>"
-			dat += "<td><A href='?_src_=holder;procgen_jump=\ref[planet]'>Jump to Planet</A> | <A href='?_src_=holder;procgen_delete=\ref[planet]'>Destroy</A></td>"
+			dat += "<td><A href='?_src_=holder;procgen_jump=\ref[planet]'>Jump</A> | <A href='?_src_=holder;procgen_delete=\ref[planet]'>Destroy</A></td>"
 			dat += "</tr>"
 
 		dat += "</table>"

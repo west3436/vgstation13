@@ -1,8 +1,11 @@
 /datum/planetGenerator/grass
-	mountain_height = 0.7
 	perlin_zoom = 60
 
 	primary_area_type = /area/planet/grass
+	base_heat = PLANET_MEDIUM_TEMPERATURE
+	base_humidity = PLANET_HIGH_HUMIDITY
+	base_terrain = PLANET_TERRAIN_FLAT
+	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
 
 	biome_table = list(
 		BIOME_COLDEST = list(

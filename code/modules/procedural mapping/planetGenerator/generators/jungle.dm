@@ -1,8 +1,11 @@
 /datum/planetGenerator/jungle
-	mountain_height = 0.75
 	perlin_zoom = 55
 
 	primary_area_type = /area/planet/jungle
+	base_heat = PLANET_HIGH_TEMPERATURE
+	base_humidity = PLANET_VERY_HIGH_HUMIDITY
+	base_terrain = PLANET_TERRAIN_HILLY
+	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
 
 	biome_table = list(
 		BIOME_COLDEST = list(

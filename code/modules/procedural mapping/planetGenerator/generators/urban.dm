@@ -1,7 +1,11 @@
 /datum/planetGenerator/urban
-	mountain_height = 0.85
 	perlin_zoom = 60
 	primary_area_type = /area/planet/urban
+	base_heat = PLANET_MEDIUM_TEMPERATURE
+	base_humidity = PLANET_LOW_HUMIDITY
+	base_terrain = PLANET_TERRAIN_FLAT
+	base_atmosphere = PLANET_ATMOSPHERE_RADIOACTIVE
+
 	biome_table = list(
 		BIOME_COLDEST = list(
 			BIOME_LOWEST_HUMIDITY = /datum/biome/urban/wasteland,

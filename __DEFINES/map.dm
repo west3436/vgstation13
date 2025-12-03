@@ -29,3 +29,25 @@
 #define SECTOR_SIZE 100 //max width/height of a sector in turfs. temporary - will be dynamic later
 #define RUIN_PLACEMENT_PADDING 5 // Padding around ruins when placing them in sectors to avoid edge issues
 #define LANDING_ZONE_EDGE_BUFFER 11 // Buffer distance from sector edges for shuttle landing zones
+
+#define PLANET_VERY_LOW_TEMPERATURE 	1
+#define PLANET_LOW_TEMPERATURE 			2
+#define PLANET_MEDIUM_TEMPERATURE 		3
+#define PLANET_HIGH_TEMPERATURE 		4
+#define PLANET_VERY_HIGH_TEMPERATURE 	5
+
+#define PLANET_VERY_LOW_HUMIDITY 		1
+#define PLANET_LOW_HUMIDITY 			2
+#define PLANET_MEDIUM_HUMIDITY 			3
+#define PLANET_HIGH_HUMIDITY 			4
+#define PLANET_VERY_HIGH_HUMIDITY 		5
+
+#define PLANET_TERRAIN_FLAT 			1
+#define PLANET_TERRAIN_HILLY 			2
+#define PLANET_TERRAIN_MOUNTAINOUS	 	3
+
+#define PLANET_ATMOSPHERE_NONE			1
+#define PLANET_ATMOSPHERE_THIN			(1<<1)
+#define PLANET_ATMOSPHERE_BREATHABLE 	(1<<2)
+#define PLANET_ATMOSPHERE_TOXIC			(1<<3)
+#define PLANET_ATMOSPHERE_RADIOACTIVE	(1<<4)

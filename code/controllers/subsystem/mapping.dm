@@ -205,7 +205,7 @@ var/datum/subsystem/mapping/SSmapping
 			while(queue_index <= population_queue.len && turfs_processed < target_turfs)
 				var/turf/T = population_queue[queue_index]
 				if(T)
-					current_mapgen.populate_turf(T, created_features, created_mobs, current_mapgen.planet_loot, current_planet.mob_faction)
+					current_mapgen.populate_turf(T, created_features, created_mobs, current_mapgen.planet_loot, current_planet.mob_faction, current_mapgen.atmosphere)
 					for(var/atom/movable/AM in T)
 						AM.planet = current_planet
 				queue_index++
@@ -312,7 +312,7 @@ var/datum/subsystem/mapping/SSmapping
 
 	var/chosen_planet_type = input(user, "Select a planet type to generate:", "Planet Generation") as null|anything in planet_types
 	if(!chosen_planet_type)
-		return
+		chosen_planet_type = pick(planet_types)
 
 	var/list/ruin_types = list()
 	for(var/ruin_path in subtypesof(/datum/map_element/ruin))
@@ -366,7 +366,7 @@ var/datum/subsystem/mapping/SSmapping
  * Returns:
  * * TRUE if generation started successfully, FALSE if already generating
  */
-/datum/subsystem/mapping/proc/spawn_planet(datum/planet_type/planet_datum, ruin_type)
+/datum/subsystem/mapping/proc/spawn_planet(datum/planet_type/planet_datum, ruin_type, heat_filter = 0, humidity_filter = 0, terrain_filter = 0, atmosphere_filter = 0)
 	if(generating)
 		message_admins("Planet generation already in progress! Please wait for '[current_planet.planet_name]' to complete.")
 		return FALSE
@@ -375,7 +375,15 @@ var/datum/subsystem/mapping/SSmapping
 	generating = TRUE
 	generation_start_time = world.timeofday
 	current_planet = new planet_datum
-	current_mapgen = new current_planet.mapgen
+	current_mapgen = new current_planet.mapgen(terrain_filter, humidity_filter, heat_filter, atmosphere_filter)
+	current_mapgen.planet_ref = current_planet
+
+	// Copy actual generated properties to planet_type for UI display
+	current_planet.actual_heat = current_mapgen.actual_heat
+	current_planet.actual_humidity = current_mapgen.actual_humidity
+	current_planet.actual_terrain = current_mapgen.actual_terrain
+	current_planet.actual_atmosphere = current_mapgen.actual_atmosphere
+
 	current_allocation = assign_allocation(current_planet, world.maxz)
 	current_ruin_type = ruin_type
 	planets += current_planet
@@ -832,6 +840,47 @@ var/datum/subsystem/mapping/SSmapping
 	alloc.shuttle_landing_zones[shuttle.type] = surface_port
 
 	return surface_port
+
+
+///// Helpers
+/proc/get_planet_type(heat, humidity, terrain, atmosphere)
+	if(!heat && !humidity && !terrain && !atmosphere)
+		return select_random_planet_type()
+	for(var/planet_path in subtypesof(/datum/planet_type))
+		var/datum/planet_type/ptype = new planet_path()
+		var/matches = TRUE
+		if(heat)
+			if(!(heat in ptype.possible_heat))
+				matches = FALSE
+		if(humidity)
+			if(!(humidity in ptype.possible_humidity))
+				matches = FALSE
+		if(terrain)
+			if(!(terrain in ptype.possible_terrain))
+				matches = FALSE
+		if(atmosphere)
+			if(!(atmosphere in ptype.possible_atmosphere))
+				matches = FALSE
+		qdel(ptype)
+		if(matches)
+			return planet_path
+	return select_random_planet_type()
+
+/// Select a random planet type from available types
+/proc/select_random_planet_type()
+	var/list/available_planets = SSmapping.planet_types.Copy()
+	return pick(available_planets)
+
+/// Select a random ruin type from available mining ruins
+/// Returns: A ruin type path, or null if no ruins are available
+/proc/select_random_ruin_type()
+	var/list/available_ruins = list()
+	for(var/ruin_path in subtypesof(/datum/map_element/ruin))
+		available_ruins += ruin_path
+
+	if(available_ruins.len)
+		return pick(available_ruins)
+	return null
 
 /**
  * # Allocation Datum

@@ -15,6 +15,12 @@
 #define POWER_T3_MIXED 750000 // 750 kW
 #define POWER_T4 1250000 // 1.25 MW
 
+// Planet Filter Costs
+#define PLANET_FILTER_HEAT_COST 		1.25
+#define PLANET_FILTER_HUMIDITY_COST 	1.25
+#define PLANET_FILTER_TERRAIN_COST 		2
+#define PLANET_FILTER_ATMOSPHERE_COST 	1.5
+
 /obj/machinery/planet_scanner
 	name = "deep space scanner"
 	desc = "A sophisticated scanning array capable of detecting suitable planets for exploration. Each scan requires exponentially more power as space becomes more thoroughly explored."
@@ -39,6 +45,12 @@
 
 	// Cooldown tracking
 	var/last_disk_print_time = 0 // World time of last disk print
+
+	// Planet Filtering
+	var/filtered_heat = null
+	var/filtered_humidity = null
+	var/filtered_terrain = null
+	var/filtered_atmosphere = null
 
 	machine_flags = SCREWTOGGLE | CROWDESTROY | WRENCHMOVE
 	component_parts = newlist(
@@ -100,9 +112,51 @@
 			max_power = POWER_T1
 
 /// Calculate the energy required for the next scan
-/// Energy requirement doubles with each completed scan, modified by efficiency upgrades
+/// Energy requirement doubles with each completed scan, modified by efficiency upgrades and filter costs
 /obj/machinery/planet_scanner/proc/calculate_required_energy()
-	required_scan_energy = round(PLANET_SCANNER_BASE_ENERGY_COST * (PLANET_SCANNER_ENERGY_EXPONENT ** scans_completed) * energy_efficiency_modifier)
+	var/filter_multiplier = get_filter_cost_multiplier()
+	required_scan_energy = round(PLANET_SCANNER_BASE_ENERGY_COST * (PLANET_SCANNER_ENERGY_EXPONENT ** scans_completed) * energy_efficiency_modifier * filter_multiplier)
+
+/// Calculate the cost multiplier based on active filters
+/obj/machinery/planet_scanner/proc/get_filter_cost_multiplier()
+	var/multiplier = 1.0
+	if(filtered_heat)
+		multiplier *= PLANET_FILTER_HEAT_COST
+	if(filtered_humidity)
+		multiplier *= PLANET_FILTER_HUMIDITY_COST
+	if(filtered_terrain)
+		multiplier *= PLANET_FILTER_TERRAIN_COST
+	if(filtered_atmosphere)
+		multiplier *= PLANET_FILTER_ATMOSPHERE_COST
+	return multiplier
+
+/// Get a list of planet types that match the current filters
+/obj/machinery/planet_scanner/proc/get_possible_planets()
+	var/list/possible = list()
+	for(var/planet_path in subtypesof(/datum/planet_type))
+		var/datum/planet_type/ptype = new planet_path()
+		var/matches = TRUE
+		if(filtered_heat && !(filtered_heat in ptype.possible_heat))
+			matches = FALSE
+		if(filtered_humidity && !(filtered_humidity in ptype.possible_humidity))
+			matches = FALSE
+		if(filtered_terrain && !(filtered_terrain in ptype.possible_terrain))
+			matches = FALSE
+		if(filtered_atmosphere && !(filtered_atmosphere in ptype.possible_atmosphere))
+			matches = FALSE
+		if(matches)
+			possible += ptype.name
+		qdel(ptype)
+	return possible
+
+/// Get the estimated scan time in seconds based on current power and energy requirements
+/obj/machinery/planet_scanner/proc/get_estimated_scan_time()
+	var/available = get_available_power()
+	var/power_rate = min(available, max_power)
+	if(power_rate <= 0)
+		return -1 // Indicates unable to scan
+	// Time = Energy / Power
+	return required_scan_energy / power_rate
 
 /// Get the amount of power available from the area's APC
 /// Returns: Available power in Watts, or 0 if no APC is available
@@ -166,10 +220,21 @@
 
 	// Power and energy information
 	data["required_energy"] = required_scan_energy
+	data["base_energy"] = round(PLANET_SCANNER_BASE_ENERGY_COST * (PLANET_SCANNER_ENERGY_EXPONENT ** scans_completed) * energy_efficiency_modifier)
 	data["min_power_rate"] = max_power
 	data["available_power"] = get_available_power()
 	data["current_energy"] = scanning ? current_scan_energy : null
 	data["progress"] = get_scan_progress()
+
+	// Filter information
+	data["filtered_heat"] = filtered_heat
+	data["filtered_humidity"] = filtered_humidity
+	data["filtered_terrain"] = filtered_terrain
+	data["filtered_atmosphere"] = filtered_atmosphere
+	data["filter_cost_multiplier"] = get_filter_cost_multiplier()
+	data["possible_planets"] = get_possible_planets()
+	data["estimated_scan_time"] = get_estimated_scan_time()
+	data["has_filters"] = (filtered_heat || filtered_humidity || filtered_terrain || filtered_atmosphere)
 
 	// Generation stage information
 	if(waiting_for_generation && SSmapping)
@@ -229,6 +294,10 @@
 		planet_info["type"] = planet.type
 		planet_info["procedural_name"] = planet.planet_name
 		planet_info["icon_data"] = icon2base64(planet.ico)
+		planet_info["actual_heat"] = planet.actual_heat
+		planet_info["actual_humidity"] = planet.actual_humidity
+		planet_info["actual_terrain"] = planet.actual_terrain
+		planet_info["actual_atmosphere"] = planet.actual_atmosphere
 
 		// Get all beacons on this planet
 		var/list/beacons = list()
@@ -271,6 +340,33 @@
 			if(!validate_planet_index(planet_index, usr))
 				return FALSE
 			print_destination_disk(usr, planet_index)
+			return TRUE
+		if("set_filter_heat")
+			var/new_heat = text2num(params["value"])
+			filtered_heat = new_heat ? new_heat : null
+			calculate_required_energy()
+			return TRUE
+		if("set_filter_humidity")
+			var/new_humidity = text2num(params["value"])
+			filtered_humidity = new_humidity ? new_humidity : null
+			calculate_required_energy()
+			return TRUE
+		if("set_filter_terrain")
+			var/new_terrain = text2num(params["value"])
+			filtered_terrain = new_terrain ? new_terrain : null
+			calculate_required_energy()
+			return TRUE
+		if("set_filter_atmosphere")
+			var/new_atmosphere = text2num(params["value"])
+			filtered_atmosphere = new_atmosphere ? new_atmosphere : null
+			calculate_required_energy()
+			return TRUE
+		if("clear_filters")
+			filtered_heat = null
+			filtered_humidity = null
+			filtered_terrain = null
+			filtered_atmosphere = null
+			calculate_required_energy()
 			return TRUE
 
 /// Validate that a planet index from the UI is valid
@@ -378,28 +474,12 @@
 	if(!SSmapping)
 		CRASH("New planet spawn attempted before mapping subsystem initialized")
 
-	var/selected_planet_type = select_random_planet_type()
+	var/selected_planet_type = get_planet_type(filtered_heat, filtered_humidity, filtered_terrain, filtered_atmosphere)
 	var/selected_ruin_type = select_random_ruin_type()
 
-	SSmapping.spawn_planet(selected_planet_type, selected_ruin_type)
+	SSmapping.spawn_planet(selected_planet_type, selected_ruin_type, filtered_heat, filtered_humidity, filtered_terrain, filtered_atmosphere)
 
 	return selected_planet_type
-
-/// Select a random planet type from available types
-/obj/machinery/planet_scanner/proc/select_random_planet_type()
-	var/list/available_planets = SSmapping.planet_types.Copy()
-	return pick(available_planets)
-
-/// Select a random ruin type from available mining ruins
-/// Returns: A ruin type path, or null if no ruins are available
-/obj/machinery/planet_scanner/proc/select_random_ruin_type()
-	var/list/available_ruins = list()
-	for(var/ruin_path in subtypesof(/datum/map_element/mining_surprise))
-		available_ruins += ruin_path
-
-	if(available_ruins.len)
-		return pick(available_ruins)
-	return null
 
 /obj/machinery/planet_scanner/proc/print_destination_disk(mob/user, planet_index)
 	if(world.time < last_disk_print_time + PLANET_SCANNER_DISK_PRINT_COOLDOWN)
@@ -451,3 +531,7 @@
 #undef POWER_T3
 #undef POWER_T3_MIXED
 #undef POWER_T4
+#undef PLANET_FILTER_HEAT_COST
+#undef PLANET_FILTER_HUMIDITY_COST
+#undef PLANET_FILTER_TERRAIN_COST
+#undef PLANET_FILTER_ATMOSPHERE_COST

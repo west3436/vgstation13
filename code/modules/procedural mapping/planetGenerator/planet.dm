@@ -31,7 +31,7 @@
 	/// If a turf's perlin-calculated "height" is above this value, a cave biome will be used to generate it.
 	/// For best results, avoid values around 0.5; basic perlin noise can create noticeable straight-line artifacts
 	/// around the midpoint value. A value of 1 or greater disables caves entirely.
-	var/mountain_height = 0.85
+	var/mountain_height = 0.7
 
 	/// Chance for a cell in the cavegen cellular automaton to start closed
 	var/initial_closed_chance = 45
@@ -82,15 +82,51 @@
 	/// Merged loot table used for spawning loot on this planet
 	var/datum/loot_table/planet_loot
 
-/datum/planetGenerator/New()
+	// Planet reference
+	var/datum/planet_type/planet_ref
+
+	/// Noise modifiers
+	var/heat_mod
+	var/humidity_mod
+
+	var/base_heat
+	var/input_heat
+	var/base_humidity
+	var/input_humidity
+	var/base_terrain
+	var/input_terrain
+	var/base_atmosphere
+	var/input_atmosphere
+	var/list/atmosphere = list()
+
+	// Actual values used (for reporting to UI)
+	var/actual_heat
+	var/actual_humidity
+	var/actual_terrain
+	var/actual_atmosphere
+
+/datum/planetGenerator/New(var/terrain = 0, var/humidity = 0, var/heat = 0, var/atmos_filter = 0)
 	// Initialize perlin noise seeds with random values
 	height_seed = rand(0, 50000)
 	humidity_seed = rand(0, 50000)
 	heat_seed = rand(0, 50000)
 
+	input_terrain = terrain
+	input_humidity = humidity
+	input_heat = heat
+	input_atmosphere = atmos_filter
+
 	// Generate cellular automaton data for caves if they are enabled
+	mountain_height = get_height()
+	message_admins("Mountain height set to [mountain_height]")
 	if(mountain_height < 1)
 		cave_automaton_data = rustg_cnoise_generate("[initial_closed_chance]", "[smoothing_iterations]", "[birth_limit]", "[death_limit]", "[SECTOR_SIZE]", "[SECTOR_SIZE]")
+
+	heat_mod = get_heat_mod()
+	message_admins("Heat mod: [heat_mod]")
+
+	humidity_mod = get_humidity_mod()
+	message_admins("Humidity mod: [humidity_mod]")
 
 	// Initialize area instances
 	primary_area = new primary_area_type
@@ -98,6 +134,11 @@
 
 	// Initialize the biome cache
 	turf_biome_cache = list()
+
+	// Setup atmos
+	atmosphere = get_atmosphere()
+	message_admins("Planet atmosphere set to [atmosphere]")
+	message_admins("temp: [atmosphere[1]], oxy: [atmosphere[2]], nitro: [atmosphere[3]], co2: [atmosphere[4]], toxic: [atmosphere[5]], radioactive: [atmosphere[6]]")
 	return ..()
 
 /datum/planetGenerator/proc/generate_turf(turf/gen_turf)
@@ -106,13 +147,17 @@
 		return
 
 	var/datum/biome/turf_biome = get_biome(gen_turf)
+	if(!turf_biome)
+		return
 
 	// Determine which area to use based on biome type
 	var/area/used_area = istype(turf_biome, /datum/biome/cave) ? cave_area : primary_area
-	turf_biome.generate_turf(gen_turf, used_area, cave_automaton_data)
+	turf_biome.generate_turf(gen_turf, used_area, cave_automaton_data, atmosphere)
 
 /datum/planetGenerator/proc/populate_turf(turf/gen_turf, created_features, created_mobs, planet_loot, planet_faction = null)
 	var/datum/biome/turf_biome = get_biome(gen_turf)
+	if(!turf_biome)
+		return
 	turf_biome.populate_turf(gen_turf, created_features, created_mobs, planet_loot, planet_faction)
 
 /datum/planetGenerator/proc/post_process(datum/allocation/allocation)
@@ -135,7 +180,7 @@
 	var/datum/biome/sel_biome
 
 	// Calculate humidity level from perlin noise
-	var/humidity = text2num(rustg_noise_get_at_coordinates("[humidity_seed]", "[drift_x]", "[drift_y]"))
+	var/humidity = clamp(text2num(rustg_noise_get_at_coordinates("[humidity_seed]", "[drift_x]", "[drift_y]")) + humidity_mod, PERLIN_NOISE_MIN, PERLIN_NOISE_MAX)
 	switch(humidity)
 		if(PERLIN_NOISE_MIN to HUMIDITY_THRESHOLD_LOW)
 			humidity_level = BIOME_LOWEST_HUMIDITY
@@ -149,7 +194,7 @@
 			humidity_level = BIOME_HIGHEST_HUMIDITY
 
 	// Calculate heat level from perlin noise
-	var/heat = text2num(rustg_noise_get_at_coordinates("[heat_seed]", "[drift_x]", "[drift_y]"))
+	var/heat = clamp(text2num(rustg_noise_get_at_coordinates("[heat_seed]", "[drift_x]", "[drift_y]")) + heat_mod, PERLIN_NOISE_MIN, PERLIN_NOISE_MAX)
 
 	// Calculate height to determine if this is a cave or surface biome
 	var/height = text2num(rustg_noise_get_at_coordinates("[height_seed]", "[drift_x]", "[drift_y]"))
@@ -188,6 +233,158 @@
 
 	turf_biome_cache[a_turf] = sel_biome
 	return sel_biome
+
+/datum/planetGenerator/proc/get_height()
+	var/used_terrain = base_terrain
+	if(input_terrain) //if a terrain has been picked, use it
+		used_terrain = input_terrain
+	else if(prob(25) || !planet_ref) //25% chance to definitely use base terrain, or if planet_ref not set yet
+		used_terrain = base_terrain
+	else
+		used_terrain = pick(planet_ref.possible_terrain) //pick from all possible otherwise
+
+	actual_terrain = used_terrain
+
+	// Flat: 0.85 to 1.0 (fewer caves, flatter)
+	// Hilly: 0.65 to 0.85 (moderate caves)
+	// Mountainous: 0.45 to 0.65 (more caves, more mountainous)
+	switch(used_terrain)
+		if(PLANET_TERRAIN_FLAT)
+			return rand(85, 100) / 100
+		if(PLANET_TERRAIN_HILLY)
+			return rand(65, 85) / 100
+		if(PLANET_TERRAIN_MOUNTAINOUS)
+			return pick(rand(45, 47),rand(53,65)) / 100 // values around 0.5 look bad
+	return rand(65, 85) / 100
+
+
+/datum/planetGenerator/proc/get_humidity_mod()
+	var/used_humidity = base_humidity
+	if(input_humidity) //if a humidity has been picked, use it
+		used_humidity = input_humidity
+	else if(prob(25) || !planet_ref) //25% chance to definitely use base humidity, or if planet_ref not set yet
+		used_humidity = base_humidity
+	else
+		used_humidity = pick(planet_ref.possible_humidity) //pick from all possible otherwise
+
+	actual_humidity = used_humidity
+
+	if(used_humidity == base_humidity)
+		return 0 // no mod needed
+
+	// Very Low: -0.4 to -0.2 (drier)
+	// Low: -0.2 to -0.1
+	// Medium: -0.1 to 0.1 (neutral)
+	// High: 0.1 to 0.2
+	// Very High: 0.2 to 0.4 (wetter)
+	switch(used_humidity)
+		if(PLANET_VERY_LOW_HUMIDITY)
+			return rand(-40, -20) / 100
+		if(PLANET_LOW_HUMIDITY)
+			return rand(-20, -10) / 100
+		if(PLANET_MEDIUM_HUMIDITY)
+			return rand(-10, 10) / 100
+		if(PLANET_HIGH_HUMIDITY)
+			return rand(10, 20) / 100
+		if(PLANET_VERY_HIGH_HUMIDITY)
+			return rand(20, 40) / 100
+	return 0
+
+/datum/planetGenerator/proc/get_heat_mod()
+	var/used_heat = base_heat
+	if(input_heat) //if a heat has been picked, use it
+		used_heat = input_heat
+	else if(prob(25) || !planet_ref) //25% chance to definitely use base heat, or if planet_ref not set yet
+		used_heat = base_heat
+	else
+		used_heat = pick(planet_ref.possible_heat) //pick from all possible otherwise
+
+	actual_heat = used_heat
+
+	if(used_heat == base_heat)
+		return 0 // no mod needed
+
+	// Very Low: -0.4 to -0.2 (colder)
+	// Low: -0.2 to -0.1
+	// Medium: -0.1 to 0.1 (neutral)
+	// High: 0.1 to 0.2
+	// Very High: 0.2 to 0.4 (hotter)
+	switch(used_heat)
+		if(PLANET_VERY_LOW_TEMPERATURE)
+			return rand(-40, -20) / 100
+		if(PLANET_LOW_TEMPERATURE)
+			return rand(-20, -10) / 100
+		if(PLANET_MEDIUM_TEMPERATURE)
+			return rand(-10, 10) / 100
+		if(PLANET_HIGH_TEMPERATURE)
+			return rand(10, 20) / 100
+		if(PLANET_VERY_HIGH_TEMPERATURE)
+			return rand(20, 40) / 100
+	return 0
+
+/datum/planetGenerator/proc/get_atmosphere()
+	var/temp = T20C
+	var/used_heat = input_heat ? input_heat : base_heat
+	switch(used_heat)
+		if(PLANET_VERY_LOW_TEMPERATURE to PLANET_LOW_TEMPERATURE)
+			temp = rand(T_ARCTIC, T0C)
+		if(PLANET_LOW_TEMPERATURE to PLANET_MEDIUM_TEMPERATURE)
+			temp = rand(T0C, T20C)
+		if(PLANET_MEDIUM_TEMPERATURE to PLANET_HIGH_TEMPERATURE)
+			temp = rand(T20C, T20C + 20)
+		if(PLANET_HIGH_TEMPERATURE to PLANET_VERY_HIGH_TEMPERATURE)
+			temp = rand(T20C + 20, T20C + 40)
+	var/used_atmos = base_atmosphere
+	if(input_atmosphere) //if an atmosphere has been picked, use it
+		used_atmos = input_atmosphere
+	else if(prob(25) || !planet_ref) //25% chance to definitely use base atmosphere, or if planet_ref not set yet
+		used_atmos = base_atmosphere
+	else
+		used_atmos = pick(planet_ref.possible_atmosphere) //pick from all possible otherwise
+
+	actual_atmosphere = used_atmos
+
+	var/pressure = ONE_ATMOSPHERE
+	var/o2 = 0
+	var/n2 = 0
+	var/co2 = 0
+	var/toxins = 0
+	var/radon = 0
+	switch(used_atmos)
+		if(PLANET_ATMOSPHERE_NONE)
+			return list(temp, 0, 0, 0, 0, 0) // No atmosphere - just temperature, no gases
+		if(PLANET_ATMOSPHERE_THIN)
+			pressure = MARS_ATMOSPHERE
+			n2 = rand(0,100)/100
+			co2 = 1-n2
+		if(PLANET_ATMOSPHERE_BREATHABLE)
+			o2 = rand(19,23)/100
+			n2 = 1-o2
+		if(PLANET_ATMOSPHERE_TOXIC)
+			var/i = 1
+			o2 = rand(0,15)/100
+			i-=o2
+			n2 = rand(0,i*100)/100
+			i-=n2
+			toxins = rand(0, i*100)/100
+			co2 = i-toxins
+		if(PLANET_ATMOSPHERE_RADIOACTIVE)
+			var/i = 1
+			o2 = rand(0,15)/100
+			i-=o2
+			n2 = rand(0,i*100)/100
+			i-=n2
+			radon = rand(0, i*100)/100
+			co2 = i-radon
+	var/moles = pressure*CELL_VOLUME/(temp*R_IDEAL_GAS_EQUATION)
+	o2 *= moles
+	n2 *= moles
+	co2 *= moles
+	toxins *= moles
+	toxins = min(toxins, MOLES_PLASMA_VISIBLE - 0.1)
+	radon *= moles
+
+	return list(temp,o2,n2,co2,toxins,radon)
 
 #undef BIOME_RANDOM_SQUARE_DRIFT
 #undef PERLIN_NOISE_MIN

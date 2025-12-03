@@ -1,10 +1,11 @@
 /datum/planetGenerator/lava
-	// values near 0.5 look bad due to the behavior of naive perlin noise
-	// so this was bumped down a little below 0.5
-	mountain_height = 0.45
 	perlin_zoom = 65
 
 	primary_area_type = /area/planet/lava
+	base_heat = PLANET_VERY_HIGH_TEMPERATURE
+	base_humidity = PLANET_HIGH_HUMIDITY
+	base_terrain = PLANET_TERRAIN_HILLY
+	base_atmosphere = PLANET_ATMOSPHERE_THIN
 
 	biome_table = list(
 		BIOME_COLDEST = list(

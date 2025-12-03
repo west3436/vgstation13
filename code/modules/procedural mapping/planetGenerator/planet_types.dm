@@ -32,6 +32,15 @@
 	var/process_mobs = FALSE // Whether to process mobs on this planet
 	// Faction for mobs spawned on this planet
 	var/mob_faction
+	var/list/possible_heat = list()
+	var/list/possible_humidity = list()
+	var/list/possible_terrain = list()
+	var/list/possible_atmosphere = list()
+	// Actual generated properties for this planet instance
+	var/actual_heat
+	var/actual_humidity
+	var/actual_terrain
+	var/actual_atmosphere
 
 /**
  * Builds the list of turfs affected by day/night cycle for this planet
@@ -264,6 +273,19 @@
 	loot_type = LOOT_TYPE_BEACH
 	climate_type = /datum/climate/tropical
 	icon_state = "beach2"
+	possible_heat = list(
+		PLANET_HIGH_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_HIGH_HUMIDITY,
+		PLANET_VERY_HIGH_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_FLAT
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_BREATHABLE
+	)
 
 /datum/planet_type/desert
 	name = "desert planet"
@@ -274,6 +296,20 @@
 	climate_type = /datum/climate/desert
 	loot_modifier = 5
 	icon_state = "desert"
+	possible_heat = list(
+		PLANET_VERY_HIGH_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_VERY_LOW_HUMIDITY,
+		PLANET_LOW_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_FLAT
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_THIN,
+		PLANET_ATMOSPHERE_BREATHABLE
+	)
 
 /datum/planet_type/grass
 	name = "grass planet"
@@ -283,6 +319,23 @@
 	loot_type = LOOT_TYPE_GRASS
 	climate_type = /datum/climate/temperate
 	icon_state = "earth"
+	possible_heat = list(
+		PLANET_LOW_TEMPERATURE,
+		PLANET_MEDIUM_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_LOW_HUMIDITY,
+		PLANET_MEDIUM_HUMIDITY,
+		PLANET_HIGH_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_FLAT,
+		PLANET_TERRAIN_HILLY,
+		PLANET_TERRAIN_MOUNTAINOUS
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_BREATHABLE
+	)
 
 /datum/planet_type/jungle
 	name = "jungle planet"
@@ -293,6 +346,19 @@
 	climate_type = /datum/climate/tropical
 	loot_modifier = 10
 	icon_state = "jungle2"
+	possible_heat = list(
+		PLANET_HIGH_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_HIGH_HUMIDITY,
+		PLANET_VERY_HIGH_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_HILLY
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_BREATHABLE
+	)
 
 /datum/planet_type/lava
 	name = "lava planet"
@@ -303,6 +369,24 @@
 	climate_type = /datum/climate/lava
 	loot_modifier = 15
 	icon_state = "lava"
+	possible_heat = list(
+		PLANET_VERY_HIGH_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_MEDIUM_HUMIDITY,
+		PLANET_HIGH_HUMIDITY,
+		PLANET_VERY_HIGH_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_HILLY,
+		PLANET_TERRAIN_MOUNTAINOUS
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_NONE,
+		PLANET_ATMOSPHERE_THIN,
+		PLANET_ATMOSPHERE_BREATHABLE,
+		PLANET_ATMOSPHERE_TOXIC
+	)
 
 /datum/planet_type/snow
 	name = "frozen planet"
@@ -313,6 +397,23 @@
 	climate_type = /datum/climate/arctic
 	loot_modifier = 5
 	icon_state = "snow"
+	possible_heat = list(
+		PLANET_VERY_LOW_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_LOW_HUMIDITY,
+		PLANET_MEDIUM_HUMIDITY,
+		PLANET_HIGH_HUMIDITY,
+		PLANET_VERY_HIGH_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_FLAT,
+		PLANET_TERRAIN_HILLY,
+		PLANET_TERRAIN_MOUNTAINOUS
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_BREATHABLE
+	)
 
 /datum/planet_type/urban
 	name = "wasteland planet"
@@ -323,6 +424,23 @@
 	climate_type = /datum/climate/wasteland
 	loot_modifier = 10
 	icon_state = "barren"
+	possible_heat = list(
+		PLANET_LOW_TEMPERATURE,
+		PLANET_MEDIUM_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_VERY_LOW_HUMIDITY,
+		PLANET_LOW_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_FLAT
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_NONE,
+		PLANET_ATMOSPHERE_THIN,
+		PLANET_ATMOSPHERE_TOXIC,
+		PLANET_ATMOSPHERE_RADIOACTIVE
+	)
 
 /datum/planet_type/xeno
 	name = "unknown planet"
@@ -333,3 +451,19 @@
 	climate_type = /datum/climate/xeno
 	loot_modifier = 20
 	icon_state = "xeno1"
+	possible_heat = list(
+		PLANET_LOW_TEMPERATURE,
+		PLANET_MEDIUM_TEMPERATURE
+	)
+	possible_humidity = list(
+		PLANET_VERY_LOW_HUMIDITY,
+		PLANET_LOW_HUMIDITY
+	)
+	possible_terrain = list(
+		PLANET_TERRAIN_HILLY,
+		PLANET_TERRAIN_MOUNTAINOUS
+	)
+	possible_atmosphere = list(
+		PLANET_ATMOSPHERE_THIN,
+		PLANET_ATMOSPHERE_TOXIC
+	)

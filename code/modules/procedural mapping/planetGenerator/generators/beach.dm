@@ -1,8 +1,11 @@
 /datum/planetGenerator/beach
-	mountain_height = 0.95
 	perlin_zoom = 75
 
 	primary_area_type = /area/planet/beach
+	base_heat = PLANET_HIGH_TEMPERATURE
+	base_humidity = PLANET_VERY_HIGH_HUMIDITY
+	base_terrain = PLANET_TERRAIN_FLAT
+	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
 
 	biome_table = list(
 		BIOME_COLDEST = list(

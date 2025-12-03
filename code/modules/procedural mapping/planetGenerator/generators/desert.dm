@@ -1,8 +1,11 @@
 /datum/planetGenerator/desert
-	mountain_height = 0.8
 	perlin_zoom = 65
 
 	primary_area_type = /area/planet/desert
+	base_heat = PLANET_VERY_HIGH_TEMPERATURE
+	base_humidity = PLANET_VERY_LOW_HUMIDITY
+	base_terrain = PLANET_TERRAIN_FLAT
+	base_atmosphere = PLANET_ATMOSPHERE_BREATHABLE
 
 	biome_table = list(
 		BIOME_COLDEST = list(

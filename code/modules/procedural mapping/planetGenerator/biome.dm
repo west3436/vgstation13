@@ -66,7 +66,7 @@
  * * new_area - The area to assign the turf to
  * * string_gen - Optional string used for procedural generation logic
  */
-/datum/biome/proc/generate_turf(turf/gen_turf, area/new_area, string_gen)
+/datum/biome/proc/generate_turf(turf/gen_turf, area/new_area, string_gen, atmos)
 	var/area/current_area = get_area(gen_turf)
 	if(!(current_area.flags & CAVES_ALLOWED))
 		return FALSE
@@ -80,10 +80,18 @@
 	var/turf/new_turf_type = get_turf_type(gen_turf, string_gen)
 	var/turf/new_turf = gen_turf.ChangeTurf(new_turf_type, defer_edges = TRUE)
 	// Restore the preserved flag
-	new_turf?.turf_flags |= stored_flags
-	new_turf.oxygen = MOLES_O2STANDARD
-	new_turf.nitrogen = MOLES_N2STANDARD
-	new_turf.temperature = biome_temperature
+	new_turf.turf_flags |= stored_flags
+	if(atmos[2] || atmos[3] || atmos[4] || atmos[5] || atmos[6])
+		new_turf.temperature = atmos[1]
+		new_turf.oxygen = atmos[2]
+		new_turf.nitrogen = atmos[3]
+		new_turf.carbon_dioxide = atmos[4]
+		new_turf.toxins = atmos[5]
+		new_turf.misc_gases = list(GAS_RADON = atmos[6])
+	else
+		new_turf.temperature = TCMB
+		new_turf.oxygen = 0.01
+		new_turf.nitrogen = 0.01
 	return TRUE
 
 /**
