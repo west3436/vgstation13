@@ -240,7 +240,7 @@ export const PlanetScanner = (props) => {
                         border: '2px solid #aa5500',
                         padding: '8px 16px',
                         backgroundColor: '#331100',
-                        borderRadius: '4px'
+                        borderRadius: '4px',
                       }}
                     >
                       AUTHORIZATION REQUIRED

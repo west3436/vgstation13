@@ -49,7 +49,7 @@ export const selectReligions = (religions: Religion[], searchText = ''): Religio
     ): null;
   
   if (testSearch)
-    religions = filter(religions, testSearch);
+    { religions = filter(religions, testSearch); }
   religions = sort(religions);
   return religions;
 };
