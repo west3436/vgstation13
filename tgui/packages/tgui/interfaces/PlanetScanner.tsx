@@ -52,6 +52,7 @@ type Data = {
   possible_planets: string[];
   estimated_scan_time: number;
   has_filters: boolean;
+  scanning_disabled: boolean;
 };
 
 const STAGE_TERRAIN = 1;
@@ -139,6 +140,7 @@ export const PlanetScanner = (props) => {
     possible_planets,
     estimated_scan_time,
     has_filters,
+    scanning_disabled,
   } = data;
 
   // State for cycling through planets
@@ -193,7 +195,63 @@ export const PlanetScanner = (props) => {
             </Stack.Item>
           )}
 
-          {!!powered && anchored && (
+          {scanning_disabled && powered && anchored && (
+            <Stack.Item grow>
+              <Section fill>
+                <Stack fill vertical justify="center" align="center">
+                  <Stack.Item>
+                    <Box
+                      fontSize="48px"
+                      color="bad"
+                      bold
+                      textAlign="center"
+                      mb={2}
+                    >
+                      ⚠ ACCESS DENIED ⚠
+                    </Box>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Box
+                      fontSize="20px"
+                      color="bad"
+                      textAlign="center"
+                      mb={1}
+                    >
+                      DEEP SPACE SCANNING DISABLED
+                    </Box>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <Box
+                      fontSize="14px"
+                      color="label"
+                      textAlign="center"
+                      style={{ maxWidth: '400px' }}
+                    >
+                      The exploration program has been suspended pending administrative review.
+                    </Box>
+                  </Stack.Item>
+                  <Stack.Item mt={2}>
+                    <Box
+                      fontSize="12px"
+                      color="average"
+                      textAlign="center"
+                      style={{
+                        fontFamily: 'monospace',
+                        border: '2px solid #aa5500',
+                        padding: '8px 16px',
+                        backgroundColor: '#331100',
+                        borderRadius: '4px'
+                      }}
+                    >
+                      AUTHORIZATION REQUIRED
+                    </Box>
+                  </Stack.Item>
+                </Stack>
+              </Section>
+            </Stack.Item>
+          )}
+
+          {!!powered && anchored && !scanning_disabled && (
             <>
               <Stack.Item>
                 <Section title="Scanner Status">

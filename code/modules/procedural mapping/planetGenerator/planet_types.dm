@@ -41,6 +41,8 @@
 	var/actual_humidity
 	var/actual_terrain
 	var/actual_atmosphere
+	// Whether this planet is hidden from the deep space scanner
+	var/hidden = FALSE
 
 /**
  * Builds the list of turfs affected by day/night cycle for this planet
