@@ -35,6 +35,34 @@
 	// Whether this planet is hidden from the deep space scanner
 	var/hidden = FALSE
 
+	// === GENERATED PLANET PARAMETERS ===
+	// These are set during planet creation based on the type's ranges
+	/// Affects cave frequency (lower = more caves). Range: 0.0-1.0
+	var/altitude = 0.5
+	/// Affects movement speed (higher = slower). Range: 0.5-2.0
+	var/gravity = 1.0
+	/// Biome selection input - offsets heat calculations. Range: 0.0-1.0
+	var/temperature = 0.5
+	/// Biome selection input - offsets humidity calculations. Range: 0.0-1.0
+	var/humidity = 0.5
+	/// Hook for future atmospheric system (no effect yet). Range: 0.0-2.0
+	var/atmosphere = 1.0
+
+	// === HIDDEN VALUES (not shown in scanner UI) ===
+	/// Mob spawn density multiplier. Range: 0.0-1.0
+	var/population = 0.5
+	/// Hostile vs passive mob ratio. Range: 0.0-1.0
+	var/threat = 0.5
+
+	// === PARAMETER RANGES (min/max per planet type) ===
+	var/list/altitude_range = list(0.3, 0.7)
+	var/list/gravity_range = list(0.8, 1.2)
+	var/list/temperature_range = list(0.3, 0.7)
+	var/list/humidity_range = list(0.3, 0.7)
+	var/list/atmosphere_range = list(0.8, 1.2)
+	var/list/population_range = list(0.3, 0.7)
+	var/list/threat_range = list(0.3, 0.7)
+
 /**
  * Builds the list of turfs affected by day/night cycle for this planet
  *
@@ -71,6 +99,23 @@
 	ico = icon('icons/ui/planet_scanner/128x128.dmi', "bg")
 	var/icon/fg = icon('icons/ui/planet_scanner/64x64.dmi', icon_state)
 	ico.Blend(fg,ICON_OVERLAY,32,32)
+	// Generate randomized parameters within this planet type's ranges
+	generate_parameters()
+
+/**
+ * Generates randomized planet parameters within the type's defined ranges
+ *
+ * Called during planet creation to give each planet unique characteristics
+ * while staying within the bounds appropriate for its type.
+ */
+/datum/planet_type/proc/generate_parameters()
+	altitude = rand(altitude_range[1], altitude_range[2])
+	gravity = rand(gravity_range[1], gravity_range[2])
+	temperature = rand(temperature_range[1], temperature_range[2])
+	humidity = rand(humidity_range[1], humidity_range[2])
+	atmosphere = rand(atmosphere_range[1], atmosphere_range[2])
+	population = rand(population_range[1], population_range[2])
+	threat = rand(threat_range[1], threat_range[2])
 
 /datum/planet_type/proc/add_player(var/mob/living/add_mob)
 	if(!add_mob?.client)
@@ -266,6 +311,14 @@
 	loot_type = LOOT_TYPE_BEACH
 	climate_type = /datum/climate/tropical
 	icon_state = "beach2"
+	// Beach planets: High altitude (few caves), mild gravity, warm/humid, breathable, low population/threat
+	altitude_range = list(0.8, 0.95)
+	gravity_range = list(0.9, 1.1)
+	temperature_range = list(0.6, 0.8)
+	humidity_range = list(0.6, 0.9)
+	atmosphere_range = list(0.9, 1.1)
+	population_range = list(0.2, 0.5)
+	threat_range = list(0.1, 0.3)
 
 /datum/planet_type/desert
 	name = "desert planet"
@@ -276,6 +329,14 @@
 	climate_type = /datum/climate/desert
 	loot_modifier = 5
 	icon_state = "desert"
+	// Desert planets: Moderate altitude, slightly higher gravity, hot/dry, thin atmosphere, moderate threat
+	altitude_range = list(0.6, 0.9)
+	gravity_range = list(0.9, 1.3)
+	temperature_range = list(0.7, 1.0)
+	humidity_range = list(0.0, 0.3)
+	atmosphere_range = list(0.7, 1.0)
+	population_range = list(0.2, 0.6)
+	threat_range = list(0.4, 0.7)
 
 /datum/planet_type/grass
 	name = "grass planet"
@@ -285,6 +346,14 @@
 	loot_type = LOOT_TYPE_GRASS
 	climate_type = /datum/climate/temperate
 	icon_state = "earth"
+	// Grass planets: Moderate caves, Earth-like gravity, temperate, standard atmosphere, balanced population/threat
+	altitude_range = list(0.5, 0.8)
+	gravity_range = list(0.9, 1.1)
+	temperature_range = list(0.3, 0.6)
+	humidity_range = list(0.4, 0.7)
+	atmosphere_range = list(0.9, 1.1)
+	population_range = list(0.4, 0.7)
+	threat_range = list(0.2, 0.5)
 
 /datum/planet_type/jungle
 	name = "jungle planet"
@@ -295,6 +364,14 @@
 	climate_type = /datum/climate/tropical
 	loot_modifier = 10
 	icon_state = "jungle2"
+	// Jungle planets: Moderate caves, slightly heavy, hot/humid, dense atmosphere, high population, moderate threat
+	altitude_range = list(0.5, 0.8)
+	gravity_range = list(0.9, 1.2)
+	temperature_range = list(0.5, 0.8)
+	humidity_range = list(0.7, 1.0)
+	atmosphere_range = list(1.0, 1.3)
+	population_range = list(0.6, 0.9)
+	threat_range = list(0.4, 0.7)
 
 /datum/planet_type/lava
 	name = "lava planet"
@@ -305,6 +382,14 @@
 	climate_type = /datum/climate/lava
 	loot_modifier = 15
 	icon_state = "lava"
+	// Lava planets: Many caves, heavy gravity, extreme heat, thin toxic atmosphere, high threat
+	altitude_range = list(0.3, 0.6)
+	gravity_range = list(1.0, 1.5)
+	temperature_range = list(0.8, 1.0)
+	humidity_range = list(0.1, 0.4)
+	atmosphere_range = list(0.5, 0.9)
+	population_range = list(0.3, 0.6)
+	threat_range = list(0.6, 0.9)
 
 /datum/planet_type/snow
 	name = "frozen planet"
@@ -315,6 +400,14 @@
 	climate_type = /datum/climate/arctic
 	loot_modifier = 5
 	icon_state = "snow"
+	// Snow planets: Many caves (ice caverns), moderate gravity, freezing, moderate humidity, sparse but dangerous
+	altitude_range = list(0.3, 0.6)
+	gravity_range = list(0.9, 1.2)
+	temperature_range = list(0.0, 0.3)
+	humidity_range = list(0.3, 0.6)
+	atmosphere_range = list(0.8, 1.1)
+	population_range = list(0.2, 0.5)
+	threat_range = list(0.5, 0.8)
 
 /datum/planet_type/urban
 	name = "wasteland planet"
@@ -325,6 +418,14 @@
 	climate_type = /datum/climate/wasteland
 	loot_modifier = 10
 	icon_state = "barren"
+	// Urban planets: Few caves (ruins above ground), Earth-like gravity, variable temp, dry, toxic atmosphere, high population/threat
+	altitude_range = list(0.7, 0.95)
+	gravity_range = list(0.9, 1.1)
+	temperature_range = list(0.3, 0.7)
+	humidity_range = list(0.2, 0.5)
+	atmosphere_range = list(0.4, 0.8)
+	population_range = list(0.4, 0.8)
+	threat_range = list(0.5, 0.9)
 
 /datum/planet_type/xeno
 	name = "unknown planet"
@@ -335,3 +436,11 @@
 	climate_type = /datum/climate/xeno
 	loot_modifier = 20
 	icon_state = "xeno1"
+	// Xeno planets: Highly variable - alien worlds defy expectations
+	altitude_range = list(0.3, 0.7)
+	gravity_range = list(0.6, 1.8)
+	temperature_range = list(0.2, 0.9)
+	humidity_range = list(0.2, 0.9)
+	atmosphere_range = list(0.3, 1.5)
+	population_range = list(0.5, 0.9)
+	threat_range = list(0.7, 1.0)

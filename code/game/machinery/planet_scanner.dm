@@ -40,6 +40,26 @@
 	// Cooldown tracking
 	var/last_disk_print_time = 0 // World time of last disk print
 
+	// === SCAN FILTERS ===
+	// Each enabled filter increases power cost by 50% multiplicatively
+	// Filter toggles
+	var/filter_altitude = FALSE
+	var/filter_gravity = FALSE
+	var/filter_temperature = FALSE
+	var/filter_humidity = FALSE
+	var/filter_atmosphere = FALSE
+	// Filter ranges (min, max) - planets must have parameters overlapping these ranges
+	var/filter_altitude_min = 0.0
+	var/filter_altitude_max = 1.0
+	var/filter_gravity_min = 0.5
+	var/filter_gravity_max = 2.0
+	var/filter_temperature_min = 0.0
+	var/filter_temperature_max = 1.0
+	var/filter_humidity_min = 0.0
+	var/filter_humidity_max = 1.0
+	var/filter_atmosphere_min = 0.0
+	var/filter_atmosphere_max = 2.0
+
 	machine_flags = SCREWTOGGLE | CROWDESTROY | WRENCHMOVE
 	component_parts = newlist(
 		/obj/item/weapon/circuitboard/planet_scanner,
@@ -101,8 +121,60 @@
 
 /// Calculate the energy required for the next scan
 /// Energy requirement doubles with each completed scan, modified by efficiency upgrades
+/// Active filters increase cost by 50% multiplicatively per filter
 /obj/machinery/planet_scanner/proc/calculate_required_energy()
-	required_scan_energy = round(PLANET_SCANNER_BASE_ENERGY_COST * (PLANET_SCANNER_ENERGY_EXPONENT ** scans_completed) * energy_efficiency_modifier)
+	var/filter_multiplier = 1.5 ** count_active_filters()
+	required_scan_energy = round(PLANET_SCANNER_BASE_ENERGY_COST * (PLANET_SCANNER_ENERGY_EXPONENT ** scans_completed) * energy_efficiency_modifier * filter_multiplier)
+
+/// Count the number of active scan filters
+/// Returns: Integer count of enabled filters (0-5)
+/obj/machinery/planet_scanner/proc/count_active_filters()
+	var/count = 0
+	if(filter_altitude) count++
+	if(filter_gravity) count++
+	if(filter_temperature) count++
+	if(filter_humidity) count++
+	if(filter_atmosphere) count++
+	return count
+
+/// Check if a planet type's parameter ranges can produce a planet matching the current filters
+/// Arguments:
+/// * planet_path - The planet type path to check
+/// Returns: TRUE if the planet type could produce a matching planet, FALSE otherwise
+/obj/machinery/planet_scanner/proc/planet_type_matches_filters(planet_path)
+	// Create a temporary instance to check the ranges
+	var/datum/planet_type/temp = new planet_path
+	var/matches = TRUE
+
+	// Check each active filter - planet type must be able to produce planets in the filter range
+	// This means the planet type's parameter range must overlap with the filter range
+	if(filter_altitude)
+		if(temp.altitude_range[2] < filter_altitude_min || temp.altitude_range[1] > filter_altitude_max)
+			matches = FALSE
+
+	if(matches && filter_gravity)
+		if(temp.gravity_range[2] < filter_gravity_min || temp.gravity_range[1] > filter_gravity_max)
+			matches = FALSE
+
+	if(matches && filter_temperature)
+		if(temp.temperature_range[2] < filter_temperature_min || temp.temperature_range[1] > filter_temperature_max)
+			matches = FALSE
+
+	if(matches && filter_humidity)
+		if(temp.humidity_range[2] < filter_humidity_min || temp.humidity_range[1] > filter_humidity_max)
+			matches = FALSE
+
+	if(matches && filter_atmosphere)
+		if(temp.atmosphere_range[2] < filter_atmosphere_min || temp.atmosphere_range[1] > filter_atmosphere_max)
+			matches = FALSE
+
+	qdel(temp)
+	return matches
+
+/// Get the filter multiplier for display purposes
+/// Returns: The power cost multiplier from active filters
+/obj/machinery/planet_scanner/proc/get_filter_multiplier()
+	return 1.5 ** count_active_filters()
 
 /// Get the amount of power available from the area's APC
 /// Returns: Available power in Watts, or 0 if no APC is available
@@ -184,6 +256,47 @@
 	data["has_discoveries"] = SSmapping?.planets.len > 0
 	data["discovered_planets"] = get_planet_list_data()
 
+	// Scan filter information
+	data["filters"] = list(
+		"altitude" = list(
+			"enabled" = filter_altitude,
+			"min" = filter_altitude_min,
+			"max" = filter_altitude_max,
+			"range_min" = 0.0,
+			"range_max" = 1.0
+		),
+		"gravity" = list(
+			"enabled" = filter_gravity,
+			"min" = filter_gravity_min,
+			"max" = filter_gravity_max,
+			"range_min" = 0.5,
+			"range_max" = 2.0
+		),
+		"temperature" = list(
+			"enabled" = filter_temperature,
+			"min" = filter_temperature_min,
+			"max" = filter_temperature_max,
+			"range_min" = 0.0,
+			"range_max" = 1.0
+		),
+		"humidity" = list(
+			"enabled" = filter_humidity,
+			"min" = filter_humidity_min,
+			"max" = filter_humidity_max,
+			"range_min" = 0.0,
+			"range_max" = 1.0
+		),
+		"atmosphere" = list(
+			"enabled" = filter_atmosphere,
+			"min" = filter_atmosphere_min,
+			"max" = filter_atmosphere_max,
+			"range_min" = 0.0,
+			"range_max" = 2.0
+		)
+	)
+	data["active_filter_count"] = count_active_filters()
+	data["filter_multiplier"] = get_filter_multiplier()
+
 	return data
 
 /// Check if the scanner is ready to start a new scan
@@ -234,6 +347,14 @@
 		planet_info["procedural_name"] = planet.planet_name
 		planet_info["icon_data"] = icon2base64(planet.ico)
 
+		// Planet parameters (visible to scanner)
+		planet_info["altitude"] = planet.altitude
+		planet_info["gravity"] = planet.gravity
+		planet_info["temperature"] = planet.temperature
+		planet_info["humidity"] = planet.humidity
+		planet_info["atmosphere"] = planet.atmosphere
+		// Note: population and threat are intentionally not sent to the UI (hidden values)
+
 		// Get all beacons on this planet
 		var/list/beacons = list()
 		var/has_active_beacon = FALSE
@@ -276,6 +397,63 @@
 				return FALSE
 			print_destination_disk(usr, planet_index)
 			return TRUE
+		if("toggle_filter")
+			var/filter_name = params["filter"]
+			toggle_filter(filter_name)
+			calculate_required_energy()
+			return TRUE
+		if("set_filter_min")
+			var/filter_name = params["filter"]
+			var/value = text2num(params["value"])
+			set_filter_min(filter_name, value)
+			return TRUE
+		if("set_filter_max")
+			var/filter_name = params["filter"]
+			var/value = text2num(params["value"])
+			set_filter_max(filter_name, value)
+			return TRUE
+
+/// Toggle a scan filter on/off
+/obj/machinery/planet_scanner/proc/toggle_filter(filter_name)
+	switch(filter_name)
+		if("altitude")
+			filter_altitude = !filter_altitude
+		if("gravity")
+			filter_gravity = !filter_gravity
+		if("temperature")
+			filter_temperature = !filter_temperature
+		if("humidity")
+			filter_humidity = !filter_humidity
+		if("atmosphere")
+			filter_atmosphere = !filter_atmosphere
+
+/// Set the minimum value for a scan filter
+/obj/machinery/planet_scanner/proc/set_filter_min(filter_name, value)
+	switch(filter_name)
+		if("altitude")
+			filter_altitude_min = clamp(value, 0.0, filter_altitude_max)
+		if("gravity")
+			filter_gravity_min = clamp(value, 0.5, filter_gravity_max)
+		if("temperature")
+			filter_temperature_min = clamp(value, 0.0, filter_temperature_max)
+		if("humidity")
+			filter_humidity_min = clamp(value, 0.0, filter_humidity_max)
+		if("atmosphere")
+			filter_atmosphere_min = clamp(value, 0.0, filter_atmosphere_max)
+
+/// Set the maximum value for a scan filter
+/obj/machinery/planet_scanner/proc/set_filter_max(filter_name, value)
+	switch(filter_name)
+		if("altitude")
+			filter_altitude_max = clamp(value, filter_altitude_min, 1.0)
+		if("gravity")
+			filter_gravity_max = clamp(value, filter_gravity_min, 2.0)
+		if("temperature")
+			filter_temperature_max = clamp(value, filter_temperature_min, 1.0)
+		if("humidity")
+			filter_humidity_max = clamp(value, filter_humidity_min, 1.0)
+		if("atmosphere")
+			filter_atmosphere_max = clamp(value, filter_atmosphere_min, 2.0)
 
 /// Validate that a planet index from the UI is valid
 /// Args:
@@ -390,8 +568,22 @@
 	return selected_planet_type
 
 /// Select a random planet type from available types
+/// Filters planet types based on active scan filters
 /obj/machinery/planet_scanner/proc/select_random_planet_type()
 	var/list/available_planets = SSmapping.planet_types.Copy()
+
+	// If any filters are active, filter the available planet types
+	if(count_active_filters() > 0)
+		var/list/filtered_planets = list()
+		for(var/planet_path in available_planets)
+			if(planet_type_matches_filters(planet_path))
+				filtered_planets += planet_path
+
+		// If filters eliminated all options, fall back to unfiltered list
+		// This shouldn't happen with proper filter validation in the UI
+		if(filtered_planets.len > 0)
+			available_planets = filtered_planets
+
 	return pick(available_planets)
 
 /// Select a random ruin type from available mining ruins

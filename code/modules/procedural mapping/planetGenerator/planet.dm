@@ -31,7 +31,12 @@
 	/// If a turf's perlin-calculated "height" is above this value, a cave biome will be used to generate it.
 	/// For best results, avoid values around 0.5; basic perlin noise can create noticeable straight-line artifacts
 	/// around the midpoint value. A value of 1 or greater disables caves entirely.
+	/// NOTE: This value is modified by the planet's altitude parameter during initialization.
 	var/mountain_height = 0.85
+
+	/// Reference to the planet type this generator is creating
+	/// Used to access planet parameters like altitude, temperature, humidity for generation
+	var/datum/planet_type/planet_ref
 
 	/// Chance for a cell in the cavegen cellular automaton to start closed
 	var/initial_closed_chance = 45
@@ -82,11 +87,20 @@
 	/// Merged loot table used for spawning loot on this planet
 	var/datum/loot_table/planet_loot
 
-/datum/planetGenerator/New()
+/datum/planetGenerator/New(datum/planet_type/planet = null)
+	// Store planet reference for parameter access
+	planet_ref = planet
+
 	// Initialize perlin noise seeds with random values
 	height_seed = rand(0, 50000)
 	humidity_seed = rand(0, 50000)
 	heat_seed = rand(0, 50000)
+
+	// Scale mountain_height based on planet's altitude parameter
+	// altitude 0.0 = mountain_height 0.3 (lots of caves)
+	// altitude 1.0 = mountain_height 0.95 (few caves)
+	if(planet_ref)
+		mountain_height = 0.3 + (planet_ref.altitude * 0.65)
 
 	// Generate cellular automaton data for caves if they are enabled
 	if(mountain_height < 1)
@@ -111,9 +125,9 @@
 	var/area/used_area = istype(turf_biome, /datum/biome/cave) ? cave_area : primary_area
 	turf_biome.generate_turf(gen_turf, used_area, cave_automaton_data)
 
-/datum/planetGenerator/proc/populate_turf(turf/gen_turf, created_features, created_mobs, planet_loot, planet_faction = null)
+/datum/planetGenerator/proc/populate_turf(turf/gen_turf, created_features, created_mobs, planet_loot, planet_faction = null, population_mod = 0.5, threat_mod = 0.5)
 	var/datum/biome/turf_biome = get_biome(gen_turf)
-	turf_biome.populate_turf(gen_turf, created_features, created_mobs, planet_loot, planet_faction)
+	turf_biome.populate_turf(gen_turf, created_features, created_mobs, planet_loot, planet_faction, population_mod, threat_mod)
 
 /datum/planetGenerator/proc/post_process(datum/allocation/allocation)
 	return
@@ -136,6 +150,11 @@
 
 	// Calculate humidity level from perlin noise
 	var/humidity = text2num(rustg_noise_get_at_coordinates("[humidity_seed]", "[drift_x]", "[drift_y]"))
+
+	// Apply planet humidity offset (-0.2 to +0.2 range based on planet's humidity parameter)
+	if(planet_ref)
+		humidity = clamp(humidity + (planet_ref.humidity - 0.5) * 0.4, PERLIN_NOISE_MIN, PERLIN_NOISE_MAX)
+
 	switch(humidity)
 		if(PERLIN_NOISE_MIN to HUMIDITY_THRESHOLD_LOW)
 			humidity_level = BIOME_LOWEST_HUMIDITY
@@ -150,6 +169,10 @@
 
 	// Calculate heat level from perlin noise
 	var/heat = text2num(rustg_noise_get_at_coordinates("[heat_seed]", "[drift_x]", "[drift_y]"))
+
+	// Apply planet temperature offset (-0.2 to +0.2 range based on planet's temperature parameter)
+	if(planet_ref)
+		heat = clamp(heat + (planet_ref.temperature - 0.5) * 0.4, PERLIN_NOISE_MIN, PERLIN_NOISE_MAX)
 
 	// Calculate height to determine if this is a cave or surface biome
 	var/height = text2num(rustg_noise_get_at_coordinates("[height_seed]", "[drift_x]", "[drift_y]"))

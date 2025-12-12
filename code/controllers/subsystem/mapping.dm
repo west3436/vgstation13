@@ -208,7 +208,7 @@ var/datum/subsystem/mapping/SSmapping
 			while(queue_index <= population_queue.len && turfs_processed < target_turfs)
 				var/turf/T = population_queue[queue_index]
 				if(T)
-					current_mapgen.populate_turf(T, created_features, created_mobs, current_mapgen.planet_loot, current_planet.mob_faction)
+					current_mapgen.populate_turf(T, created_features, created_mobs, current_mapgen.planet_loot, current_planet.mob_faction, current_planet.population, current_planet.threat)
 					for(var/atom/movable/AM in T)
 						AM.planet = current_planet
 				queue_index++
@@ -381,7 +381,7 @@ var/datum/subsystem/mapping/SSmapping
 	generating = TRUE
 	generation_start_time = world.timeofday
 	current_planet = new planet_datum
-	current_mapgen = new current_planet.mapgen
+	current_mapgen = new current_planet.mapgen(current_planet)  // Pass planet reference for parameter access
 	current_allocation = assign_allocation(current_planet, world.maxz)
 	current_ruin_type = ruin_type
 	planets += current_planet

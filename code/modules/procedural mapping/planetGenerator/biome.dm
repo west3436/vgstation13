@@ -201,16 +201,30 @@
  * * area_flags - The flags from the turf's area
  * * mob_list - List of existing mobs (for distance checking)
  * * planet_faction - Optional faction to assign to spawned mobs
+ * * population_mod - Population modifier (0.0-1.0), scales spawn chance (0.5x to 1.5x)
+ * * threat_mod - Threat modifier (0.0-1.0), probability to favor hostile mobs
  */
-/datum/biome/proc/try_spawn_mob(turf/simulated/floor/floor_turf, area_flags, list/mob_list, planet_faction = null)
+/datum/biome/proc/try_spawn_mob(turf/simulated/floor/floor_turf, area_flags, list/mob_list, planet_faction = null, population_mod = 0.5, threat_mod = 0.5)
 	if(!length(mob_spawn_list_expanded))
 		return null
-	if(!prob(mob_spawn_chance))
+
+	// Scale mob_spawn_chance by population modifier (0.5x to 1.5x)
+	var/adjusted_chance = mob_spawn_chance * (0.5 + population_mod)
+	if(!prob(adjusted_chance))
 		return null
+
 	if(!(area_flags & MOB_SPAWN_ALLOWED))
 		return null
 
 	var/atom/picked_mob = pick(mob_spawn_list_expanded)
+
+	// With high threat, favor hostile mobs
+	// threat 0.0 = normal selection
+	// threat 1.0 = heavily favor hostile mobs
+	if(threat_mod > 0 && prob(threat_mod * 100))
+		var/list/hostile_mobs = filter_hostile_mobs(mob_spawn_list_expanded)
+		if(hostile_mobs.len)
+			picked_mob = pick(hostile_mobs)
 
 	if(!can_spawn_mob(floor_turf, picked_mob, mob_list))
 		return null
@@ -226,6 +240,24 @@
 	mob_list.Insert(1, spawned)
 	floor_turf.turf_flags |= NO_LAVA_GEN
 	return spawned
+
+/**
+ * Filters a mob list to only include hostile mob types
+ *
+ * Arguments:
+ * * mob_list - List of mob types to filter
+ *
+ * Returns: A new list containing only hostile mob types, or empty if none found
+ */
+/datum/biome/proc/filter_hostile_mobs(list/mob_list)
+	var/list/hostile_mobs = list()
+	for(var/mob_type in mob_list)
+		if(ispath(mob_type, /mob/living/simple_animal/hostile))
+			hostile_mobs += mob_type
+		else if(ispath(mob_type, /obj/abstract/map/spawner/mobs))
+			// Mob spawners are considered hostile for this purpose
+			hostile_mobs += mob_type
+	return hostile_mobs
 
 /**
  * Checks if a mob can spawn at the given location based on distance from other mobs and spawners
@@ -265,8 +297,10 @@
  * * mob_list - List of existing mobs (used for distance checking)
  * * loot_to_spawn - Optional loot table datum (currently unused)
  * * planet_faction - Optional faction to assign to spawned mobs
+ * * population_mod - Population modifier (0.0-1.0), scales mob spawn chance
+ * * threat_mod - Threat modifier (0.0-1.0), probability to favor hostile mobs
  */
-/datum/biome/proc/populate_turf(turf/gen_turf, list/feature_list, list/mob_list, var/datum/loot_table/loot_to_spawn, planet_faction = null)
+/datum/biome/proc/populate_turf(turf/gen_turf, list/feature_list, list/mob_list, var/datum/loot_table/loot_to_spawn, planet_faction = null, population_mod = 0.5, threat_mod = 0.5)
 	gen_turf.turf_flags &= ~DEFER_EDGING
 	gen_turf.update_edges()
 	if(!can_populate_turf(gen_turf))
@@ -295,7 +329,7 @@
 
 	// Mob spawning (only if no flora, feature, or loot was spawned)
 	if(!spawned_flora && !spawned_feature && !spawned_loot)
-		spawned_mob = try_spawn_mob(floor_turf, area_flags, mob_list, planet_faction)
+		spawned_mob = try_spawn_mob(floor_turf, area_flags, mob_list, planet_faction, population_mod, threat_mod)
 
 	// Second flora spawn attempt
 	if(!spawned_mob && !spawned_loot)

@@ -620,6 +620,11 @@
 		var/turf/T = loc
 		if(istype(T))
 			. = T.adjust_slowdown(src, .)
+			// Apply planet gravity modifier to movement speed
+			// Higher gravity = slower movement (multiplier > 1)
+			// Lower gravity = faster movement (multiplier < 1)
+			if(T.planet?.gravity)
+				. *= T.planet.gravity
 		if(movement_speed_modifier)
 			. *= (1/movement_speed_modifier)
 

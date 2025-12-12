@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, ProgressBar, Section, Stack } from 'tgui-core/components';
+import { Box, Button, Collapsible, NumberInput, ProgressBar, Section, Stack } from 'tgui-core/components';
 
 import { useBackend } from '../backend';
 import { Window } from '../layouts';
@@ -18,6 +18,28 @@ type PlanetData = {
   icon_data: string;
   beacons: BeaconData[];
   has_active_beacon: boolean;
+  // Planet parameters
+  altitude: number;
+  gravity: number;
+  temperature: number;
+  humidity: number;
+  atmosphere: number;
+};
+
+type FilterData = {
+  enabled: boolean;
+  min: number;
+  max: number;
+  range_min: number;
+  range_max: number;
+};
+
+type FiltersData = {
+  altitude: FilterData;
+  gravity: FilterData;
+  temperature: FilterData;
+  humidity: FilterData;
+  atmosphere: FilterData;
 };
 
 type Data = {
@@ -40,6 +62,10 @@ type Data = {
   generation_progress: number | null;
   other_scan_in_progress: boolean;
   scanning_disabled: boolean;
+  // Filter data
+  filters: FiltersData;
+  active_filter_count: number;
+  filter_multiplier: number;
 };
 
 const STAGE_TERRAIN = 1;
@@ -47,6 +73,111 @@ const STAGE_RUIN = 2;
 const STAGE_POPULATION = 3;
 const STAGE_WEATHER = 4;
 const STAGE_FINALIZE = 5;
+
+// Helper to format parameter values for display
+const formatParam = (value: number, decimals: number = 2): string => {
+  return value?.toFixed(decimals) ?? 'N/A';
+};
+
+// Helper to get color based on value in a range
+const getParamColor = (value: number, low: number = 0.33, high: number = 0.66): string => {
+  if (value <= low) return 'blue';
+  if (value >= high) return 'red';
+  return 'average';
+};
+
+// Filter row component
+const FilterRow = ({ name, label, filter, act, disabled }: {
+  name: string;
+  label: string;
+  filter: FilterData;
+  act: Function;
+  disabled: boolean;
+}) => (
+  <Stack mb={0.5} align="center">
+    <Stack.Item basis="25%">
+      <Button
+        icon={filter.enabled ? 'check-square-o' : 'square-o'}
+        content={label}
+        selected={filter.enabled}
+        disabled={disabled}
+        onClick={() => act('toggle_filter', { filter: name })}
+      />
+    </Stack.Item>
+    {filter.enabled && (
+      <>
+        <Stack.Item basis="35%">
+          <Stack align="center">
+            <Stack.Item>Min:</Stack.Item>
+            <Stack.Item grow>
+              <NumberInput
+                value={filter.min}
+                minValue={filter.range_min}
+                maxValue={filter.max}
+                step={0.1}
+                format={(v) => v.toFixed(2)}
+                onChange={(value) => act('set_filter_min', { filter: name, value })}
+              />
+            </Stack.Item>
+          </Stack>
+        </Stack.Item>
+        <Stack.Item basis="35%">
+          <Stack align="center">
+            <Stack.Item>Max:</Stack.Item>
+            <Stack.Item grow>
+              <NumberInput
+                value={filter.max}
+                minValue={filter.min}
+                maxValue={filter.range_max}
+                step={0.1}
+                format={(v) => v.toFixed(2)}
+                onChange={(value) => act('set_filter_max', { filter: name, value })}
+              />
+            </Stack.Item>
+          </Stack>
+        </Stack.Item>
+      </>
+    )}
+  </Stack>
+);
+
+// Planet parameters display component
+const PlanetParameters = ({ planet }: { planet: PlanetData }) => (
+  <Box fontSize="11px" mb={1}>
+    <Stack wrap>
+      <Stack.Item basis="50%">
+        <Box color="label" inline>Altitude: </Box>
+        <Box color={getParamColor(planet.altitude)} inline bold>
+          {formatParam(planet.altitude)}
+        </Box>
+      </Stack.Item>
+      <Stack.Item basis="50%">
+        <Box color="label" inline>Gravity: </Box>
+        <Box color={planet.gravity > 1.2 ? 'red' : planet.gravity < 0.8 ? 'blue' : 'average'} inline bold>
+          {formatParam(planet.gravity)}g
+        </Box>
+      </Stack.Item>
+      <Stack.Item basis="50%">
+        <Box color="label" inline>Temp: </Box>
+        <Box color={getParamColor(planet.temperature)} inline bold>
+          {formatParam(planet.temperature)}
+        </Box>
+      </Stack.Item>
+      <Stack.Item basis="50%">
+        <Box color="label" inline>Humidity: </Box>
+        <Box color={getParamColor(planet.humidity)} inline bold>
+          {formatParam(planet.humidity)}
+        </Box>
+      </Stack.Item>
+      <Stack.Item basis="50%">
+        <Box color="label" inline>Atmo: </Box>
+        <Box color={planet.atmosphere < 0.7 ? 'red' : planet.atmosphere > 1.3 ? 'average' : 'good'} inline bold>
+          {formatParam(planet.atmosphere)}
+        </Box>
+      </Stack.Item>
+    </Stack>
+  </Box>
+);
 
 export const PlanetScanner = (props) => {
   const { act, data } = useBackend<Data>();
@@ -70,6 +201,9 @@ export const PlanetScanner = (props) => {
     generation_progress,
     other_scan_in_progress,
     scanning_disabled,
+    filters,
+    active_filter_count,
+    filter_multiplier,
   } = data;
 
   // State for cycling through planets
@@ -104,8 +238,10 @@ export const PlanetScanner = (props) => {
     }
   };
 
+  const filtersDisabled = scanning || waiting_for_generation;
+
   return (
-    <Window width={600} height={485}>
+    <Window width={620} height={560}>
       <Window.Content>
         <Stack fill vertical>
           {!anchored && (
@@ -136,7 +272,7 @@ export const PlanetScanner = (props) => {
                       textAlign="center"
                       mb={2}
                     >
-                      ⚠ ACCESS DENIED ⚠
+                      ACCESS DENIED
                     </Box>
                   </Stack.Item>
                   <Stack.Item>
@@ -210,6 +346,23 @@ export const PlanetScanner = (props) => {
                 </Section>
               </Stack.Item>
 
+              <Stack.Item>
+                <Collapsible title={`Scan Filters${active_filter_count > 0 ? ` (${active_filter_count} active - ${filter_multiplier.toFixed(2)}x power)` : ''}`}>
+                  <Box fontSize="12px" color="label" mb={1}>
+                    Each filter increases scan power cost by 50%. Filters narrow which planet types can be discovered.
+                  </Box>
+                  {filters && (
+                    <>
+                      <FilterRow name="altitude" label="Altitude" filter={filters.altitude} act={act} disabled={filtersDisabled} />
+                      <FilterRow name="gravity" label="Gravity" filter={filters.gravity} act={act} disabled={filtersDisabled} />
+                      <FilterRow name="temperature" label="Temperature" filter={filters.temperature} act={act} disabled={filtersDisabled} />
+                      <FilterRow name="humidity" label="Humidity" filter={filters.humidity} act={act} disabled={filtersDisabled} />
+                      <FilterRow name="atmosphere" label="Atmosphere" filter={filters.atmosphere} act={act} disabled={filtersDisabled} />
+                    </>
+                  )}
+                </Collapsible>
+              </Stack.Item>
+
               {!!scanning && !waiting_for_generation && (
                 <Stack.Item>
                   <Section title="Scanning Progress">
@@ -255,13 +408,13 @@ export const PlanetScanner = (props) => {
                 <Stack.Item grow>
                   <Section title="Discovered Planets">
                     <Stack>
-                      <Stack.Item width="280px">
+                      <Stack.Item width="200px">
                         <Box textAlign="center">
                           <Box
                             as="img"
                             src={currentPlanet ? `data:image/png;base64,${currentPlanet.icon_data}` : undefined}
-                            height="256px"
-                            width="256px"
+                            height="180px"
+                            width="180px"
                             style={{
                               border: '2px solid #888',
                               backgroundColor: '#333',
@@ -291,24 +444,29 @@ export const PlanetScanner = (props) => {
                             </Stack>
                           </Stack.Item>
                           <Stack.Item>
-                            <Box mb={2} fontSize="14px">
+                            <Box mb={1} fontSize="13px">
                               {currentPlanet ? currentPlanet.desc : 'No planet data available.'}
                             </Box>
                           </Stack.Item>
+                          {currentPlanet && (
+                            <Stack.Item>
+                              <PlanetParameters planet={currentPlanet} />
+                            </Stack.Item>
+                          )}
                           {currentPlanet && currentPlanet.beacons && currentPlanet.beacons.length > 0 && (
                             <Stack.Item>
-                              <Box mb={1} fontSize="14px" bold>
+                              <Box mb={0.5} fontSize="12px" bold>
                                 Active Trackers:
                               </Box>
                               {currentPlanet.beacons.map((beacon, index) => (
                                 <Box
                                   key={index}
-                                  fontSize="12px"
+                                  fontSize="11px"
                                   color={beacon.active ? "bad" : "label"}
                                   bold={beacon.active}
-                                  mb={0.5}
+                                  mb={0.25}
                                 >
-                                  {beacon.active ? "🚨 " : ""}{beacon.tag}
+                                  {beacon.active ? "! " : ""}{beacon.tag}
                                 </Box>
                               ))}
                             </Stack.Item>
@@ -335,7 +493,7 @@ export const PlanetScanner = (props) => {
                               <Stack.Item>
                                 <Button
                                   icon="save"
-                                  content="Print Destination Disk"
+                                  content="Print Disk"
                                   disabled={!currentPlanet}
                                   onClick={() => act('print_disk', { planet_index: currentPlanetIndex })}
                                   tooltip="Create a destination disk for this planet"
@@ -370,7 +528,7 @@ export const PlanetScanner = (props) => {
                         ? "Scanning..."
                         : at_scan_limit
                         ? "Maximum scans reached"
-                        : "Start Planet Scan"
+                        : `Start Planet Scan${active_filter_count > 0 ? ` (${filter_multiplier.toFixed(2)}x cost)` : ''}`
                     }
                     disabled={!can_scan}
                     onClick={() => act('start_scan')}
