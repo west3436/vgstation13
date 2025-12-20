@@ -852,6 +852,18 @@
 		procedural_generation_panel()
 		return
 
+	else if(href_list["procgen_setup_overmap"])
+		if(!check_rights(R_ADMIN))
+			return
+		if(Overmap)
+			to_chat(usr, "<span class='warning'>Overmap already exists!</span>")
+		else if(SSmapping.generating || SSmapping.overmap_planet_queue.len)
+			to_chat(usr, "<span class='warning'>Planet generation already in progress!</span>")
+		else
+			SSmapping.setup_overmap()
+		procedural_generation_panel()
+		return
+
 	else if(href_list["procgen_toggle_exploration"])
 		if(!check_rights(R_ADMIN))
 			return

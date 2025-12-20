@@ -1083,6 +1083,15 @@ var/global/floorIsLava = 0
 	else
 		dat += "<p><A href='?_src_=holder;procgen_toggle_exploration=1' style='color:red;'>Disable Planet Generation (Recalls Exploration Shuttle)</A></p>"
 
+	// Overmap setup section
+	dat += "<h2>Overmap:</h2>"
+	if(Overmap)
+		dat += "<p>Overmap is active with [Overmap.size]x[Overmap.size] sectors.</p>"
+	else if(SSmapping.overmap_setup_pending || SSmapping.overmap_planet_queue.len)
+		dat += "<p><i>Overmap setup in progress... ([SSmapping.overmap_planet_queue.len] planets queued)</i></p>"
+	else
+		dat += "<p><A href='?_src_=holder;procgen_setup_overmap=1'>Setup Overmap</A> - Creates 3-7 random planets and initializes the overmap grid.</p>"
+
 	var/datum/browser/popup = new(usr, "procgen_panel", "Procedural Generation Panel", 1000, 600)
 	popup.set_content(dat)
 	popup.open()

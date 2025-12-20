@@ -83,6 +83,12 @@ var/datum/subsystem/mapping/SSmapping
 	var/list/finalize_queue = list() // Queue of turfs for edge updates and finalization
 	var/list/feature_buckets = list() // Spatial buckets for features - key is "cellX_cellY", value is list of features in that cell
 	var/list/mob_buckets = list() // Spatial buckets for mobs - key is "cellX_cellY", value is list of mobs in that cell
+
+	// Overmap generation queue
+	/// Queue of planet types to generate for overmap setup
+	var/list/overmap_planet_queue = list()
+	/// Whether we're in overmap setup mode (populates overmap when queue is empty)
+	var/overmap_setup_pending = FALSE
 	var/turfs_per_tick = 300 // Base turfs processed per tick (adjusted dynamically)
 	var/max_turfs_per_tick = 2000 // Maximum turfs to process per tick
 	var/min_turfs_per_tick = 100 // Minimum turfs to process per tick
@@ -310,6 +316,18 @@ var/datum/subsystem/mapping/SSmapping
 				created_mobs = null
 				feature_buckets = list()
 				mob_buckets = list()
+
+				// Process overmap planet queue if there are more planets to generate
+				if(overmap_planet_queue.len)
+					var/next_planet_type = overmap_planet_queue[1]
+					overmap_planet_queue -= next_planet_type
+					spawn_planet(next_planet_type, null, FALSE)
+				else if(overmap_setup_pending)
+					// All planets generated, now populate the overmap
+					overmap_setup_pending = FALSE
+					if(Overmap)
+						Overmap.populate()
+						message_admins("Overmap setup complete. [planets.len] planets placed on the overmap.")
 			else
 				throttle(tick_start, turfs_processed)
 				return
@@ -318,6 +336,34 @@ var/datum/subsystem/mapping/SSmapping
 	if(turfs_processed > 0)
 		throttle(tick_start, turfs_processed)
 
+/datum/subsystem/mapping/proc/setup_overmap()
+	if(Overmap)
+		message_admins("Overmap already exists! Cannot setup again.")
+		return FALSE
+	if(generating || overmap_planet_queue.len)
+		message_admins("Planet generation already in progress! Please wait before setting up the overmap.")
+		return FALSE
+
+	Overmap = new
+	var/planets_to_spawn = rand(3, 7)
+
+	// Queue all planets for generation
+	for(var/i = 1; i <= planets_to_spawn; i++)
+		var/chosen_planet_type = pick(planet_types)
+		overmap_planet_queue += chosen_planet_type
+
+	// Set flag so we populate overmap when queue is empty
+	overmap_setup_pending = TRUE
+
+	message_admins("Starting overmap setup. Queued [planets_to_spawn] planets for generation.")
+
+	// Start generating the first planet
+	if(overmap_planet_queue.len)
+		var/first_planet_type = overmap_planet_queue[1]
+		overmap_planet_queue -= first_planet_type
+		spawn_planet(first_planet_type, null, FALSE)
+
+	return TRUE
 
 // Adjusts the turfs_per_tick based on current tick usage
 // Increases rate if we're using less than 50% of tick, decreases if using more than 80%

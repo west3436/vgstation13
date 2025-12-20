@@ -21,6 +21,7 @@
 	//Icon shown in the planet scanner.
 	var/icon_state = "moon"
 	var/icon/ico
+	var/overmap_icon_state = "misc"
 	// Day/night cycle variables
 	var/current_timeOfDay = TOD_DAYTIME
 	var/next_firetime = 0
@@ -238,6 +239,7 @@
 	loot_type = LOOT_TYPE_BEACH
 	climate_type = /datum/climate/tropical
 	icon_state = "beach2"
+	overmap_icon_state = "ocean"
 
 /datum/planet_type/desert
 	name = "desert planet"
@@ -248,6 +250,7 @@
 	climate_type = /datum/climate/desert
 	loot_modifier = 5
 	icon_state = "desert"
+	overmap_icon_state = "desert"
 
 /datum/planet_type/grass
 	name = "grass planet"
@@ -257,6 +260,7 @@
 	loot_type = LOOT_TYPE_GRASS
 	climate_type = /datum/climate/temperate
 	icon_state = "earth"
+	overmap_icon_state = "sunset"
 
 /datum/planet_type/jungle
 	name = "jungle planet"
@@ -267,6 +271,7 @@
 	climate_type = /datum/climate/tropical
 	loot_modifier = 10
 	icon_state = "jungle2"
+	overmap_icon_state = "jungle"
 
 /datum/planet_type/lava
 	name = "lava planet"
@@ -277,6 +282,7 @@
 	climate_type = /datum/climate/lava
 	loot_modifier = 15
 	icon_state = "lava"
+	overmap_icon_state = "lava"
 
 /datum/planet_type/snow
 	name = "frozen planet"
@@ -287,6 +293,7 @@
 	climate_type = /datum/climate/arctic
 	loot_modifier = 5
 	icon_state = "snow"
+	overmap_icon_state = "ice"
 
 /datum/planet_type/urban
 	name = "wasteland planet"
@@ -297,6 +304,7 @@
 	climate_type = /datum/climate/wasteland
 	loot_modifier = 10
 	icon_state = "barren"
+	overmap_icon_state = "waste"
 
 /datum/planet_type/xeno
 	name = "unknown planet"
@@ -307,3 +315,4 @@
 	climate_type = /datum/climate/xeno
 	loot_modifier = 20
 	icon_state = "xeno1"
+	overmap_icon_state = "whitesands"
