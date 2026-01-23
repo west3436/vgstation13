@@ -306,18 +306,10 @@ var/skip_turf_init = FALSE //NEVER change this var for anything other than incre
 				if(current_planet.climate)
 					SSweather.fire()
 
-				var/list/possible_times = list(TOD_MORNING, TOD_SUNRISE, TOD_DAYTIME, TOD_AFTERNOON, TOD_SUNSET, TOD_NIGHTTIME)
-				current_planet.current_timeOfDay = pick(possible_times)
-
-				switch(current_planet.current_timeOfDay)
-					if(TOD_MORNING) current_planet.next_firetime = world.time + 5 MINUTES
-					if(TOD_SUNRISE) current_planet.next_firetime = world.time + 3 MINUTES
-					if(TOD_DAYTIME) current_planet.next_firetime = world.time + 14 MINUTES
-					if(TOD_AFTERNOON) current_planet.next_firetime = world.time + 15 MINUTES
-					if(TOD_SUNSET) current_planet.next_firetime = world.time + 3 MINUTES
-					if(TOD_NIGHTTIME) current_planet.next_firetime = world.time + 36 MINUTES
-
-				SSDayNight.update_planet_lighting(current_planet, immediate = TRUE)
+				current_planet.cycle_position = rand() * 0.999  // Random position 0.0-0.999
+				current_planet.prev_cycle_position = current_planet.cycle_position
+				current_planet.last_fire_time = world.time
+				SSDayNight.initialize_planet_cycle(current_planet)
 
 				var/total_time = (world.timeofday - generation_start_time) / 10
 				message_admins("Planet '[current_planet.planet_name]' generated successfully at z-level [world.maxz] in [total_time]s")

@@ -1615,7 +1615,7 @@ Use this proc preferably at the end of an equipment loadout
 	if (self_vision)
 		if (isturf(loc))
 			var/turf/T = loc
-			if (T.get_lumcount() <= 0 && (dark_plane.alpha <= 15) && (lighting_planemaster.blend_mode == BLEND_MULTIPLY))
+			if (T.get_lumcount() <= 0 && (dark_plane.alpha <= 15) && (lighting_planemaster.blend_mode == BLEND_MULTIPLY) && !T.amblight_overlay)
 				animate(self_vision, alpha = self_vision.target_alpha, time = 0)
 			else
 				animate(self_vision, alpha = 0, time = 0)

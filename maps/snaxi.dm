@@ -191,14 +191,15 @@
 	// Grues will only spawn during certain times of the day to avoid getting into a very disadvantageous position where there's light everywhere outside
 	if(ispath(DR.role_category,/datum/role/grue))
 		if(SSDayNight) // Double-check to avoid runtimes
+			var/time_until_change = SSDayNight.get_time_until_phase_change()
 			// The night should come within 6 minutes after they have spawned. They just have to be patient.
-			if((SSDayNight.current_timeOfDay == TOD_AFTERNOON) && (SSDayNight.next_firetime <= (world.time + 3 MINUTES)))
+			if((SSDayNight.current_phase == TOD_AFTERNOON) && (time_until_change <= 3 MINUTES))
 				return TRUE
 			// By the time they will spawn during sunset it will be within 3 minutes.
-			else if(SSDayNight.current_timeOfDay == TOD_SUNSET)
+			else if(SSDayNight.current_phase == TOD_SUNSET)
 				return TRUE
 			// If night ends within 5 minutes they can't do much.
-			else if((SSDayNight.current_timeOfDay == TOD_NIGHTTIME) && (SSDayNight.next_firetime >= (world.time + 5 MINUTES)))
+			else if((SSDayNight.current_phase == TOD_NIGHTTIME) && (time_until_change >= 5 MINUTES))
 				return TRUE
 			else // Snaxi has a 71 minute day cycle, the grue can spawn in a span of 37 minutes.
 				return FALSE
@@ -216,7 +217,7 @@
 		if(!M.client)
 			continue
 		else
-			switch(current_timeOfDay)
+			switch(current_phase)
 				if(TOD_SUNRISE)
 					M << 'sound/misc/6amRooster.wav'
 				if(TOD_NIGHTTIME)

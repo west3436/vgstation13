@@ -1033,9 +1033,9 @@ var/global/floorIsLava = 0
 			if(planet.climate && planet.climate.current_weather)
 				current_weather = planet.climate.current_weather.name
 
-			// Get current time of day info for this specific planet
+			// Get current time of day info for this specific planet (uses current_phase for display)
 			if(SSDayNight && alloc && (z_level in daynight_z_lvls))
-				switch(planet.current_timeOfDay)
+				switch(planet.current_phase)
 					if(TOD_MORNING) current_time = "Morning"
 					if(TOD_SUNRISE) current_time = "Sunrise"
 					if(TOD_DAYTIME) current_time = "Daytime"

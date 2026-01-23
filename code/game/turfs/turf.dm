@@ -415,7 +415,6 @@
 
 //Creates a new turf
 /turf/proc/ChangeTurf(var/turf/N, var/tell_universe=1, var/force_lighting_update = 0, var/allow = 1,var/defer_edges = FALSE)
-	var/area/original_area=loc
 	if(loc)
 		var/area/A = loc
 		A.area_turfs -= src
@@ -446,6 +445,9 @@
 		connections[T].erase()
 
 	connections = null
+
+	if(amblight_overlay)
+		qdel(amblight_overlay)
 
 	if(N == /turf/space)
 		for(var/obj/effect/decal/cleanable/C in src)
@@ -552,15 +554,10 @@
 		densityChanged()
 	for(var/turf/adj in range(1,src))
 		adj.update_edges()
-	if(istype(loc,/area/surface/jungle) && !istype(original_area,/area/surface/jungle) ) //outdoor areas need to be illuminated.
+	if(istype(loc, /area/surface))
 		if(.)
-			var/turf/NewTurf=.
-			NewTurf.affecting_lights=list()
-			NewTurf.lighting_clear_overlay()
-			NewTurf.lighting_build_overlay()
-			NewTurf.set_light(SSDayNight.next_light_range,SSDayNight.next_light_power,SSDayNight.current_timeOfDay)
-
-
+			var/turf/NewTurf = .
+			new /atom/movable/amblight_overlay(NewTurf)
 
 /turf/proc/AddDecal(var/image/decal)
 	if(!turfdecals)

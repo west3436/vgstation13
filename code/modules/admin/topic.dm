@@ -927,21 +927,24 @@
 			return
 
 		// Map choice to TOD constants
-		var/new_time
+		var/new_position
 		switch(choice)
-			if("Morning") new_time = TOD_MORNING
-			if("Sunrise") new_time = TOD_SUNRISE
-			if("Daytime") new_time = TOD_DAYTIME
-			if("Afternoon") new_time = TOD_AFTERNOON
-			if("Sunset") new_time = TOD_SUNSET
-			if("Nighttime") new_time = TOD_NIGHTTIME
+			if("Morning") new_position = CYCLE_POS_MORNING
+			if("Sunrise") new_position = CYCLE_POS_SUNRISE
+			if("Daytime") new_position = CYCLE_POS_DAYTIME
+			if("Afternoon") new_position = CYCLE_POS_AFTERNOON
+			if("Sunset") new_position = CYCLE_POS_SUNSET
+			if("Nighttime") new_position = CYCLE_POS_NIGHTTIME
 
-		// Set the time for this specific planet
-		planet.current_timeOfDay = new_time
-		planet.next_firetime = world.time + 10 MINUTES
+		// Set the cycle position for this specific planet
+		planet.prev_cycle_position = planet.cycle_position
+		planet.cycle_position = new_position
+		planet.current_timeOfDay = SSDayNight.get_interpolated_color(planet.cycle_position)
+		planet.current_phase = SSDayNight.get_current_phase(planet.cycle_position)
 
-		// Force immediate lighting update for this planet only
-		SSDayNight.update_planet_lighting(planet, immediate = TRUE)
+		// Animate the planet's ambient square for smooth transition
+		if(planet.planet_amb_square)
+			animate(planet.planet_amb_square, color = planet.current_timeOfDay, time = 5)
 
 		message_admins("[key_name_admin(usr)] changed time of day to [choice] on [planet.planet_name].")
 		procedural_generation_panel()

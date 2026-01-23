@@ -19,11 +19,16 @@
 	//Icon shown in the planet scanner.
 	var/icon_state = "moon"
 	var/icon/ico
-	// Day/night cycle variables
-	var/current_timeOfDay = TOD_DAYTIME
-	var/next_firetime = 0
+	// Day/night cycle variables - smooth interpolation system
+	var/current_timeOfDay = TOD_DAYTIME  // Current interpolated color
+	var/current_phase = TOD_DAYTIME      // Current discrete phase (for compatibility)
+	var/cycle_position = 0               // Position in cycle (0.0 to 1.0)
+	var/prev_cycle_position = 0          // Previous position for threshold detection
+	var/cycle_duration = 74 MINUTES      // Full cycle duration (can vary per planet type)
+	var/last_fire_time = 0               // Last time this planet's cycle was updated
 	var/list/daynight_turfs = list()
 	var/weather_mod = 1 // Planet-specific weather light modifier
+	var/atom/movable/amblight_square/planet_amb_square  // Planet's ambient light square for smooth transitions
 	// Player tracking for mob processing optimization
 	var/list/planet_mobs = list() // All mobs on this planet
 	var/list/players = list() // All living player mobs currently on this planet
@@ -67,6 +72,9 @@
 		return
 	if(!(add_mob in players))
 		players += add_mob
+		// Switch player to this planet's ambient lighting
+		if(SSDayNight)
+			SSDayNight.set_player_ambient_square(add_mob, src)
 	process_mobs = players.len ? TRUE : FALSE
 
 /datum/planet_type/proc/remove_player(var/mob/living/rem_mob)
@@ -74,6 +82,9 @@
 		return
 	if(rem_mob in players)
 		players -= rem_mob
+		// Switch player back to global ambient lighting
+		if(SSDayNight)
+			SSDayNight.set_player_ambient_square(rem_mob, null)
 	process_mobs = players.len ? TRUE : FALSE
 
 /datum/planet_type/proc/on_mob_entered(mob/living/M, datum/planet_type/planet)
