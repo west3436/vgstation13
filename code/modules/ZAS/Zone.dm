@@ -48,6 +48,7 @@ Class Procs:
 	var/needs_update = 0
 	var/list/edges = list()
 	var/datum/gas_mixture/air = new
+	var/native_id = 0  // ID used by the native atmos DLL
 
 	//Flags of active tile overlays for this zone.  Updated by check_tile_graphic()
 	var/graphic = 0
@@ -70,6 +71,8 @@ Class Procs:
 	#ifdef ZAS_COLOR
 	turf_color = rgb(rand(255), rand(255), rand(255))
 	#endif
+	native_id = SSair.next_id - 1  // next_id was just incremented by add_zone
+	atmos_native_add_zone(src)
 
 /zone/proc/add(turf/simulated/T)
 #ifdef ZASDBG
@@ -87,6 +90,7 @@ Class Procs:
 	#ifdef ZAS_COLOR
 	T.color = turf_color
 	#endif
+	atmos_native_zone_add_turf(native_id, turf_air)
 	handle_events_add(T)
 
 /zone/proc/remove(turf/simulated/T)
@@ -136,6 +140,7 @@ Class Procs:
 /zone/proc/c_invalidate()
 	invalid = 1
 	SSair.remove_zone(src)
+	atmos_native_remove_zone(native_id)
 	for(var/turf/simulated/T in contents)
 		handle_events_remove(T)
 	#ifdef ZASDBG

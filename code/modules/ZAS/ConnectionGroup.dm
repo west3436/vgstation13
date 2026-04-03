@@ -46,6 +46,7 @@ Class Procs:
 	var/sleeping = 1
 
 	var/coefficient = 0
+	var/native_id = 0  // ID assigned by the native atmos DLL
 
 /connection_edge/New()
 	CRASH("Cannot make connection edge without specifications.")
@@ -54,17 +55,21 @@ Class Procs:
 	coefficient++
 	if(c.direct())
 		direct++
+	atmos_native_edge_add_conn(native_id, c.direct())
 
 /connection_edge/proc/remove_connection(connection/c)
 	coefficient--
 	if(coefficient <= 0)
 		erase()
+		return
 	if(c.direct())
 		direct--
+	atmos_native_edge_remove_conn(native_id, c.direct())
 
 /connection_edge/proc/contains_zone(zone/Z)
 
 /connection_edge/proc/erase()
+	atmos_native_remove_edge(native_id)
 	SSair.remove_edge(src)
 
 /connection_edge/proc/tick()
@@ -108,6 +113,7 @@ Class Procs:
 	A.edges.Add(src)
 	B.edges.Add(src)
 	//id = edge_id(A,B)
+	native_id = atmos_native_add_zone_edge(A.native_id, B.native_id)
 
 /connection_edge/zone/add_connection(connection/c)
 	. = ..()
@@ -172,6 +178,7 @@ Class Procs:
 	A.edges.Add(src)
 	air = B.return_air()
 	//id = 52*A.id
+	native_id = atmos_native_add_unsim_edge(A.native_id, air)
 
 /connection_edge/unsimulated/add_connection(connection/c)
 	. = ..()

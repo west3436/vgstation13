@@ -108,27 +108,31 @@
 		volume += air.volume
 
 /datum/pipe_network/proc/reconcile_air()
-	//Perfectly equalize all gases members instantly
+	//Perfectly equalize all gases members via native DLL
+	if(!gases.len)
+		return 1
 
-	air_transient.multiply(0)
+	// Single DLL call: merge all, run reactions, return equalized state
+	var/list/result = atmos_native_batch_reconcile(gases)
+	if(!result || !result.len)
+		return 1
 
-	air_transient.volume = 0
+	// result[1] = reacted flag, result[2..14] = gas0..8, temp, volume, pressure, total_moles
+	if(result[1])
+		update = 1
 
-	for(var/datum/gas_mixture/gas in gases)
-		air_transient.volume += gas.volume
-		air_transient.merge(gas, FALSE)
-	air_transient.update_values()
+	// Unpack into air_transient
+	var/list/air_data = result.Copy(2)
+	atmos_unpack_gas(air_transient, air_data)
 
+	// Fire check still runs DM-side (involves game objects)
 	if(air_transient.volume > 0)
-		//Allow air mixture to react
 		if(air_transient.react())
 			update = 1
-		if(air_transient.reaction_tick())
-			update = 1
 
-		air_transient.update_values()
-		for(var/datum/gas_mixture/gas in gases)
-			gas.copy_from(air_transient)
+	// Broadcast equalized air to all members
+	for(var/datum/gas_mixture/gas in gases)
+		gas.copy_from(air_transient)
 
 	return 1
 

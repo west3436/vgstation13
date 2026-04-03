@@ -78,6 +78,8 @@ Class Procs:
 
 	var/list/zones = list()
 	var/list/edges = list()
+	var/list/edges_by_native_id = list()  // native_id -> connection_edge for batch result lookup
+	var/list/dirty_zones = list()  // zones whose DM air was modified outside the DLL (fire, etc.)
 
 	//Geometry process lists
 	var/list/processing_parts = list(/*SSAIR_TILES*/ list(),\
@@ -132,6 +134,10 @@ Class Procs:
 	#ifndef ZASDBG
 	set background = 1 //The for loop later is sufficiently long to trip BYOND's infinite loop detection.
 	#endif
+
+	if(!zas_plus_plus_panel_datum)
+		zas_plus_plus_panel_datum = new /datum/zas_plus_plus()
+	atmos_native_init()
 
 	to_chat(world, "<span class='danger'>Processing Geometry...</span>")
 	sleep(-1)
@@ -211,8 +217,7 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 				#endif
 
 		if(SSAIR_EDGES)
-			LOOP_DECLARATION(connection_edge, edge)
-				edge.tick()
+			process_edges_native()
 
 //		if(SSAIR_FIRE_ZONE)
 //			LOOP_DECLARATION(zone, Z)
@@ -221,13 +226,168 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 		if(SSAIR_HOTSPOT)
 			LOOP_DECLARATION(obj/effect/fire, fire)
 				fire.process()
+				// Mark zone dirty so DLL gets resynced before zone tick
+				var/turf/simulated/fire_turf = get_turf(fire)
+				if(istype(fire_turf) && fire_turf.zone)
+					dirty_zones |= fire_turf.zone
 
 		if(SSAIR_ZONE)
-			LOOP_DECLARATION(zone, zone)
-				zone.tick()
-				zone.needs_update = 0
+			process_zones_native()
 
 #undef LOOP_DECLARATION //Let's pretend that never existed now
+
+// Process all active edges via the native DLL in a single batch call.
+// The DLL performs gas sharing and returns zone air data inline (no per-edge readback calls).
+/datum/subsystem/air/proc/process_edges_native()
+	var/list/results = atmos_native_tick_edges()
+	if(!results || !results.len)
+		currentrun.Cut()
+		return
+
+	// Collect zones that need DLL resync after DM-side modifications
+	var/list/resync_data = list(0)  // first element is count, updated at end
+	var/resync_count = 0
+
+	var/i = 1
+	var/rlen = results.len
+	while(i + EDGE_RESULT_STRIDE - 1 <= rlen)
+		var/edge_id = results[i]
+		var/differential = results[i + 1]
+		var/equiv = results[i + 2]
+		var/merge_flag = results[i + 3]
+		// Zone A air inline at i+4: id, gas0..8, temp, volume, pressure, total_moles
+		var/za_offset = i + EDGE_HEADER_SIZE
+		// Zone B air inline at i+4+14: id, gas0..8, temp, volume, pressure, total_moles
+		var/zb_offset = za_offset + ZONE_AIR_SIZE
+		i += EDGE_RESULT_STRIDE
+
+		var/connection_edge/edge = edges_by_native_id["[edge_id]"]
+		if(!edge)
+			continue
+
+		if(istype(edge, /connection_edge/zone))
+			var/connection_edge/zone/ze = edge
+			if(ze.A.invalid || ze.B.invalid)
+				continue
+			// Unpack zone air directly from inline results (offset-based, no list copy)
+			atmos_unpack_gas_at(ze.A.air, results, za_offset + 1)
+			atmos_unpack_gas_at(ze.B.air, results, zb_offset + 1)
+
+			if(abs(differential) >= zas_settings.Get(/datum/ZAS_Setting/airflow_lightest_pressure))
+				edge.flow(ze.A.movables(), differential)
+				edge.flow(ze.B.movables(), -differential)
+				ze.A.blow_dust_motes(edge, differential)
+				ze.B.blow_dust_motes(edge, -differential)
+
+			if(merge_flag)
+				edge.erase()
+				merge(ze.A, ze.B)
+			else if(equiv)
+				mark_edge_sleeping(edge)
+				var/list/equalized = ze.A.get_equalized_zone_air()
+				equalize_gases(equalized)
+				// Queue equalized zones for bulk resync
+				for(var/datum/gas_mixture/eq_air in equalized)
+					for(var/zone/eq_zone in zones)
+						if(eq_zone.air == eq_air && !eq_zone.invalid)
+							resync_data += eq_zone.native_id
+							resync_data += atmos_pack_gas(eq_zone.air)
+							resync_count++
+							break
+
+			mark_zone_update(ze.A)
+			mark_zone_update(ze.B)
+		else
+			var/connection_edge/unsimulated/ue = edge
+			if(ue.A.invalid)
+				continue
+			// Unpack zone A air from inline results (offset-based, no list copy)
+			atmos_unpack_gas_at(ue.A.air, results, za_offset + 1)
+
+			if(abs(differential) >= zas_settings.Get(/datum/ZAS_Setting/airflow_lightest_pressure))
+				edge.flow(ue.A.movables(), abs(differential), differential < 0)
+				ue.A.blow_dust_motes(edge, differential)
+
+			if(equiv)
+				ue.A.air.copy_from(ue.air)
+				mark_edge_sleeping(edge)
+				// Queue for resync
+				resync_data += ue.A.native_id
+				resync_data += atmos_pack_gas(ue.A.air)
+				resync_count++
+
+			mark_zone_update(ue.A)
+
+	// Bulk resync any DM-modified zones back to DLL in one call
+	if(resync_count)
+		resync_data[1] = resync_count
+		atmos_native_bulk_set_zone_air(resync_data)
+
+	currentrun.Cut()
+
+// Process all zones via the native DLL in a single batch call.
+// The DLL runs gas reactions and computes graphic overlay flags.
+// DM handles events (ice, autoignition) and edge rechecks.
+/datum/subsystem/air/proc/process_zones_native()
+	var/list/currentrun = src.currentrun
+
+	// Step 0: Resync only zones dirtied by DM-side modifications (fire, etc.)
+	if(dirty_zones.len)
+		var/list/sync_data = list(0)
+		var/sync_count = 0
+		for(var/zone/Z in dirty_zones)
+			if(!Z.invalid)
+				sync_data += Z.native_id
+				sync_data += atmos_pack_gas(Z.air)
+				sync_count++
+		if(sync_count)
+			sync_data[1] = sync_count
+			atmos_native_bulk_set_zone_air(sync_data)
+		dirty_zones.Cut()
+
+	// Step 1: Batch zone tick in DLL
+	var/list/results = atmos_native_tick_zones()
+
+	// Step 2: Build result lookup by zone native_id
+	var/list/zone_results = list()
+	if(results && results.len)
+		var/i = 1
+		while(i + ZONE_RESULT_STRIDE - 1 <= results.len)
+			var/zid = results[i]
+			zone_results["[zid]"] = list(results[i+1], results[i+2], results[i+3], results[i+4])
+			i += ZONE_RESULT_STRIDE
+
+	// Step 3: Process zones that had reactions or graphic changes
+	while(currentrun.len && !(MC_TICK_CHECK))
+		var/zone/Z = currentrun[currentrun.len]
+		currentrun.len--
+
+		var/list/zr = zone_results["[Z.native_id]"]
+		if(zr)
+			var/reacted = zr[1]
+
+			// Only sync air from DLL if reactions actually changed it
+			if(reacted)
+				var/list/air_data = atmos_native_get_zone_air(Z.native_id)
+				if(air_data && air_data.len)
+					atmos_unpack_gas(Z.air, air_data)
+				// Only check events when reactions changed air composition
+				Z.check_for_events()
+
+			// Apply graphic overlay changes
+			var/new_graphic = zr[2]
+			var/g_add = new_graphic & ~Z.graphic
+			var/g_remove = Z.graphic & ~new_graphic
+			if(g_add || g_remove)
+				Z.graphic = (Z.graphic | g_add) & ~g_remove
+				Z.graphic_add = g_add
+				Z.graphic_remove = g_remove
+				for(var/turf/simulated/T in Z.contents)
+					T.update_graphic(g_add, g_remove)
+				Z.graphic_add = 0
+				Z.graphic_remove = 0
+
+		Z.needs_update = 0
 
 /datum/subsystem/air/proc/add_zone(zone/z)
 	zones.Add(z)
@@ -267,9 +427,11 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 	ASSERT(A != B)
 	#endif
 	if(A.contents.len < B.contents.len)
+		atmos_native_merge_zones(A.native_id, B.native_id)
 		A.c_merge(B)
 		mark_zone_update(B)
 	else
+		atmos_native_merge_zones(B.native_id, A.native_id)
 		B.c_merge(A)
 		mark_zone_update(A)
 
@@ -352,6 +514,7 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 		return
 	processing_parts[SSAIR_EDGES] -= E
 	E.sleeping = 1
+	atmos_native_edge_set_sleeping(E.native_id, 1)
 
 
 /datum/subsystem/air/proc/mark_edge_active(connection_edge/E)
@@ -362,6 +525,7 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 		return
 	processing_parts[SSAIR_EDGES] |= E
 	E.sleeping = 0
+	atmos_native_edge_set_sleeping(E.native_id, 0)
 	#ifdef ZASDBG
 	if(istype(E, /connection_edge/zone/))
 		var/connection_edge/zone/ZE = E
@@ -383,6 +547,7 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 				return edge
 		var/connection_edge/edge = new/connection_edge/zone(A,B)
 		edges.Add(edge)
+		edges_by_native_id["[edge.native_id]"] = edge
 		edge.recheck()
 		return edge
 	else
@@ -391,6 +556,7 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 				return edge
 		var/connection_edge/edge = new/connection_edge/unsimulated(A,B)
 		edges.Add(edge)
+		edges_by_native_id["[edge.native_id]"] = edge
 		edge.recheck()
 		return edge
 
@@ -413,6 +579,7 @@ Total Unsimulated Turfs: [world.maxx*world.maxy*world.maxz - simulated_turf_coun
 	edges.Remove(E)
 	if(!E.sleeping)
 		processing_parts[SSAIR_EDGES] -= E
+	edges_by_native_id -= "[E.native_id]"
 
 
 /datum/subsystem/air/proc/add_hotspot(var/obj/effect/fire/H)
