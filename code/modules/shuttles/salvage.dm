@@ -18,6 +18,8 @@ var/global/datum/shuttle/salvage/salvage_shuttle = new(starting_area=/area/shutt
 
 	req_access = list(access_salvage_captain)
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/salvage/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/salvage/start)

@@ -6,6 +6,8 @@ var/global/datum/shuttle/mining/mining_shuttle = new(starting_area = /area/shutt
 	req_access = list(access_mining)
 	use_transit = CHEAP_TRANSIT
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/mining/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/mining/station)

@@ -5,6 +5,7 @@ var/global/datum/shuttle/research/research_shuttle = new(starting_area = /area/s
 	can_link_to_computer = LINK_FREE
 	req_access = list(access_science)
 	use_transit = CHEAP_TRANSIT
+	overmap_controlled = TRUE
 
 /datum/shuttle/research/initialize()
 	.=..()

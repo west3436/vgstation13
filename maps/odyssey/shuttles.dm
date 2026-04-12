@@ -24,6 +24,10 @@ var/global/datum/shuttle/odyssey_transfer/odyssey_transfer_shuttle = new(startin
 
 	req_access = list(access_captain)
 
+	// Overmap navigation. Free-nav helm with full waypoint planning.
+	overmap_controlled = TRUE
+	free_nav = TRUE
+
 /datum/shuttle/odyssey/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/odyssey/outpost)
@@ -217,6 +221,8 @@ var/global/datum/shuttle/odyssey_transfer/odyssey_transfer_shuttle = new(startin
 	can_rotate = TRUE
 	var/obj/docking_port/destination/odyssey_transfer/nt_outpost/outpost_dock
 	var/auto_return_timer = 0
+
+	overmap_controlled = TRUE
 
 /datum/shuttle/odyssey_transfer/initialize()
 	.=..()

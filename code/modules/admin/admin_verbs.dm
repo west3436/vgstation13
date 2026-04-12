@@ -225,6 +225,9 @@ var/list/admin_verbs_debug = list(
 	/client/proc/update_all_area_portals,
 	/client/proc/spam_blend_calls,
 	/client/proc/edit_motd,
+	/client/proc/cmd_overmap_dump_grid,
+	/client/proc/cmd_overmap_spawn_test_body,
+	/client/proc/cmd_overmap_drive_shuttle,
 	)
 var/list/admin_verbs_possess = list(
 	/client/proc/possess

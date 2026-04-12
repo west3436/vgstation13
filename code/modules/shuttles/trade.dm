@@ -14,6 +14,8 @@ var/global/datum/shuttle/trade/trade_shuttle = new(starting_area = /area/shuttle
 	stable = 0 //Don't stun everyone and don't throw anything when moving
 	can_rotate = 0 //Sleepers, body scanners and multi-tile airlocks aren't rotated properly
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/trade/proc/notify_port_toggled(var/reason)
 	for(var/obj/machinery/computer/shuttle_control/trade/T in control_consoles)
 		T.notify_port_toggled(reason)

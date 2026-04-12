@@ -4,6 +4,7 @@ var/datum/shuttle/bagel/bagel_shuttle = new(starting_area = /area/shuttle/bagel)
 	name = "bagel ferry"
 	can_link_to_computer = LINK_FREE
 	destroy_everything = TRUE // So that it can replace part of maintenance. Possibly a terrible idea?
+	overmap_controlled = TRUE
 
 /datum/shuttle/bagel/initialize()
 	. = ..()

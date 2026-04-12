@@ -98,6 +98,43 @@
 	// Used to restore the ground when the shuttle departs, keyed by "[x],[y],[z]".
 	var/list/saved_ground_turfs = list()
 
+	// =====================================================================
+	// Overmap navigation. See OVERMAP_DESIGN.md "Shuttle datum extensions".
+	// All defaults keep non-overmap shuttles unchanged. Set overmap_controlled
+	// = TRUE on a subtype to opt the shuttle into the SSovermap pipeline.
+	// =====================================================================
+	var/overmap_controlled = FALSE
+	var/free_nav = FALSE                        // TRUE = free waypoint planning, FALSE = preset routes only
+	var/x = 0                                   // current overmap tile coordinate
+	var/y = 0
+	var/list/waypoints = list()                 // list of list(x,y) pairs, ordered next-to-last
+	var/travel_progress = 0                     // 0..1 fraction of current segment traversed
+	var/last_tick_time = 0
+	var/datum/overmap_body/docked_at = null
+
+	// Velocity / throttle
+	var/base_tile_time = 150                    // deciseconds per tile at throttle 1.0 (15 sec)
+	var/throttle = 1.0
+	var/allow_full_stop = TRUE
+	var/hazard_immune = FALSE                   // derived at initialize() from !free_nav
+
+	// Sensors (populated by an installed scanner; zero = no sensors)
+	var/detection_radius = 0
+	var/body_scan_radius_parked = 0
+	var/body_scan_radius_moving = 0
+	var/hazard_detection_chance = 0.5
+	var/scanner_passive_enabled = FALSE
+	var/scanner_passive_chance_per_tick = 0
+
+	// Per-shuttle fog & knowledge. Allocated in initialize().
+	var/list/list/tile_scanned = null
+	var/list/list/tile_visited = null
+	var/list/known_bodies = list()
+	var/list/known_hazards = list()
+
+	// Preset routing
+	var/list/preset_routes = list()             // list of /datum/shuttle_route
+
 /datum/shuttle/New(var/area/starting_area)
 	.=..()
 
@@ -211,6 +248,15 @@
 				break
 		if(!has_shuttle_structure)
 			T.turf_flags |= SHUTTLE_TURF
+
+	// Allocate per-shuttle fog grids and derive hazard immunity. See
+	// OVERMAP_DESIGN.md "Per-shuttle fog and scanner semantics".
+	tile_scanned = new /list(OVERMAP_WIDTH)
+	tile_visited = new /list(OVERMAP_WIDTH)
+	for(var/i = 1 to OVERMAP_WIDTH)
+		tile_scanned[i] = new /list(OVERMAP_HEIGHT)
+		tile_visited[i] = new /list(OVERMAP_HEIGHT)
+	hazard_immune = !free_nav
 	return
 
 /datum/shuttle/Destroy()
@@ -218,6 +264,13 @@
 	..()
 
 /datum/shuttle/proc/get_transit_delay()
+	// Overmap shuttles drive their arrival from SSovermap.step_shuttle, not
+	// from the spawn() in pre_flight(). We return transit_timeout here so the
+	// existing transit watchdog still acts as a failsafe — if SSovermap somehow
+	// fails to advance the shuttle, the watchdog will recall it after the
+	// timeout. See OVERMAP_DESIGN.md "Override get_transit_delay()".
+	if(overmap_controlled && waypoints.len)
+		return transit_timeout
 	return transit_delay
 
 /datum/shuttle/proc/get_pre_flight_delay()
@@ -467,17 +520,29 @@
 			close_all_doors()
 			previous_port = current_port
 			move_to_dock(transit_port)
-			spawn(max(1,get_transit_delay()-5))
-				for(var/obj/structure/shuttle/engine/propulsion/P in shuttle_contents())
-					spawn()
-						P.shoot_exhaust()
 			for(var/atom/A in shuttle_contents())
 				animate(A)
 				if(istype(A,/mob/living))
 					var/mob/living/M = A
 					M << sound("sound/machines/hyperspace_progress.ogg", repeat = 0, wait = 1, channel = CHANNEL_AMBIENCE, volume = 75)
-			spawn(get_transit_delay())
-				complete_flight()
+			if(overmap_controlled && waypoints.len)
+				// Hand off to SSovermap. The shuttle's turfs sit in the transit
+				// area while step_shuttle ticks the waypoint walk. Arrival is
+				// driven by try_arrive_at_body, not by a fixed-delay spawn.
+				//
+				// We also require waypoints.len > 0: legacy travel paths
+				// (e.g. emergency shuttle's direct travel_to call) bypass
+				// begin_overmap_travel and never set waypoints, so they fall
+				// through to the existing spawn(get_transit_delay()) flow.
+				SSovermap.moving_shuttles |= src
+				last_tick_time = world.time
+			else
+				spawn(max(1,get_transit_delay()-5))
+					for(var/obj/structure/shuttle/engine/propulsion/P in shuttle_contents())
+						spawn()
+							P.shoot_exhaust()
+				spawn(get_transit_delay())
+					complete_flight()
 			var/obj/docking_port/destination/initial_d = destination_port
 			if(transit_timeout > 0)
 				spawn(transit_timeout)
@@ -1166,6 +1231,29 @@
 	if(!emergency_shuttle || !emergency_shuttle.shuttle)
 		warning("Emergency shuttle is broken.")
 
+	// Inject the end-of-shift Centcomm jump and a generic Return-to-Outpost
+	// route into every overmap-controlled shuttle's preset_routes. The
+	// end-of-shift route only surfaces during the lockout window; the
+	// return-to-outpost route is the baseline so every helm UI has at least
+	// one usable launchable route during normal play. Phase 6 follow-ups can
+	// add shuttle-specific routes (mining → asteroid, trade → bazaar, etc.).
+	for(var/datum/shuttle/S in shuttles)
+		if(!S.overmap_controlled)
+			continue
+		if(!S.preset_routes)
+			S.preset_routes = list()
+		var/has_eos = FALSE
+		var/has_outpost = FALSE
+		for(var/datum/shuttle_route/R in S.preset_routes)
+			if(istype(R, /datum/shuttle_route/end_of_shift_centcomm))
+				has_eos = TRUE
+			if(istype(R, /datum/shuttle_route/return_to_outpost))
+				has_outpost = TRUE
+		if(!has_eos)
+			S.preset_routes += new /datum/shuttle_route/end_of_shift_centcomm()
+		if(!has_outpost)
+			S.preset_routes += new /datum/shuttle_route/return_to_outpost()
+
 //Custom shuttles
 /datum/shuttle/custom
 	name = "custom shuttle"
@@ -1397,6 +1485,212 @@
 		for(var/obj/structure/shuttle/diag_wall/WD in shuttle_contents())
 			WD.icon_state = initial(WD.icon_state)
 			WD.color = initial(WD.color)
+
+// =====================================================================
+// Overmap navigation procs. See OVERMAP_DESIGN.md "Shuttle datum extensions".
+// All procs no-op gracefully on non-overmap-controlled shuttles.
+// =====================================================================
+
+/datum/shuttle/proc/knows_body(datum/overmap_body/B)
+	return (B in known_bodies)
+
+/datum/shuttle/proc/knows_hazard(datum/overmap_hazard/H)
+	return (H in known_hazards)
+
+/datum/shuttle/proc/reveal_tile(tx, ty)
+	if(!tile_scanned || tx < 1 || tx > OVERMAP_WIDTH || ty < 1 || ty > OVERMAP_HEIGHT)
+		return
+	tile_scanned[tx][ty] = OVERMAP_TILE_SCANNED
+
+/datum/shuttle/proc/learn_body(datum/overmap_body/B)
+	if(!B || (B in known_bodies))
+		return
+	known_bodies += B
+
+/datum/shuttle/proc/learn_hazard(datum/overmap_hazard/H)
+	if(!H || (H in known_hazards))
+		return
+	known_hazards += H
+
+// Walk the shuttle's linked areas for an installed planet scanner and copy
+// its tier values onto the shuttle's sensor fields. Called from
+// /obj/machinery/planet_scanner/shuttle/RefreshParts on upgrade or downgrade.
+// See OVERMAP_DESIGN.md "Sensor upgrades mid-round".
+/datum/shuttle/proc/update_sensors_from_scanner()
+	var/obj/machinery/planet_scanner/shuttle/scanner = null
+	for(var/area/A in linked_areas)
+		for(var/obj/machinery/planet_scanner/shuttle/PS in A)
+			scanner = PS
+			break
+		if(scanner)
+			break
+
+	if(!scanner)
+		// No scanner installed — zero out sensor fields.
+		detection_radius = 0
+		body_scan_radius_parked = 0
+		body_scan_radius_moving = 0
+		hazard_detection_chance = 0
+		scanner_passive_enabled = FALSE
+		scanner_passive_chance_per_tick = 0
+		return
+
+	// Compute the scanner's effective tier from its scanning_module stock parts.
+	// Two modules at rating R each → tier roughly R (per the planet_scanner
+	// energy_efficiency formula). Cap at 4.
+	var/total_rating = 0
+	for(var/obj/item/weapon/stock_parts/scanning_module/SM in scanner.component_parts)
+		total_rating += SM.rating
+	var/tier = clamp(round(total_rating / 2), 1, 4)
+
+	detection_radius = tier
+	body_scan_radius_parked = 2 + tier            // 3..6
+	body_scan_radius_moving = tier                // 1..4
+	hazard_detection_chance = 0.4 + (tier - 1) * 0.15  // 0.40, 0.55, 0.70, 0.85
+	scanner_passive_enabled = TRUE
+	scanner_passive_chance_per_tick = 0.005 + (tier - 1) * 0.005  // 0.5%..2%
+
+
+// Helm entry point for free-nav UIs and the route launcher. Validates the
+// requested waypoint list, sets the destination port (if any), and kicks off
+// travel via the existing travel_to() pipeline.
+/datum/shuttle/proc/begin_overmap_travel(list/waypoint_list, datum/overmap_body/final_body, mob/user, obj/machinery/computer/shuttle_control/broadcast = null, admin_bypass = FALSE)
+	if(!overmap_controlled)
+		return FALSE
+	// Fire the departed hook on whatever body we're currently docked at —
+	// this is the encounter despawn-timer trigger.
+	if(docked_at)
+		docked_at.on_shuttle_departed(src)
+		docked_at = null
+	if(!waypoint_list || !waypoint_list.len)
+		if(user)
+			to_chat(user, "<span class='warning'>No waypoints to travel to.</span>")
+		return FALSE
+	for(var/list/wp in waypoint_list)
+		if(wp.len < 2 || !SSovermap.is_in_bounds(wp[1], wp[2]))
+			if(user)
+				to_chat(user, "<span class='warning'>Waypoint out of bounds.</span>")
+			return FALSE
+
+	// Admin-approval gate for `requires_admin_approval` bodies (Centcomm,
+	// future plot-relevant locations). Routes the launch through the admin
+	// chat instead of starting travel directly. Approval calls back into
+	// begin_overmap_travel with admin_bypass = TRUE.
+	if(final_body && final_body.requires_admin_approval && !admin_bypass)
+		request_admin_approval_for_dock(src, final_body, user)
+		return FALSE
+
+	if(destination_port)
+		// Already in flight: course-correct without replaying pre-flight delay.
+		set_waypoints(waypoint_list, user)
+		if(final_body)
+			destination_port = final_body.linked_port
+		return TRUE
+
+	waypoints = waypoint_list.Copy()
+	travel_progress = 0
+	if(final_body && final_body.linked_port)
+		// Reuse the existing pipeline by handing it our final dock; the SSovermap
+		// branch in pre_flight() takes over once we hit the transit phase.
+		return travel_to(final_body.linked_port, broadcast, user)
+	else if(transit_port)
+		// No final body — fly into transit and let try_arrive_at_body decide
+		// what to do (overmap_park if the final tile is empty).
+		return travel_to(transit_port, broadcast, user)
+	return FALSE
+
+
+/datum/shuttle/proc/set_waypoints(list/new_waypoints, mob/user)
+	if(!new_waypoints)
+		new_waypoints = list()
+	// Preserve travel_progress if the heading hasn't changed.
+	var/preserve_progress = FALSE
+	if(waypoints.len && new_waypoints.len)
+		var/list/old_first = waypoints[1]
+		var/list/new_first = new_waypoints[1]
+		if(old_first.len >= 2 && new_first.len >= 2 && old_first[1] == new_first[1] && old_first[2] == new_first[2])
+			preserve_progress = TRUE
+	waypoints = new_waypoints.Copy()
+	if(!preserve_progress)
+		travel_progress = 0
+	if(SSovermap)
+		SSovermap.notify_ship_moved(src)
+
+
+/datum/shuttle/proc/append_waypoint(nx, ny, mob/user)
+	if(!SSovermap.is_in_bounds(nx, ny))
+		return
+	waypoints += list(list(nx, ny))
+	if(SSovermap)
+		SSovermap.notify_ship_moved(src)
+
+
+/datum/shuttle/proc/clear_waypoints(mob/user)
+	waypoints.Cut()
+	throttle = 0
+	travel_progress = 0
+	if(SSovermap)
+		SSovermap.notify_ship_moved(src)
+
+
+/datum/shuttle/proc/set_throttle(value, mob/user)
+	var/old_throttle = throttle
+	throttle = clamp(value, 0, 1)
+	if(throttle != old_throttle && user)
+		// Soft beep when the helm operator nudges the throttle. Vox shuttle
+		// uses the same sound for its keypad — keeps the audio palette small.
+		user << sound('sound/machines/twobeep.ogg', wait = 0, volume = 30)
+	if(SSovermap)
+		SSovermap.notify_ship_moved(src)
+
+
+/datum/shuttle/proc/full_stop(mob/user)
+	if(allow_full_stop)
+		set_throttle(0, user)
+
+
+/datum/shuttle/proc/overmap_complete_flight()
+	// Called by SSovermap.try_arrive_at_body when the last waypoint is reached
+	// at a body tile or when a parked ship picks a target via the dock selector.
+	waypoints.Cut()
+	travel_progress = 0
+	if(SSovermap)
+		SSovermap.moving_shuttles -= src
+	complete_flight()
+
+
+/datum/shuttle/proc/overmap_park()
+	// Called when a course finishes at an empty tile (or a stacked tile with no
+	// destination_port match). Routes the shuttle's turfs into VZ_PARKING via
+	// the existing move_to_dock pipeline.
+	waypoints.Cut()
+	travel_progress = 0
+	docked_at = null
+	destination_port = null
+	if(SSovermap)
+		SSovermap.moving_shuttles -= src
+
+	var/obj/docking_port/destination/parking = get_or_create_parking_port()
+	if(parking)
+		move_to_dock(parking)
+		current_port = parking
+	moving = 0
+	previous_port = null
+
+
+// Find an existing VZ_PARKING dock for this shuttle, or lazily allocate one
+// via generate_parking_area. Phase 4 will call this from the helm dock button
+// flow as well.
+/datum/shuttle/proc/get_or_create_parking_port()
+	for(var/obj/docking_port/destination/D in docking_ports)
+		var/datum/virtual_z/dvz = D.get_virtual_z()
+		if(dvz && dvz.level_type == VZ_PARKING && dvz.linked_shuttle == src)
+			return D
+	var/obj/docking_port/destination/fresh = generate_parking_area(src)
+	if(fresh)
+		add_dock(fresh)
+	return fresh
+
 
 //Planetary landing zone datum
 /datum/landing_zone

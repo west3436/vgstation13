@@ -610,6 +610,36 @@
 	var/passive_scanning = FALSE
 	var/passive_scan_progress = 0 // Accumulated progress (completes at 1.0)
 
+
+/obj/machinery/planet_scanner/shuttle/RefreshParts()
+	..()
+	// Push tier values onto the linked shuttle's sensor fields. See
+	// OVERMAP_DESIGN.md "Sensor upgrades mid-round".
+	var/datum/shuttle/S = get_shuttle()
+	if(S)
+		S.update_sensors_from_scanner()
+
+
+// Layered overmap notification (Q21). Called from both active and passive scan
+// completion paths. Reveals fog and registers a new encounter on the grid so
+// the helm map immediately surfaces the discovery.
+/obj/machinery/planet_scanner/shuttle/proc/notify_overmap_scan_complete()
+	if(!SSovermap)
+		return
+	var/datum/shuttle/S = get_shuttle()
+	if(!S || !S.overmap_controlled)
+		return
+	var/deep_radius = max(S.body_scan_radius_parked, 1) * 2
+	SSovermap.deep_scan(S, deep_radius)
+	SSovermap.spawn_encounter_near(S, min_dist = 2, max_dist = deep_radius + 3)
+
+
+// Hook scan completion to also notify the overmap. The base proc still runs,
+// keeping the existing TGUI dest-list flow intact for unconverted shuttles.
+/obj/machinery/planet_scanner/shuttle/finalize_scan()
+	..()
+	notify_overmap_scan_complete()
+
 /// Override to pass the shuttle to encounter generation for proper shuttle reservation
 /obj/machinery/planet_scanner/shuttle/spawn_new_encounter()
 	if(!SSmapping)
@@ -662,6 +692,7 @@
 			visible_message("<span class='notice'>[src] has passively detected a new planet in hyperspace.</span>")
 			calculate_required_energy()
 			update_icon()
+			notify_overmap_scan_complete()
 
 	// Handle passive scanning when in transit and not actively scanning
 	else if(!scanning && !waiting_for_generation && shuttle_in_transit() && !SSmapping?.scanning && !SSmapping?.generating && scans_completed < PLANET_SCANNER_MAX_SCANS && !(stat & (BROKEN|FORCEDISABLE)) && anchored)
@@ -696,6 +727,7 @@
 		playsound(src, 'sound/machines/twobeep.ogg', 50, 1)
 		visible_message("<span class='notice'>[src] has passively detected an anomaly in hyperspace.</span>")
 		calculate_required_energy()
+		notify_overmap_scan_complete()
 	else
 		waiting_for_generation = TRUE
 		spawn_new_planet()

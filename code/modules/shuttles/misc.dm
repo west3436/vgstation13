@@ -38,6 +38,8 @@ var/global/datum/shuttle/transport/transport_shuttle = new(starting_area = /area
 
 	req_access = list(access_cent_captain)
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/transport/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/transport/station)
@@ -80,6 +82,8 @@ var/global/datum/shuttle/ert/ert_shuttle = new(starting_area = /area/shuttle/ert
 
 	req_access = list(access_cent_ert)
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/ert/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/ert/station)
@@ -121,6 +125,8 @@ var/global/datum/shuttle/deathsquad/deathsquad_shuttle = new(starting_area = /ar
 	stable = 0
 
 	req_access = list(access_cent_specops)
+
+	overmap_controlled = TRUE
 
 /datum/shuttle/deathsquad/initialize()
 	.=..()
@@ -167,6 +173,8 @@ var/global/datum/shuttle/elite_syndie/elite_syndie_shuttle = new(starting_area =
 	stable = 0
 
 	req_access = list(access_syndicate)
+
+	overmap_controlled = TRUE
 
 /datum/shuttle/elite_syndie/initialize()
 	.=..()
@@ -216,6 +224,8 @@ var/global/datum/shuttle/striketeam/strike_team_shuttle = new(starting_area = /a
 
 	req_access = list(access_cent_captain)
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/striketeam/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/striketeam/destination1)
@@ -263,6 +273,8 @@ var/global/datum/shuttle/admin/admin_shuttle = new(starting_area = /area/shuttle
 
 	req_access = list(access_cent_captain)
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/admin/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/admin/centcom)
@@ -297,6 +309,10 @@ var/global/datum/shuttle/exploration/exploration_shuttle = new(starting_area = /
 	password = TRUE
 	stable = 1 //Don't stun everyone and don't throw anything when moving
 	can_rotate = 1
+
+	// Genuine free-nav exploration shuttle — gets the full waypoint helm.
+	overmap_controlled = TRUE
+	free_nav = TRUE
 
 /datum/shuttle/exploration/initialize()
 	.=..()

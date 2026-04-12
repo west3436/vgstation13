@@ -221,6 +221,20 @@
 	if(..(user))
 		return
 
+	// Overmap shim (Q23): if the bound shuttle has been converted to overmap
+	// navigation, open the helm MindUI instead of the legacy TGUI flow. This
+	// keeps existing in-world consoles working without map edits — every
+	// shuttle subtype that flips overmap_controlled = TRUE automatically
+	// surfaces the new helm via this branch.
+	if(shuttle && shuttle.overmap_controlled)
+		var/ui_id = shuttle.free_nav ? "shuttle_helm_free" : "shuttle_helm_preset"
+		user.DisplayUI(ui_id)
+		if(user.mind && user.mind.activeUIs[ui_id])
+			var/datum/mind_ui/overmap_base/helm/H = user.mind.activeUIs[ui_id]
+			H.bind_shuttle(shuttle)
+		add_fingerprint(usr)
+		return
+
 	user.set_machine(src)
 	add_fingerprint(usr)
 	var/shuttle_name = "Unknown shuttle"

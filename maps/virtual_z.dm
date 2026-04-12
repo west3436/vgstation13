@@ -16,6 +16,7 @@
 	var/list/area/areas = list()
 	var/list/shuttle_landing_zones = list()
 	var/datum/shuttle/linked_shuttle = null // If this virtual z-level is a transit area, the shuttle it's linked to
+	var/datum/overmap_body/overmap_body = null // back-reference to the overmap body that owns this vlevel, set by SSovermap.add_body
 
 	var/placed_ruin = null
 	var/list/placed_ruins = list()

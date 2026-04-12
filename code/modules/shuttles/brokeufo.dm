@@ -23,6 +23,8 @@
 	stable = 1 //Don't stun everyone and don't throw anything when moving
 	can_rotate = 0 //Probably just won't work with this shuttle
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/brokeufo/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/brokeufo/start)

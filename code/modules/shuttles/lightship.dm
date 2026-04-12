@@ -23,6 +23,8 @@
 	stable = 1 //Don't stun everyone and don't throw anything when moving
 	can_rotate = 0 //Sleepers, body scanners and multi-tile airlocks aren't rotated properly
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/lightship/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/lightship/start)

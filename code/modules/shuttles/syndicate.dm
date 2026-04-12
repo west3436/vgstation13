@@ -20,6 +20,8 @@ var/global/datum/shuttle/syndicate/syndicate_shuttle = new(starting_area = /area
 
 	req_access = list(access_syndicate)
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/syndicate/initialize()
 	.=..()
 	add_dock(/obj/docking_port/destination/syndicate/start)

@@ -12,6 +12,8 @@ var/global/datum/shuttle/supply/cargo_shuttle = new(starting_area = /area/shuttl
 
 	stable = 1 //Don't stun everyone and don't throw anything when moving
 
+	overmap_controlled = TRUE
+
 /datum/shuttle/supply/is_special()
 	return 1
 
