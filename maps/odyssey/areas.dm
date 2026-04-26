@@ -2,6 +2,7 @@
 	name = "\improper NTEV Odyssey"
 	icon_state = "shuttle"
 	requires_power = 1
+	base_turf_type = /turf/space
 
 /area/shuttle/odyssey/bridge
 	name = "\improper Bridge"
@@ -106,6 +107,7 @@
 /area/shuttle/odyssey/exterior
 	name = "\improper Exterior"
 	icon_state = "red"
+	base_turf_type = null
 
 /area/surface/nt_outpost
 	name = "\improper Nanotrasen Outpost"

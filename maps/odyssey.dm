@@ -88,6 +88,14 @@
 		return FALSE
 	else if(ispath(DR.role_category,/datum/role/nuclear_operative))
 		return FALSE
+	else if(ispath(DR.role_category,/datum/role/revolutionary))
+		return FALSE
+	else if(ispath(DR.role_category,/datum/role/traitor/challenger))
+		return FALSE
+	else if(ispath(DR.role_category,/datum/role/vampire))
+		return FALSE
+	else if(ispath(DR.role_category,/datum/role/wizard))
+		return FALSE
 	return ..()
 
 /datum/map/active/proc/get_ship_state()
@@ -181,7 +189,7 @@
 	message = "The engines are charging in preparation for the Bluespace Jump. The ship will depart in [round(emergency_shuttle.timeleft()/60)] minutes."
 	if(justification)
 		message += " Justification: [justification]"
-	..()
+	command_alert(message, alert_title, force_report, alert, noalert, small)
 
 /datum/command_alert/emergency_shuttle_recalled
 	name = "Bluespace Jump Cancelled"
@@ -191,7 +199,7 @@
 
 /datum/command_alert/emergency_shuttle_recalled/announce()
 	message = "The Bluespace Jump has been cancelled."
-	..()
+	command_alert(message, alert_title, force_report, alert, noalert, small)
 
 /datum/command_alert/emergency_shuttle_left
 	name = "Bluespace Jump Initiated"
@@ -200,7 +208,7 @@
 
 /datum/command_alert/emergency_shuttle_left/announce()
 	message = "The Bluespace Jump has begun. Estimate [round(emergency_shuttle.timeleft()/60,1)] minutes until the NTEV Odyssey docks at Central Command."
-	..()
+	command_alert(message, alert_title, force_report, alert, noalert, small)
 
 ////////////////////////////////////////////////////////////////
 #undef OUTPOST_MAX_X

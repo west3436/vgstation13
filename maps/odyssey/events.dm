@@ -129,6 +129,72 @@
 //////////////////////////////////////////////
 
 /datum/event/radiation_storm/odyssey
+	safe_zones = list(
+		/area/shuttle/odyssey/maintenance,
+		/area/shuttle/odyssey/hallway/aft,
+		/area/shuttle/odyssey/engineering,
+	)
+
+/datum/event/radiation_storm/odyssey/start()
+	spawn()
+		if(!map?.ship_shuttle?.current_port)
+			return
+		var/datum/shuttle/odyssey/S = map.ship_shuttle
+
+		command_alert(/datum/command_alert/radiation_storm)
+
+		for(var/area/A in S.linked_areas)
+			if(is_safe_zone(A, null))
+				continue
+			A.radiation_alert()
+
+		sleep(30 SECONDS)
+
+		command_alert(/datum/command_alert/radiation_storm/start)
+
+		for(var/i = 0, i < 15, i++)
+			var/irradiationThisBurst = rand(15, 25)
+			for(var/obj/machinery/power/rad_collector/R in rad_collectors)
+				var/turf/T = get_turf(R)
+				if(!T || is_safe_zone(T.loc, T))
+					continue
+				R.receive_pulse(irradiationThisBurst * 50)
+			for(var/obj/item/weapon/am_containment/decelerator/D in decelerators)
+				var/turf/T = get_turf(D)
+				if(!T || is_safe_zone(T.loc, T))
+					continue
+				D.receive_pulse(irradiationThisBurst * 50)
+			for(var/obj/machinery/portable_atmospherics/hydroponics/tray in hydro_trays)
+				var/turf/T = get_turf(tray)
+				if(!T || is_safe_zone(T.loc, T))
+					continue
+				tray.receive_pulse(irradiationThisBurst * 50)
+
+			for(var/mob/living/carbon/human/H in living_mob_list)
+				if(istype(H.loc, /obj/spacepod))
+					continue
+				var/turf/T = get_turf(H)
+				if(!T || is_safe_zone(T.loc, T))
+					continue
+				var/randomMutation = prob(50)
+				var/applied_rads = (H.apply_radiation(irradiationThisBurst, RAD_EXTERNAL) > (irradiationThisBurst / 4))
+				if(randomMutation && applied_rads)
+					var/badMutation = H?.lucky_prob(50, -1/10)
+					if(badMutation)
+						randmutb(H)
+						domutcheck(H, null, MUTCHK_FORCED)
+					else
+						randmutg(H)
+						domutcheck(H, null, MUTCHK_FORCED)
+
+			sleep(25)
+
+		command_alert(/datum/command_alert/radiation_storm/end)
+
+		for(var/area/A in S.linked_areas)
+			if(is_safe_zone(A, null))
+				continue
+			A.reset_radiation_alert()
 
 /datum/event/disease_outbreak/odyssey
 

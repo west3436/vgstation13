@@ -132,6 +132,11 @@ var/global/datum/shuttle/odyssey_transfer/odyssey_transfer_shuttle = new(startin
 		transit_port.areaname = "Hyperspace"
 	if(current_port != transit_port)
 		captain_announce("The NTEV Odyssey will be departing to [transit_destination_name] in 30 seconds.")
+		// Seal the outer port/starboard airlocks before takeoff so nobody gets vented.
+		for(var/obj/machinery/door/airlock/A in shuttle_contents())
+			if(A.id_tag == "port_ext_airlock" || A.id_tag == "starboard_ext_airlock")
+				spawn(0)
+					A.close()
 	return ..()
 
 /datum/shuttle/odyssey/pre_flight()
@@ -286,9 +291,47 @@ var/global/datum/shuttle/odyssey_transfer/odyssey_transfer_shuttle = new(startin
 	desc = "A circuit board for running the Odyssey bridge communications console."
 	build_path = /obj/machinery/computer/communications/odyssey
 
+// Generic comms boards built on the Odyssey assemble into the bridge variant.
+/obj/item/weapon/circuitboard/communications/New()
+	..()
+	if(build_path == /obj/machinery/computer/communications)
+		name = "Circuit board (Odyssey Bridge Communications)"
+		desc = "A circuit board for running the Odyssey bridge communications console."
+		build_path = /obj/machinery/computer/communications/odyssey
+
 /obj/machinery/computer/communications/odyssey
 	circuit = "/obj/item/weapon/circuitboard/communications/odyssey"
 	ignore_station_z_check = TRUE
+
+/obj/machinery/computer/communications/odyssey/Topic(href, href_list)
+	if(href_list && href_list["operation"] == "cancelshuttle" && (authenticated || isAdminGhost(usr)))
+		if(!map.linked_to_centcomm && !isAdminGhost(usr))
+			to_chat(usr, "<span class='danger'>Error: No connection can be made to central command.</span>")
+			return
+		if(issilicon(usr))
+			return
+		if(istype(usr, /mob/living/simple_animal/hostile/pulse_demon))
+			to_chat(usr, "<span class='warning'>This machinery resists your hijacking attempt!</span>")
+			return FALSE
+		usr.set_machine(src)
+		var/response = alert("Are you sure you wish to cancel the Bluespace jump?", "Confirm", "Yes", "No")
+		if(response != "Yes")
+			return
+		if(!emergency_shuttle.online || emergency_shuttle.direction != EMERGENCY_SHUTTLE_GOING_TO_STATION)
+			to_chat(usr, "<span class='warning'>There is no jump in progress to cancel.</span>")
+			return
+		if(istype(emergency_shuttle, /datum/emergency_shuttle/odyssey))
+			if(odyssey_shuttle?.bluespace_jump_state == JUMP_COMMITTED)
+				to_chat(usr, "<span class='warning'>The Bluespace jump is already committed and cannot be cancelled.</span>")
+				return
+		emergency_shuttle.recall()
+		log_game("[key_name(usr)] has cancelled the Bluespace jump.")
+		message_admins("[key_name_admin(usr)] has cancelled the Bluespace jump.", 1)
+		if(!isobserver(usr))
+			shuttle_log += "\[[worldtime2text()]] Cancelled from [get_area(usr)] ([usr.x-get_world_x_offset(usr.vz())], [usr.y-get_world_y_offset(usr.vz())], [usr.vz()])."
+		setMenuState(usr, COMM_SCREEN_MAIN)
+		return
+	return ..()
 
 /obj/machinery/computer/communications/odyssey/proc/trigger_bluespace_jump()
 	if(!emergency_shuttle || emergency_shuttle.online || emergency_shuttle.departed || emergency_shuttle.shutdown)

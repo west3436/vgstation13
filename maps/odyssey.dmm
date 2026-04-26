@@ -4058,7 +4058,6 @@
 	pixel_x = -24;
 	pixel_y = 5
 	},
-/obj/item/weapon/card/id/captains_spare,
 /obj/machinery/firealarm{
 	pixel_y = -30;
 	dir = 1
@@ -9165,6 +9164,7 @@
 /obj/structure/table/reinforced,
 /obj/machinery/recharger,
 /obj/item/weapon/book/manual/odyssey,
+/obj/item/weapon/card/id/captains_spare,
 /turf/simulated/floor{
 	icon_state = "dark"
 	},
