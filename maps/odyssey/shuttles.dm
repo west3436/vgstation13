@@ -598,13 +598,13 @@ var/global/datum/shuttle/odyssey_transfer/odyssey_transfer_shuttle = new(startin
 				return
 			var/list/datum/virtual_z/destinations = list()
 			for(var/datum/virtual_z/vz in map.vLevels)
-				if(vz.level_type == VZ_PARKING || vz.level_type == VZ_SPACE)
+				if((vz.level_type == VZ_PARKING || vz.level_type == VZ_SPACE) && !vz.movementJammed)
 					destinations += vz
 			if(destinations.len)
 				var/datum/virtual_z/dest = pick(destinations)
 				for(var/i = 1 to 50)
-					var/tx = rand(dest.x_min + TRANSITIONEDGE, dest.x_max - TRANSITIONEDGE)
-					var/ty = rand(dest.y_min + TRANSITIONEDGE, dest.y_max - TRANSITIONEDGE)
+					var/tx = rand(dest.x_min + 1, dest.x_max - 1)
+					var/ty = rand(dest.y_min + 1, dest.y_max - 1)
 					var/turf/T = locate(tx, ty, dest.z())
 					if(istype(T, /turf/space) && !istype(T, /turf/space/transit) && !istype(T, /turf/unsimulated/border))
 						to_chat(A, "<span class='warning'>You are violently thrown out of hyperspace!</span>")
