@@ -62,6 +62,9 @@ On the map dm file, redefine the following:
 		if(!vz.active)
 			continue
 
+		if(vz.freeze_time)
+			continue
+
 		if(!vz.daynight_turfs.len)
 			continue
 

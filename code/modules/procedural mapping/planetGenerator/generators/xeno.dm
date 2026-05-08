@@ -88,7 +88,7 @@
 		/obj/structure/flora/xeno_flora/blue = 10,
 		/obj/structure/flora/xeno_flora/red = 10,
 		/obj/structure/flora/xeno_flora/orange = 10,
-		/obj/structure/acid_puddle = 5
+		/obj/structure/puddle/acid/pacid = 5
 	)
 	mob_spawn_chance = 20
 	mob_spawn_list = list(
@@ -122,7 +122,7 @@
 	open_turf_types = list(/turf/unsimulated/floor/planetary/xeno/desert = 1)
 	flora_spawn_chance = 1
 	flora_spawn_list = list(
-		/obj/structure/acid_puddle = 1,
+		/obj/structure/puddle/acid/pacid = 1,
 		/obj/structure/flora/rock = 1,
 		/obj/structure/flora/rock/pile = 1,
 	)
@@ -184,7 +184,7 @@
 
 	flora_spawn_chance = 4
 	flora_spawn_list = list(
-		/obj/structure/acid_puddle = 25,
+		/obj/structure/puddle/acid/pacid = 25,
 		/obj/effect/glowshroom = 100
 	)
 	loot_spawn_chance = 1
@@ -217,7 +217,7 @@
 	)
 	mob_spawn_chance = 0
 	flora_spawn_list = list(
-		/obj/structure/acid_puddle = 10,
+		/obj/structure/puddle/acid/pacid = 10,
 		/obj/effect/glowshroom = 100
 	)
 	loot_spawn_chance = 0

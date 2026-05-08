@@ -1977,7 +1977,7 @@
 /turf/unsimulated/floor/ayy,
 /area/vault/mothership_lab/research)
 "uw" = (
-/obj/structure/acid_puddle,
+/obj/structure/puddle/acid/pacid,
 /turf/unsimulated/floor/grey_sand,
 /area/vault/mothership_lab/research)
 "uy" = (

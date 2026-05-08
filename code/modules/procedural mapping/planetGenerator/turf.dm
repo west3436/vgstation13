@@ -416,6 +416,109 @@
 	icon='icons/turf/new_snow.dmi'
 	icon_state = "concrete"
 
+// Robotic planet
+/turf/unsimulated/floor/planetary/paved
+	name="pavement"
+	desc="A solid surface made for walking and driving."
+	icon='icons/turf/planetary/urban_turfs.dmi'
+	icon_state = "flat1"
+	base_icon_state = "flat"
+	min_icon_states = 1
+	max_icon_states = 3
+
+/turf/unsimulated/floor/planetary/paved/blocks
+	icon_state = "blocks1"
+	base_icon_state = "blocks"
+	min_icon_states = 1
+	max_icon_states = 3
+
+/turf/unsimulated/floor/planetary/paved/asphalt
+	name="asphalt"
+	icon_state = "asphalt0"
+	base_icon_state = "asphalt"
+	min_icon_states = 0
+	max_icon_states = 3
+
+// Meat planet
+/turf/unsimulated/floor/planetary/rusted
+	name="rusted metal"
+	desc = "Metal that has been exposed to the elements for too long."
+	icon='icons/turf/planetary/urban_turfs.dmi'
+	icon_state = "rust"
+	base_icon_state = "rust"
+	min_icon_states = 1
+	max_icon_states = 12
+
+/turf/unsimulated/floor/planetary/flesh
+	name="flesh"
+	desc = "A layer of organic material."
+	icon='icons/turf/meat.dmi'
+	icon_state = "flesh"
+	base_icon_state = "flesh"
+	edge_flags = EDGE_CARDINAL
+	edge_priority = SAND_EDGE_PRIORITY
+
+// Register newly-created flesh floors (e.g. from mined walls) with the planet's
+// climate so they show weather overlays. No-op during mapping since the climate
+// is not yet attached to the virtual_z; mapping.dm registers them explicitly.
+/turf/unsimulated/floor/planetary/flesh/New()
+	..()
+	if(!isopensurface(loc))
+		return
+	var/datum/climate/C = SSweather?.get_climate_from_turf(src)
+	if(C)
+		C.register_weather_turf(src)
+
+/turf/unsimulated/mineral/cave/blood
+	name = "coagulated blood wall"
+	icon = 'icons/turf/meat.dmi'
+	icon_state = "bloodwall"
+	base_icon_state = "bloodwall"
+	mined_type = /turf/unsimulated/floor/planetary/flesh
+	edge_flags = EDGE_CARDINAL
+	edge_priority = ROCK_EDGE_PRIORITY
+
+/turf/unsimulated/mineral/cave/viscera
+	name = "viscera"
+	icon = 'icons/turf/bloodrealm.dmi'
+	icon_state = "viscera"
+	base_icon_state = "viscera"
+	mined_type = /turf/unsimulated/floor/planetary/flesh
+	edge_flags = EDGE_CARDINAL|EDGE_OUTER_DIAGONAL
+	edge_priority = ROCK_EDGE_PRIORITY
+
+/turf/unsimulated/mineral/cave/viscera/New()
+	..()
+	if(prob(10))
+		overlays += image('icons/turf/bloodrealm.dmi', "blood_[rand(1, 6)]")
+
+/turf/unsimulated/mineral/cave/guts
+	name = "guts"
+	icon = 'icons/turf/meat.dmi'
+	icon_state = "guts"
+	base_icon_state = "guts"
+	min_icon_states = 1
+	max_icon_states = 15
+	variance = 75
+	mined_type = /turf/unsimulated/floor/planetary/flesh
+	edge_flags = EDGE_CARDINAL|EDGE_OUTER_DIAGONAL
+	edge_priority = ROCK_EDGE_PRIORITY
+
+/turf/unsimulated/mineral/cave/guts/New()
+	..()
+	if(prob(10))
+		overlays += image('icons/turf/bloodrealm.dmi', "pus_[rand(1, 6)]")
+
+// Haunted planet
+/turf/unsimulated/floor/planetary/rotten
+	name= "rotten soil"
+	desc = "Rotting organic material. Smells bad."
+	icon='icons/turf/planetary/jungle.dmi'
+	icon_state = "wasteland"
+	base_icon_state = "wasteland"
+	min_icon_states = 0
+	max_icon_states = 12
+	variance = 10
 
 ///////// Gas Vents /////////
 var/list/datum/vent/gas_vents = list() // Global list of all gas vents
@@ -440,7 +543,7 @@ var/list/datum/vent/gas_vents = list() // Global list of all gas vents
 		T = null
 		Destroy()
 		return
-	gas_type = pickweight(T.planet.vent_types)
+	gas_type = pick(GAS_OXYGEN, GAS_PLASMA, GAS_SLEEPING, GAS_CARBON, GAS_NITROGEN, GAS_CRYOTHEUM, GAS_RADON)
 	var/particle_color = "#808080ff"
 	switch(gas_type)
 		if(GAS_OXYGEN)

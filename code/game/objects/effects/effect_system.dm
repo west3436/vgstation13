@@ -1127,6 +1127,8 @@ steam.start() -- spawns the effect
 	var/datum/climate/parent_climate = null
 	var/list/precip_overlays = list()
 	var/list/overlay_counts = list()
+	var/list/precip_colors = list()
+	var/list/precip_alphas = list()
 	var/overlay_icon = 'icons/turf/weatherfx.dmi'
 
 /obj/effect/weather_holder/New(var/datum/climate/climate_ref = null)
@@ -1145,9 +1147,16 @@ steam.start() -- spawns the effect
 
 /obj/effect/weather_holder/proc/cache_weather_tile(var/weather_state)
 	overlays.Cut()
-	for(var/i = 1 to overlay_counts[weather_state+1])
-		var/image/precipfx = image(overlay_icon, "[precip_overlays[weather_state+1]][i]", SNOW_OVERLAY_LAYER)
+	var/idx = weather_state + 1
+	var/precip_color = (precip_colors.len >= idx) ? precip_colors[idx] : null
+	var/precip_alpha = (precip_alphas.len >= idx) ? precip_alphas[idx] : null
+	for(var/i = 1 to overlay_counts[idx])
+		var/image/precipfx = image(overlay_icon, "[precip_overlays[idx]][i]", SNOW_OVERLAY_LAYER)
 		precipfx.plane = EFFECTS_PLANE
+		if(precip_color)
+			precipfx.color = precip_color
+		if(precip_alpha)
+			precipfx.alpha = precip_alpha
 		overlays += precipfx
 	var/cache_key = "[type]_[weather_state]"
 	precip_state_to_texture[cache_key] = appearance
@@ -1175,12 +1184,46 @@ steam.start() -- spawns the effect
 	overlay_counts = list(1,2,1)
 
 /obj/effect/weather_holder/fallout
-	precip_overlays = list("clear","rad","rad_storm","toxic_rain","toxic_rain_hard")
-	overlay_counts = list(1,1,1,1,1)
+	precip_overlays = list("clear","rad","rad_storm","rain_hard","rain_storm")
+	overlay_counts = list(1,1,1,1,3)
+	precip_colors = list(null,null,null,"#8D062C","#8D062C")
+	precip_alphas = list(null,null,null,150,150)
 
 /obj/effect/weather_holder/xeno
-	precip_overlays = list("clear","acid_rain","acid_rain_hard")
+	precip_overlays = list("clear","rain_average","rain_hard")
 	overlay_counts = list(1,1,1)
+	precip_colors = list(null,"#00CC00","#00CC00")
+	precip_alphas = list(null,102,102)
+
+/obj/effect/weather_holder/meat
+	precip_overlays = list("clear","rain_average","rain_hard")
+	overlay_counts = list(1,1,3)
+	precip_colors = list(null,"#8D062C","#8D062C")
+	precip_alphas = list(null,180,200)
+
+/obj/effect/weather_holder/cult
+	precip_overlays = list("clear","dust","sand")
+	overlay_counts = list(1,2,3)
+	precip_colors = list(null,"#603060","#3a1a4a")
+	precip_alphas = list(null,150,200)
+
+/obj/effect/weather_holder/robotic
+	precip_overlays = list("clear","ash","ash_storm")
+	overlay_counts = list(1,2,1)
+	precip_colors = list(null,"#9aa0a6","#5a4a30")
+	precip_alphas = list(null,150,200)
+
+/obj/effect/weather_holder/haunted
+	precip_overlays = list("clear","dust","sand")
+	overlay_counts = list(1,2,3)
+	precip_colors = list(null,"#5a6a85","#3a4055")
+	precip_alphas = list(null,150,200)
+
+/obj/effect/weather_holder/spore
+	precip_overlays = list("clear","ash","ash_storm")
+	overlay_counts = list(1,2,1)
+	precip_colors = list(null,"#88aa44","#aaff44")
+	precip_alphas = list(null,150,200)
 
 /obj/effect/landing_zone
 	name = "landing zone"

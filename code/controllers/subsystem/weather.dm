@@ -84,3 +84,34 @@ var/list/precip_state_to_texture = list()
 		new_climate.register_weather_turf(T)
 
 	return TRUE
+
+// Replace a climate with a fresh /datum/climate/random on the same vlevel
+/datum/subsystem/weather/proc/randomize_climate(var/datum/climate/C)
+	if(!C || !istype(C))
+		return FALSE
+
+	var/datum/virtual_z/vz = C.v
+	if(!vz)
+		return FALSE
+
+	climates -= C
+
+	C.clear_forecast()
+	if(C.current_weather)
+		qdel(C.current_weather)
+	if(C.weather_image)
+		for(var/turf/T in C.weather_turfs)
+			T.vis_contents -= C.weather_image
+		qdel(C.weather_image)
+	qdel(C)
+
+	var/datum/climate/new_climate = new /datum/climate/random(vz, FALSE)
+	climates += new_climate
+
+	var/list/turf/turfs = vz.get_turfs()
+	if(!turfs)
+		return FALSE
+	for(var/turf/T in turfs)
+		new_climate.register_weather_turf(T)
+
+	return TRUE

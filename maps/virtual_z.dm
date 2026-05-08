@@ -39,6 +39,7 @@
 	var/next_firetime = 0
 	var/list/daynight_turfs = list()
 	var/weather_mod = 1 // Weather light modifier
+	var/freeze_time = FALSE // If TRUE, day/night cycle is paused on this vlevel
 
 	// Parameters
 	var/gps_allowed = FALSE // Whether regular GPS functions in this vlevel

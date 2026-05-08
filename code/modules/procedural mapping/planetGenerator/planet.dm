@@ -95,7 +95,14 @@
 	var/list/weighted_ruin_list = list()
 	var/spawned_story_ruin = FALSE
 
-/datum/planetGenerator/New(var/generation_size)
+/datum/planetGenerator/New(var/generation_size, var/skip_cave_gen = FALSE)
+	// Skip mode: used by /datum/planetGenerator/distorted to read another generator's
+	// biome_table/cave_biome_table without paying for cave noise + grid construction.
+	if(skip_cave_gen)
+		primary_area = new primary_area_type
+		cave_area = new cave_area_type
+		return ..()
+
 	// Initialize perlin noise seeds with random values
 	height_seed = rand(0, 50000)
 	humidity_seed = rand(0, 50000)

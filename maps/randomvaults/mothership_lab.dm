@@ -310,57 +310,6 @@
 	icon = 'icons/obj/flora/ausflora.dmi'
 	icon_state = "xeno_plant_4"
 
-/obj/structure/acid_puddle // What in the goddamn...
-	name = "sizzling puddle"
-	icon = 'icons/obj/acidcloset.dmi'
-	icon_state = "acid_puddle"
-	desc = "Watch your step..."
-	anchored = 1
-
-/obj/structure/acid_puddle/splashable()
-	return FALSE
-
-/obj/structure/acid_puddle/Crossed(AM)
-	if(isliving(AM) && isturf(src.loc))
-
-		var/mob/living/L = AM
-
-		if(L.on_foot()) //Flying mobs won't suffer the consequences of stepping in the acid, nor will lying mobs (we're assuming they're being smart and crawling around the pool)
-			if(ishuman(L))
-				var/mob/living/carbon/human/H = L
-				if(H.m_intent == "run") // Running over the puddle has a 60% chance of stepping in it, to nasty results
-					if(prob(60))
-						to_chat(H, "<span class='warning'>You step in [src]!</span>")
-						var /obj/item/clothing/shoes/melting_shoes = H.shoes
-						playsound(src, 'sound/effects/grue_burn.ogg', 50, 1) // Audio feedback is always good, so a player knows something just happened.
-
-						if(melting_shoes && !(melting_shoes.dissolvable() == PACID)) // Are our shoes acid proof? Lucky us!
-							to_chat(H, "<span class='warning'>Your footwear sizzles on contact, but remains intact.</span>")
-
-						if(melting_shoes && (melting_shoes.dissolvable() == PACID)) // If not, they melt away. Still not the worst thing that can happen.
-							to_chat(H, "<span class='warning'>Your footwear sizzles on contact, and dissolves!</span>")
-							H.drop_from_inventory(melting_shoes)
-							qdel(melting_shoes)
-							new/obj/effect/decal/cleanable/molten_item(H.loc)
-
-						if(!melting_shoes && isgrey(H)) // Are we a grey? We don't have any trouble with acid, even barefoot.
-							to_chat(H, "<span class='warning'>You feel a slight tingling as you step in [src], but it quickly subsides.</span>")
-
-						if(!melting_shoes && !isgrey(H)) // Otherwise we just lost a foot. How unfortunate.
-							var/datum/organ/external/foot_organ = H.pick_usable_organ(LIMB_RIGHT_FOOT, LIMB_LEFT_FOOT)
-							to_chat(H, "<span class='danger'>You feel a horrific pain as you step in [src], and your foot melts away!</span>")
-							H.audible_scream()
-							foot_organ.droplimb(1, 0, 0)
-
-						else
-							return
-					else
-						to_chat(H, "<span class='warning'>You stumble over [src], barely avoiding stepping in it!</span>") // Fair warning to be careful, if you were spared.
-
-				else // Walking is safe
-					to_chat(H, "<span class='notice'>You step carefully over [src].</span>")
-					return
-
 //////////////////////////////
 // FURNITURE AND LOCKERS (Ayys need nice places to sit, lie down, and store their gear)
 //////////////////////////////

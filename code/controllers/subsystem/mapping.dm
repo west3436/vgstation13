@@ -43,11 +43,17 @@ var/skip_turf_init = FALSE //NEVER change this var for anything other than incre
 	/// All possible planet types available for generation
 	var/list/planet_types = list(
 		/datum/planet_type/beach,
+		/datum/planet_type/cult,
 		/datum/planet_type/desert,
+		/datum/planet_type/distorted,
 		/datum/planet_type/grass,
+		/datum/planet_type/haunted,
 		/datum/planet_type/jungle,
 		/datum/planet_type/lava,
+		/datum/planet_type/meat,
+		/datum/planet_type/robotic,
 		/datum/planet_type/snow,
+		/datum/planet_type/spore,
 		/datum/planet_type/urban,
 		/datum/planet_type/xeno
 	)
@@ -283,7 +289,7 @@ var/skip_turf_init = FALSE //NEVER change this var for anything other than incre
 
 					var/area/planet/A = T.loc
 					if(istype(A) && A.is_open_surface)
-						if(current_planet.climate)
+						if(current_planet.climate && !istype(T, /turf/unsimulated/mineral))
 							current_planet.climate.register_weather_turf(T)
 						// Build daynight turf list (sample every other tile)
 						if(!(T.x & 1) && !(T.y & 1))
@@ -310,16 +316,21 @@ var/skip_turf_init = FALSE //NEVER change this var for anything other than incre
 			if(current_planet.climate)
 				SSweather.fire()
 
-			var/list/possible_times = list(TOD_MORNING, TOD_SUNRISE, TOD_DAYTIME, TOD_AFTERNOON, TOD_SUNSET, TOD_NIGHTTIME)
-			current_virtual_z.current_timeOfDay = pick(possible_times)
+			if(current_planet.frozen_time_of_day)
+				current_virtual_z.current_timeOfDay = current_planet.frozen_time_of_day
+				current_virtual_z.freeze_time = TRUE
+				SSDayNight.update_lighting(current_virtual_z, immediate = TRUE)
+			else
+				var/list/possible_times = list(TOD_MORNING, TOD_SUNRISE, TOD_DAYTIME, TOD_AFTERNOON, TOD_SUNSET, TOD_NIGHTTIME)
+				current_virtual_z.current_timeOfDay = pick(possible_times)
 
-			switch(current_virtual_z.current_timeOfDay)
-				if(TOD_MORNING) current_virtual_z.next_firetime = world.time + 5 MINUTES
-				if(TOD_SUNRISE) current_virtual_z.next_firetime = world.time + 3 MINUTES
-				if(TOD_DAYTIME) current_virtual_z.next_firetime = world.time + 14 MINUTES
-				if(TOD_AFTERNOON) current_virtual_z.next_firetime = world.time + 15 MINUTES
-				if(TOD_SUNSET) current_virtual_z.next_firetime = world.time + 3 MINUTES
-				if(TOD_NIGHTTIME) current_virtual_z.next_firetime = world.time + 36 MINUTES
+				switch(current_virtual_z.current_timeOfDay)
+					if(TOD_MORNING) current_virtual_z.next_firetime = world.time + 5 MINUTES
+					if(TOD_SUNRISE) current_virtual_z.next_firetime = world.time + 3 MINUTES
+					if(TOD_DAYTIME) current_virtual_z.next_firetime = world.time + 14 MINUTES
+					if(TOD_AFTERNOON) current_virtual_z.next_firetime = world.time + 15 MINUTES
+					if(TOD_SUNSET) current_virtual_z.next_firetime = world.time + 3 MINUTES
+					if(TOD_NIGHTTIME) current_virtual_z.next_firetime = world.time + 36 MINUTES
 
 			daynight_v_lvls |= current_virtual_z
 			current_virtual_z.level_type = VZ_PLANET

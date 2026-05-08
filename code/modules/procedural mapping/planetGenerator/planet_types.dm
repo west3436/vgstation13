@@ -21,17 +21,9 @@
 	var/mob_faction
 	// Whether this planet is hidden from the deep space scanner
 	var/hidden = FALSE
+	// If set to a TOD_* color, the planet's day/night cycle is paused at this time of day
+	var/frozen_time_of_day = null
 
-	// Weighted list of possible gas vent types a planet can spawn
-	var/list/vent_types = list(
-		GAS_OXYGEN = 10,
-		GAS_PLASMA = 5,
-		GAS_SLEEPING = 1,
-		GAS_CARBON = 5,
-		GAS_NITROGEN = 5,
-		GAS_CRYOTHEUM = 0,
-		GAS_RADON = 0
-	)
 	var/list/vents = list()
 
 	// Ruin types available on this planet.
@@ -273,15 +265,6 @@
 	preferred_ruin_type = RUIN_TYPE_LAVA
 	climate_type = /datum/climate/lava
 	icon_state = "lava"
-	vent_types = list(
-		GAS_OXYGEN = 5,
-		GAS_PLASMA = 5,
-		GAS_SLEEPING = 0,
-		GAS_CARBON = 10,
-		GAS_NITROGEN = 0,
-		GAS_CRYOTHEUM = 0,
-		GAS_RADON = 0
-	)
 
 /datum/planet_type/snow
 	name = "frozen planet"
@@ -292,15 +275,6 @@
 	preferred_ruin_type = RUIN_TYPE_SNOW
 	climate_type = /datum/climate/arctic
 	icon_state = "snow"
-	vent_types = list(
-		GAS_OXYGEN = 10,
-		GAS_PLASMA = 5,
-		GAS_SLEEPING = 0,
-		GAS_CARBON = 5,
-		GAS_NITROGEN = 5,
-		GAS_CRYOTHEUM = 1,
-		GAS_RADON = 0
-	)
 
 /datum/planet_type/urban
 	name = "wasteland planet"
@@ -312,15 +286,6 @@
 	preferred_ruin_type = RUIN_TYPE_URBAN
 	climate_type = /datum/climate/wasteland
 	icon_state = "barren"
-	vent_types = list(
-		GAS_OXYGEN = 5,
-		GAS_PLASMA = 0,
-		GAS_SLEEPING = 0,
-		GAS_CARBON = 10,
-		GAS_NITROGEN = 5,
-		GAS_CRYOTHEUM = 0,
-		GAS_RADON = 5
-	)
 	ruin_budget = RUIN_BUDGET_PLANET * 2
 
 /datum/planet_type/xeno
@@ -332,13 +297,70 @@
 	preferred_ruin_type = RUIN_TYPE_XENO
 	climate_type = /datum/climate/xeno
 	icon_state = "xeno1"
-	vent_types = list(
-		GAS_OXYGEN = 1,
-		GAS_PLASMA = 10,
-		GAS_SLEEPING = 5,
-		GAS_CARBON = 1,
-		GAS_NITROGEN = 5,
-		GAS_CRYOTHEUM = 0,
-		GAS_RADON = 0
-	)
 	ruin_budget = RUIN_BUDGET_PLANET * 2
+
+/datum/planet_type/meat
+	name = "meat planet"
+	desc = "A grotesque world of pulsating flesh and exposed bone. Its atmosphere reeks of iron and something dying."
+	mapgen = /datum/planetGenerator/meat
+	default_baseturf = /turf/unsimulated/floor/planetary/flesh
+	ruin_whitelist = RUIN_TYPE_GENERIC|RUIN_TYPE_XENO
+	preferred_ruin_type = RUIN_TYPE_XENO
+	climate_type = /datum/climate/meat
+	frozen_time_of_day = TOD_NIGHTTIME
+	icon_state = "xeno2"
+
+/datum/planet_type/cult
+	name = "desecrated planet"
+	desc = "A blighted world choked with ash and bone. Strange whispers and faint chanting echo on the wind."
+	mapgen = /datum/planetGenerator/cult
+	default_baseturf = /turf/unsimulated/floor/planetary/wasteland
+	ruin_whitelist = RUIN_TYPE_GENERIC|RUIN_TYPE_URBAN
+	preferred_ruin_type = RUIN_TYPE_URBAN
+	climate_type = /datum/climate/cult
+	frozen_time_of_day = TOD_SUNSET
+	icon_state = "bhole"
+	ruin_budget = RUIN_BUDGET_PLANET * 2
+
+/datum/planet_type/robotic
+	name = "machine planet"
+	desc = "A world stripped of life and replaced with cold industry. Defunct factories and rusting machinery stretch to the horizon."
+	mapgen = /datum/planetGenerator/robotic
+	default_baseturf = /turf/unsimulated/floor/planetary/paved
+	ruin_whitelist = RUIN_TYPE_GENERIC|RUIN_TYPE_URBAN
+	preferred_ruin_type = RUIN_TYPE_URBAN
+	climate_type = /datum/climate/robotic
+	icon_state = "roid1"
+	ruin_budget = RUIN_BUDGET_PLANET * 2
+
+/datum/planet_type/distorted
+	name = "distorted planet"
+	desc = "A world that defies any consistent classification. No two scans return the same readings."
+	mapgen = /datum/planetGenerator/distorted
+	default_baseturf = /turf/unsimulated/floor/planetary/grass
+	ruin_whitelist = RUIN_TYPE_GENERIC|RUIN_TYPE_XENO|RUIN_TYPE_URBAN|RUIN_TYPE_JUNGLE|RUIN_TYPE_LAVA|RUIN_TYPE_SNOW
+	preferred_ruin_type = RUIN_TYPE_GENERIC
+	climate_type = /datum/climate/random
+	icon_state = "xeno1"
+	ruin_budget = RUIN_BUDGET_PLANET * 2
+
+/datum/planet_type/haunted
+	name = "haunted planet"
+	desc = "A funereal world of dead trees, weathered tombstones, and lingering presences. Even the sun feels distant here."
+	mapgen = /datum/planetGenerator/haunted
+	default_baseturf = /turf/unsimulated/floor/planetary/dirt
+	ruin_whitelist = RUIN_TYPE_GENERIC|RUIN_TYPE_URBAN|RUIN_TYPE_SNOW
+	preferred_ruin_type = RUIN_TYPE_URBAN
+	climate_type = /datum/climate/haunted
+	frozen_time_of_day = TOD_NIGHTTIME
+	icon_state = "barren"
+
+/datum/planet_type/spore
+	name = "spore planet"
+	desc = "A perpetually fogged-over world choked with mushroom forests. The air glitters with drifting spores."
+	mapgen = /datum/planetGenerator/spore
+	default_baseturf = /turf/unsimulated/floor/planetary/moss
+	ruin_whitelist = RUIN_TYPE_GENERIC|RUIN_TYPE_JUNGLE|RUIN_TYPE_TROPICAL
+	preferred_ruin_type = RUIN_TYPE_JUNGLE
+	climate_type = /datum/climate/spore
+	icon_state = "jungle1"

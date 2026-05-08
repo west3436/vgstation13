@@ -51,6 +51,24 @@
 /area/planet/urban
 	name = "Urban Planet"
 
+/area/planet/meat
+	name = "Meat Planet"
+
+/area/planet/cult
+	name = "Cult Planet"
+
+/area/planet/robotic
+	name = "Robotic Planet"
+
+/area/planet/distorted
+	name = "Distorted Planet"
+
+/area/planet/haunted
+	name = "Haunted Planet"
+
+/area/planet/spore
+	name = "Spore Planet"
+
 // Example with flora and caves disabled
 // /area/planet/moon
 // 	name = "Moon"

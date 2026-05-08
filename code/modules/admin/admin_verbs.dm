@@ -138,6 +138,7 @@ var/list/admin_verbs_fun = list(
 	/client/proc/apes,
 	/client/proc/force_next_map,
 	/client/proc/rig_crew_score,
+	/client/proc/randomize_climate,
 	)
 var/list/admin_verbs_spawn = list(
 	/datum/admins/proc/spawn_atom, // Allows us to spawn instances
@@ -753,6 +754,31 @@ var/list/admin_verbs_mod = list(
 	feedback_add_details("admin_verb","MI") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	log_admin("[key_name(usr)] toggled [key_name(T)] invisibility.")
 	message_admins("<span class='notice'>[key_name_admin(usr)] toggled [key_name(T)] invisibility.</span>", 1)
+
+/client/proc/randomize_climate()
+	set category = "Fun"
+	set name = "Randomize Climate"
+	set desc = "Replace a vlevel's climate with a randomized one."
+	if(!holder)
+		return
+	if(!climates.len)
+		to_chat(usr, "<span class='warning'>No active climates.</span>")
+		return
+	var/list/options = list()
+	for(var/datum/climate/C in climates)
+		options["vZ-[C.v.id] ([C.name])"] = C
+	var/choice = input(usr, "Choose a vlevel whose climate to randomize", "Randomize Climate") as null|anything in options
+	if(!choice)
+		return
+	var/datum/climate/target = options[choice]
+	if(!target || !istype(target))
+		return
+	if(SSweather.randomize_climate(target))
+		log_admin("[key_name(usr)] randomized the climate on vZ-[target.v.id].")
+		message_admins("<span class='notice'>[key_name_admin(usr)] randomized the climate on vZ-[target.v.id].</span>", 1)
+	else
+		to_chat(usr, "<span class='warning'>Failed to randomize climate.</span>")
+	feedback_add_details("admin_verb","RC")
 
 /client/proc/give_disease(mob/T as mob in mob_list) // -- Giacom
 	set category = "Fun"
