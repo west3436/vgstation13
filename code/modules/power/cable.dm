@@ -371,7 +371,7 @@ By design, d1 is the smallest direction and d2 is the highest
 
 // merge with the powernets of power objects in the given direction above or below
 /obj/structure/cable/proc/mergeZConnectedNetworks()
-	var/turf/T = GetAbove(src) // go up
+	var/turf/T = GetAboveTurf(get_turf(src)) // go up
 
 	if(T)
 		for(var/obj/structure/cable/C in T)
@@ -388,7 +388,7 @@ By design, d1 is the smallest direction and d2 is the highest
 				else
 					C.powernet.add_cable(src) //else, we simply connect to the matching cable powernet
 
-	T = GetBelow(src) // go down
+	T = GetBelowTurf(get_turf(src)) // go down
 
 	if(T)
 		for(var/obj/structure/cable/C in T)
@@ -505,11 +505,11 @@ By design, d1 is the smallest direction and d2 is the highest
 
 	// multi z
 	if(d1 == UP || d2 == UP)
-		T = GetAbove(src)
+		T = GetAboveTurf(get_turf(src))
 		if(T)
 			. += power_list(T, src, DOWN, powernetless_only) // get on turf matching cables
 	if(d1 == DOWN || d2 == DOWN)
-		T = GetBelow(src)
+		T = GetBelowTurf(get_turf(src))
 		if(T)
 			. += power_list(T, src, UP, powernetless_only) // get on turf matching cables
 

@@ -137,7 +137,7 @@
 			for(var/client/client in interface.clients)
 				C.send_list_assets(client)
 			var/turf/T = get_turf(src)
-			if(!T || ((C.flags & RCD_Z_DOWN) && !HasBelow(T.z)) || ((C.flags & RCD_Z_UP) && !HasAbove(T.z)))
+			if(!T || ((C.flags & RCD_Z_DOWN) && !HasBelowAt(T)) || ((C.flags & RCD_Z_UP) && !HasAboveAt(T)))
 				continue
 			dat += C.schematic_list_line(interface,FALSE,src.selected==C)
 		dat += "</ul>"

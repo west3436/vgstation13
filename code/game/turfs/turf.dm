@@ -171,8 +171,8 @@
 		update_edges()
 
 	// MultiZ support
-	if(HasBelow(src.z))
-		var/turf/below = GetBelow(src)
+	if(HasBelowAt(src))
+		var/turf/below = GetBelowTurf(src)
 		if(below)
 			below.openspace_update(src)
 

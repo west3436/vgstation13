@@ -53,10 +53,23 @@
 	// Cached mineral replacement type for ruin post-processing; computed on first call to get_mineral_replacement()
 	var/cached_mineral_replacement = null
 
+	// Multi-z grouping (see docs/superpowers/specs/2026-05-13-multiz-vlevel-reconciliation-design.md)
+	var/floor = 1                              // 1-indexed; 1 = bottom (anchor)
+	var/datum/virtual_z/vlevel_above = null    // Next floor up in this group
+	var/datum/virtual_z/vlevel_below = null    // Next floor down in this group
+	var/datum/virtual_z/group_anchor = null    // Always = floor 1 of group; init to self
+
 /datum/virtual_z/New(var/datum/zLevel/z, var/input_size_x, var/input_size_y, var/input_x = 0, var/input_y = 0, var/skip_turf_setup = FALSE, var/system = FALSE)
+	// Set before ..() so any subclass New() override sees a consistent group_anchor.
+	if(group_anchor == null)
+		group_anchor = src
 	. = ..()
 	if(!z)
-		CRASH("Tried creating a virtual zLevel without a parent zLevel!")
+		// Stub construction (e.g. for unit tests of field-level behavior).
+		// Production callers always provide z via map.addVLevel; this path leaves
+		// parent_z null and skips setup(). Any code that reaches for parent_z on
+		// a stub will null-deref, which is the intended failure mode.
+		return
 	if(!SSmapping)
 		CRASH("Tried creating a virtual zLevel before SSmapping was ready!")
 	parent_z = z
@@ -602,3 +615,86 @@
 		if(x_co >= VZ.x_min && x_co <= VZ.x_max && y_co >= VZ.y_min && y_co <= VZ.y_max)
 			return VZ
 	return null
+
+/////////////////////////////////////
+//////// MULTI-Z GROUP STATE ////////
+/////////////////////////////////////
+/datum/virtual_z/proc/get_active()
+	return group_anchor.active
+
+/datum/virtual_z/proc/set_active(var/new_value)
+	group_anchor.active = new_value
+
+/datum/virtual_z/proc/get_movement_jammed()
+	return group_anchor.movementJammed
+
+/datum/virtual_z/proc/set_movement_jammed(var/new_value)
+	group_anchor.movementJammed = new_value
+
+/datum/virtual_z/proc/get_tele_jammed()
+	return group_anchor.teleJammed
+
+/datum/virtual_z/proc/set_tele_jammed(var/new_value)
+	group_anchor.teleJammed = new_value
+
+/datum/virtual_z/proc/get_gps_allowed()
+	return group_anchor.gps_allowed
+
+/datum/virtual_z/proc/set_gps_allowed(var/new_value)
+	group_anchor.gps_allowed = new_value
+
+// Read-only group state (set at construction or via dedicated mutators, not via simple setters):
+/datum/virtual_z/proc/get_transition_channel()
+	return group_anchor.transition_channel
+
+/datum/virtual_z/proc/get_transition_loops()
+	return group_anchor.transitionLoops
+
+/datum/virtual_z/proc/get_transition_crosswrap()
+	return group_anchor.transition_crosswrap_v
+
+/datum/virtual_z/proc/get_planet()
+	return group_anchor.planet
+
+/datum/virtual_z/proc/get_linked_shuttle()
+	return group_anchor.linked_shuttle
+
+/datum/virtual_z/proc/is_multifloor()
+	return (vlevel_above != null) || (vlevel_below != null)
+
+/datum/virtual_z/proc/get_display_id()
+	if(is_multifloor())
+		return "[id]-[floor]"
+	return "[id]"
+
+/datum/virtual_z/proc/recompute_footprint()
+	// Anchor's footprint is authoritative and never recomputed.
+	if(floor == 1)
+		return
+	var/datum/virtual_z/anchor = group_anchor
+	if(!anchor || !parent_z)
+		return
+	var/found_any = FALSE
+	var/min_x = anchor.x_max + 1
+	var/max_x = anchor.x_min - 1
+	var/min_y = anchor.y_max + 1
+	var/max_y = anchor.y_min - 1
+	for(var/x in anchor.x_min to anchor.x_max)
+		for(var/y in anchor.y_min to anchor.y_max)
+			var/turf/T = locate(x, y, parent_z.z)
+			if(istype(T, /turf/simulated/wall))
+				found_any = TRUE
+				if(x < min_x) min_x = x
+				if(x > max_x) max_x = x
+				if(y < min_y) min_y = y
+				if(y > max_y) max_y = y
+	if(!found_any)
+		x_min = 0; x_max = 0; y_min = 0; y_max = 0
+		size_x = 0; size_y = 0
+		return
+	x_min = max(anchor.x_min, min_x - 15)
+	x_max = min(anchor.x_max, max_x + 15)
+	y_min = max(anchor.y_min, min_y - 15)
+	y_max = min(anchor.y_max, max_y + 15)
+	size_x = x_max - x_min + 1
+	size_y = y_max - y_min + 1

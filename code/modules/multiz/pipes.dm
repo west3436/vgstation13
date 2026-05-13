@@ -135,7 +135,7 @@
 
 	node1 = findConnecting(node1_dir)
 
-	var/turf/above = GetAbove(src)
+	var/turf/above = GetAboveTurf(get_turf(src))
 	if(above)
 		for(var/obj/machinery/atmospherics/target in above)
 			if(target.initialize_directions && istype(target, /obj/machinery/atmospherics/pipe/zpipe/down))
@@ -186,7 +186,7 @@
 
 	node1 = findConnecting(node1_dir)
 
-	var/turf/below = GetBelow(src)
+	var/turf/below = GetBelowTurf(get_turf(src))
 	if(below)
 		for(var/obj/machinery/atmospherics/target in below)
 			if(target.initialize_directions && istype(target, /obj/machinery/atmospherics/pipe/zpipe/up))
@@ -312,7 +312,7 @@
 	var/obj/structure/disposalpipe/P
 
 	if(nextdir == 12)
-		T = GetAbove(src)
+		T = GetAboveTurf(get_turf(src))
 		if(!T)
 			H.forceMove(loc)
 			return
@@ -361,7 +361,7 @@
 	var/obj/structure/disposalpipe/P
 
 	if(nextdir == 11)
-		T = GetBelow(src)
+		T = GetBelowTurf(get_turf(src))
 		if(!T)
 			H.forceMove(src.loc)
 			return

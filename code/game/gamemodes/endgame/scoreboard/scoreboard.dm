@@ -347,7 +347,15 @@ var/global/heatmap_snapshot = ""
 	if(heatmap_snapshot)
 		dat += heatmap_snapshot
 	else
-		var/list/zs_to_draw = GetConnectedZlevels(map.zMainStation)
+		var/list/zs_to_draw = list()
+		var/datum/zLevel/main_z = map.zLevels[map.zMainStation]
+		if(main_z)
+			for(var/datum/virtual_z/V in main_z.virtual_z_levels)
+				for(var/datum/virtual_z/F in GetConnectedFloors(V))
+					if(F.parent_z && !(F.parent_z.z in zs_to_draw))
+						zs_to_draw += F.parent_z.z
+		if(!length(zs_to_draw))
+			zs_to_draw += map.zMainStation
 		for(var/z in zs_to_draw)
 			dat += string_heatmap(z)
 	dat += "<br>"

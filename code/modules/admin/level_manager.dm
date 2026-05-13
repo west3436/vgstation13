@@ -37,7 +37,12 @@
 		z_data["index"] = z_index
 		z_data["name"] = Z.name
 		z_data["ref"] = "\ref[Z]"
-		z_data["vLevelCount"] = Z.virtual_z_levels.len
+		// vLevelCount: count only anchors (groups), not every floor in the parent z.
+		var/anchor_count = 0
+		for(var/datum/virtual_z/Vc in Z.virtual_z_levels)
+			if(Vc.floor == 1)
+				anchor_count++
+		z_data["vLevelCount"] = anchor_count
 		z_data["hasHolomap"] = ((HOLOMAP_EXTRA_STATIONMAP + "_[Z.z]") in extraMiniMaps)
 		z_data["usesHolomap"] = !istype(Z, /datum/zLevel/dynamic)
 
@@ -59,54 +64,97 @@
 		z_data["vLevels"] = list()
 
 		for(var/datum/virtual_z/V in Z.virtual_z_levels)
+			// Anchor-only emission: non-anchor floors are surfaced inside their anchor's `floors` list.
+			if(V.floor != 1)
+				continue
+
+			var/list/connected_floors = GetConnectedFloors(V)
 			var/list/v_data = list()
 			v_data["id"] = V.id
+			v_data["display_id"] = V.get_display_id()
 			v_data["name"] = V.name
 			v_data["ref"] = "\ref[V]"
-			v_data["active"] = V.active
+			v_data["is_multifloor"] = V.is_multifloor()
+			v_data["floor_count"] = length(connected_floors)
+			v_data["active"] = V.get_active()
 			v_data["sizeX"] = V.size_x
 			v_data["sizeY"] = V.size_y
 
-			// Get mobs and count processing/paused
-			var/list/mob/mobs_list = V.get_mobs()
-			var/list/mob/players_list = V.get_players()
-			var/processing_mobs = 0
-			var/paused_mobs = 0
+			// Planet and shuttle data (group-level; read via getters where available)
+			var/datum/planet_type/group_planet = V.get_planet()
+			if(group_planet)
+				v_data["planetRef"] = "\ref[group_planet]"
+				v_data["planetName"] = group_planet.name
+			var/datum/shuttle/group_shuttle = V.get_linked_shuttle()
+			if(group_shuttle)
+				v_data["shuttleRef"] = "\ref[group_shuttle]"
+				v_data["shuttleName"] = group_shuttle.name
 
-			for(var/mob/living/L in mobs_list)
-				if(L.paused)
-					paused_mobs++
-				else
-					processing_mobs++
+			// Group-level settings (read via getters so non-anchor reads would still resolve correctly)
+			v_data["movementJammed"] = V.get_movement_jammed()
+			v_data["gpsAllowed"] = V.get_gps_allowed()
+			v_data["teleJammed"] = V.get_tele_jammed()
+			v_data["transitionLoops"] = V.get_transition_loops()
+			v_data["transitionChannel"] = V.get_transition_channel()
 
-			v_data["players"] = players_list.len
-			v_data["processingMobs"] = processing_mobs
-			v_data["pausedMobs"] = paused_mobs
-
-			// Planet and shuttle data
-			if(V.planet)
-				v_data["planetRef"] = "\ref[V.planet]"
-				v_data["planetName"] = V.planet.name
-			if(V.linked_shuttle)
-				v_data["shuttleRef"] = "\ref[V.linked_shuttle]"
-				v_data["shuttleName"] = V.linked_shuttle.name
-
-			// Settings data
-			v_data["movementJammed"] = V.movementJammed
-			v_data["gpsAllowed"] = V.gps_allowed
-			v_data["teleJammed"] = V.teleJammed
-			v_data["transitionLoops"] = V.transitionLoops
-			v_data["transitionChannel"] = V.transition_channel
-
-			// Transition crosswrap data
-			if(V.transition_crosswrap_v && V.transition_crosswrap_v.len >= 4)
-				v_data["crosswrapNorth"] = V.transition_crosswrap_v[1]
-				v_data["crosswrapSouth"] = V.transition_crosswrap_v[2]
-				v_data["crosswrapEast"] = V.transition_crosswrap_v[3]
-				v_data["crosswrapWest"] = V.transition_crosswrap_v[4]
+			// Transition crosswrap data (group-level)
+			var/list/group_crosswrap = V.get_transition_crosswrap()
+			if(group_crosswrap && group_crosswrap.len >= 4)
+				v_data["crosswrapNorth"] = group_crosswrap[1]
+				v_data["crosswrapSouth"] = group_crosswrap[2]
+				v_data["crosswrapEast"] = group_crosswrap[3]
+				v_data["crosswrapWest"] = group_crosswrap[4]
 				v_data["hasCrosswrap"] = TRUE
 			else
 				v_data["hasCrosswrap"] = FALSE
+
+			// Per-floor entries and aggregate counts.
+			v_data["floors"] = list()
+			var/aggregate_mobs = 0
+			var/aggregate_players = 0
+			var/aggregate_processing = 0
+			var/aggregate_paused = 0
+			for(var/datum/virtual_z/F in connected_floors)
+				// Per-floor mob/player counts using the existing helper (scopes to F's footprint on F.parent_z).
+				var/list/mob/floor_mobs = F.get_mobs()
+				var/list/mob/floor_players = F.get_players()
+				var/floor_processing = 0
+				var/floor_paused = 0
+				for(var/mob/living/L in floor_mobs)
+					if(L.paused)
+						floor_paused++
+					else
+						floor_processing++
+
+				var/list/floor_entry = list()
+				floor_entry["floor"] = F.floor
+				floor_entry["id"] = F.id
+				floor_entry["display_id"] = F.get_display_id()
+				floor_entry["ref"] = "\ref[F]"
+				floor_entry["parent_z"] = F.parent_z ? F.parent_z.z : 0
+				floor_entry["x_min"] = F.x_min
+				floor_entry["x_max"] = F.x_max
+				floor_entry["y_min"] = F.y_min
+				floor_entry["y_max"] = F.y_max
+				floor_entry["sizeX"] = F.size_x
+				floor_entry["sizeY"] = F.size_y
+				floor_entry["mob_count"] = floor_mobs.len
+				floor_entry["player_count"] = floor_players.len
+				floor_entry["processingMobs"] = floor_processing
+				floor_entry["pausedMobs"] = floor_paused
+				v_data["floors"] += list(floor_entry)
+
+				aggregate_mobs += floor_mobs.len
+				aggregate_players += floor_players.len
+				aggregate_processing += floor_processing
+				aggregate_paused += floor_paused
+
+			v_data["mob_count"] = aggregate_mobs
+			v_data["player_count"] = aggregate_players
+			// Legacy fields preserved for the TGUI until Task 15 lands.
+			v_data["players"] = aggregate_players
+			v_data["processingMobs"] = aggregate_processing
+			v_data["pausedMobs"] = aggregate_paused
 
 			z_data["vLevels"] += list(v_data)
 
@@ -121,8 +169,15 @@
 
 	switch(action)
 		if("jump")
-			var/datum/virtual_z/V = locate(params["ref"])
-			if(!V || !istype(V))
+			// Accepts either a legacy `ref` or the new `id` (+ optional `floor`) parameter.
+			var/datum/virtual_z/V = null
+			if(params["id"])
+				var/vid = text2num("[params["id"]]") || params["id"]
+				var/target_floor = params["floor"] ? (text2num("[params["floor"]]") || 1) : 1
+				V = map.getVLevelFloor(vid, target_floor)
+			else
+				V = locate(params["ref"])
+			if(!V || !istype(V) || !V.parent_z)
 				to_chat(usr, "<span class='warning'>Invalid virtual z-level reference.</span>")
 				return FALSE
 			var/center_x = round((V.x_min + V.x_max) / 2)
@@ -130,8 +185,54 @@
 			var/turf/T = locate(center_x, center_y, V.parent_z.z)
 			if(T)
 				usr.forceMove(T)
-				log_admin("[key_name(usr)] jumped to vZ-[V.id] ([V.name]) at [center_x],[center_y],[V.parent_z.z].")
-				message_admins("<span class='notice'>[key_name_admin(usr)] jumped to vZ-[V.id] ([V.name]).</span>", 1)
+				log_admin("[key_name(usr)] jumped to vZ-[V.get_display_id()] ([V.name]) at [center_x],[center_y],[V.parent_z.z].")
+				message_admins("<span class='notice'>[key_name_admin(usr)] jumped to vZ-[V.get_display_id()] ([V.name]).</span>", 1)
+			return TRUE
+
+		if("add_floor_above")
+			var/vid = text2num("[params["id"]]") || params["id"]
+			var/datum/virtual_z/anchor = map.getVLevel(vid)
+			if(!anchor)
+				to_chat(usr, "<span class='warning'>Invalid virtual z-level id.</span>")
+				return TRUE
+			var/datum/virtual_z/new_floor = map.addFloorAbove(anchor)
+			if(new_floor)
+				log_admin("[key_name(usr)] added a new floor (floor=[new_floor.floor]) to vZ-[anchor.id] ([anchor.name]).")
+				message_admins("<span class='notice'>[key_name_admin(usr)] added a new floor to vZ-[anchor.id] ([anchor.name]).</span>", 1)
+			else
+				to_chat(usr, "<span class='warning'>Failed to add new floor.</span>")
+			return TRUE
+
+		if("remove_top_floor")
+			var/vid = text2num("[params["id"]]") || params["id"]
+			var/force = params["force"] ? TRUE : FALSE
+			var/datum/virtual_z/anchor = map.getVLevel(vid)
+			if(!anchor)
+				to_chat(usr, "<span class='warning'>Invalid virtual z-level id.</span>")
+				return TRUE
+			var/result = map.removeTopFloor(anchor, force)
+			if(!result)
+				if(!force)
+					to_chat(usr, "<span class='warning'>Top floor has mobs or structures. Use force to remove anyway.</span>")
+				else
+					to_chat(usr, "<span class='warning'>Failed to remove top floor.</span>")
+			else
+				log_admin("[key_name(usr)] removed the top floor of vZ-[anchor.id] ([anchor.name])[force ? " (forced)" : ""].")
+				message_admins("<span class='notice'>[key_name_admin(usr)] removed the top floor of vZ-[anchor.id] ([anchor.name]).</span>", 1)
+			return TRUE
+
+		if("refresh_footprint")
+			var/vid = text2num("[params["id"]]") || params["id"]
+			var/target_floor = params["floor"] ? (text2num("[params["floor"]]") || 1) : 1
+			var/datum/virtual_z/v = map.getVLevelFloor(vid, target_floor)
+			if(!v)
+				to_chat(usr, "<span class='warning'>Invalid virtual z-level floor.</span>")
+				return TRUE
+			if(v.floor == 1)
+				to_chat(usr, "<span class='warning'>Anchor floor footprint is authoritative and cannot be recomputed.</span>")
+				return TRUE
+			v.recompute_footprint()
+			log_admin("[key_name(usr)] recomputed footprint for vZ-[v.get_display_id()] ([v.name]).")
 			return TRUE
 
 		if("toggle_pause")
@@ -139,9 +240,13 @@
 			if(!V || !istype(V))
 				to_chat(usr, "<span class='warning'>Invalid virtual z-level reference.</span>")
 				return FALSE
-			V.set_status(!V.active)
-			log_admin("[key_name(usr)] [V.active ? "activated" : "paused"] vZ-[V.id] ([V.name]).")
-			message_admins("<span class='notice'>[key_name_admin(usr)] [V.active ? "activated" : "paused"] vZ-[V.id] ([V.name]).</span>", 1)
+			// Group-level state lives on the anchor; flip via the setter so the change applies group-wide.
+			var/new_active = !V.get_active()
+			V.set_active(new_active)
+			// set_status handles mob pause propagation; call it on the anchor so the whole group's mobs follow.
+			V.group_anchor.set_status(new_active)
+			log_admin("[key_name(usr)] [new_active ? "activated" : "paused"] vZ-[V.get_display_id()] ([V.name]).")
+			message_admins("<span class='notice'>[key_name_admin(usr)] [new_active ? "activated" : "paused"] vZ-[V.get_display_id()] ([V.name]).</span>", 1)
 			return TRUE
 
 		if("vv_zlevel")
@@ -176,56 +281,74 @@
 			var/datum/virtual_z/V = locate(params["ref"])
 			if(!V || !istype(V))
 				return FALSE
-			V.movementJammed = !V.movementJammed
-			V.update_settings()
-			log_admin("[key_name(usr)] [V.movementJammed ? "enabled" : "disabled"] movement jamming for vZ-[V.id] ([V.name]).")
+			// Group-level write goes through the setter so the anchor's field is updated.
+			var/new_value = !V.get_movement_jammed()
+			V.set_movement_jammed(new_value)
+			V.group_anchor.update_settings()
+			log_admin("[key_name(usr)] [new_value ? "enabled" : "disabled"] movement jamming for vZ-[V.get_display_id()] ([V.name]).")
 			return TRUE
 
 		if("toggle_gps")
 			var/datum/virtual_z/V = locate(params["ref"])
 			if(!V || !istype(V))
 				return FALSE
-			V.gps_allowed = !V.gps_allowed
-			log_admin("[key_name(usr)] [V.gps_allowed ? "enabled" : "disabled"] GPS for vZ-[V.id] ([V.name]).")
+			var/new_value = !V.get_gps_allowed()
+			V.set_gps_allowed(new_value)
+			log_admin("[key_name(usr)] [new_value ? "enabled" : "disabled"] GPS for vZ-[V.get_display_id()] ([V.name]).")
 			return TRUE
 
 		if("cycle_teleport")
 			var/datum/virtual_z/V = locate(params["ref"])
 			if(!V || !istype(V))
 				return FALSE
-			// Cycle through: ALLOWED -> EXPENSIVE -> FORBIDDEN -> ALLOWED
-			switch(V.teleJammed)
+			// Cycle through: ALLOWED -> EXPENSIVE -> FORBIDDEN -> ALLOWED on the group anchor.
+			var/cur = V.get_tele_jammed()
+			var/next
+			switch(cur)
 				if(VZ_TELEPORTATION_ALLOWED)
-					V.teleJammed = VZ_TELEPORTATION_EXPENSIVE
+					next = VZ_TELEPORTATION_EXPENSIVE
 				if(VZ_TELEPORTATION_EXPENSIVE)
-					V.teleJammed = VZ_TELEPORTATION_FORBIDDEN
+					next = VZ_TELEPORTATION_FORBIDDEN
 				if(VZ_TELEPORTATION_FORBIDDEN)
-					V.teleJammed = VZ_TELEPORTATION_ALLOWED
+					next = VZ_TELEPORTATION_ALLOWED
 				else
-					V.teleJammed = VZ_TELEPORTATION_FORBIDDEN
+					next = VZ_TELEPORTATION_FORBIDDEN
+			V.set_tele_jammed(next)
 			var/tele_text
-			switch(V.teleJammed)
+			switch(next)
 				if(VZ_TELEPORTATION_ALLOWED)
 					tele_text = "allowed"
 				if(VZ_TELEPORTATION_EXPENSIVE)
 					tele_text = "expensive (requires crystals)"
 				if(VZ_TELEPORTATION_FORBIDDEN)
 					tele_text = "forbidden"
-			log_admin("[key_name(usr)] set teleportation to [tele_text] for vZ-[V.id] ([V.name]).")
+			log_admin("[key_name(usr)] set teleportation to [tele_text] for vZ-[V.get_display_id()] ([V.name]).")
 			return TRUE
 
 		if("toggle_transition_loops")
 			var/datum/virtual_z/V = locate(params["ref"])
 			if(!V || !istype(V))
 				return FALSE
-			V.transitionLoops = !V.transitionLoops
-			log_admin("[key_name(usr)] [V.transitionLoops ? "enabled" : "disabled"] transition loops for vZ-[V.id] ([V.name]).")
+			// Crosswrap / transition channel / transition loops are forbidden on multi-floor groups.
+			var/datum/virtual_z/anchor_check = V.group_anchor
+			if(anchor_check && anchor_check.is_multifloor())
+				to_chat(usr, "<span class='warning'>Crosswrap and transition channel are not permitted on multi-floor vlevels.</span>")
+				return TRUE
+			// transitionLoops lives on the anchor; write it directly there.
+			anchor_check.transitionLoops = !anchor_check.transitionLoops
+			log_admin("[key_name(usr)] [anchor_check.transitionLoops ? "enabled" : "disabled"] transition loops for vZ-[V.get_display_id()] ([V.name]).")
 			return TRUE
 
 		if("change_transition_channel")
 			var/datum/virtual_z/V = locate(params["ref"])
 			if(!V || !istype(V))
 				return FALSE
+			var/datum/virtual_z/anchor_check = V.group_anchor
+			if(anchor_check && anchor_check.is_multifloor())
+				to_chat(usr, "<span class='warning'>Crosswrap and transition channel are not permitted on multi-floor vlevels.</span>")
+				return TRUE
+			// Operate on the anchor for the remainder of this branch so transition_channel state stays group-coherent.
+			V = anchor_check
 
 			// Build list of existing channels
 			var/list/channel_choices = list()
@@ -267,11 +390,19 @@
 			var/datum/virtual_z/V = locate(params["ref"])
 			if(!V || !istype(V))
 				return FALSE
+			var/datum/virtual_z/anchor_check = V.group_anchor
+			if(anchor_check && anchor_check.is_multifloor())
+				to_chat(usr, "<span class='warning'>Crosswrap and transition channel are not permitted on multi-floor vlevels.</span>")
+				return TRUE
+			// Crosswrap state lives on the anchor; mutate it there so reads via getters stay coherent.
+			V = anchor_check
 
 			// Build list of available vLevels for selection
 			var/list/vlevel_choices = list("None" = null)
 			for(var/datum/virtual_z/vz in map.getAllVLevels())
-				if(vz.id != V.id) // Don't allow self-reference
+				if(vz.id != V.id) // Don't allow self-reference (anchor only — non-anchor floors share the same id)
+					if(vz.floor != 1)
+						continue
 					vlevel_choices["vZ-[vz.id]: [vz.name]"] = vz.id
 
 			// Get current values

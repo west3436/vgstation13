@@ -29,7 +29,7 @@
 
 /turf/simulated/wall/initialize()
 	..()
-	var/turf/simulated/open/OS = GetAbove(src)
+	var/turf/simulated/open/OS = GetAboveTurf(src)
 	if(istype(OS))
 		OS.ChangeTurf(/turf/simulated/floor/plating)
 

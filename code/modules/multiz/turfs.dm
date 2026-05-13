@@ -35,7 +35,7 @@
 
 /turf/simulated/open/initialize()
 	..()
-	ASSERT(HasBelow(z))
+	ASSERT(HasBelowAt(src))
 	update()
 
 /turf/simulated/open/Entered(var/atom/movable/mover)
@@ -46,7 +46,7 @@
 var/static/list/no_spacemove_turfs = list(/turf/simulated/wall,/turf/unsimulated/wall,/turf/unsimulated/mineral)
 
 /turf/simulated/open/has_gravity()
-	var/turf/below = GetBelow(src)
+	var/turf/below = GetBelowTurf(src)
 	if(!below)
 		return 0
 	// Turf checks for not spacemoving
@@ -66,7 +66,7 @@ var/static/list/no_spacemove_turfs = list(/turf/simulated/wall,/turf/unsimulated
 
 /turf/simulated/open/proc/update()
 	plane = OPENSPACE_PLANE + src.z
-	below = GetBelow(src)
+	below = GetBelowTurf(src)
 	if(below)
 		//turf_changed_event.register(below, src, /turf/simulated/open/update_icon)
 		universe.OnTurfChange(below) //I think this is equivalent??
@@ -85,7 +85,7 @@ var/static/list/no_spacemove_turfs = list(/turf/simulated/wall,/turf/unsimulated
 	if(..(user, 2))
 		var/depth = 1
 		var/list/checked_belows = list()
-		for(var/turf/T = GetBelow(src); isopenspace(T); T = GetBelow(T))
+		for(var/turf/T = GetBelowTurf(src); isopenspace(T); T = GetBelowTurf(T))
 			if(T.z in checked_belows) // To stop getting caught on this in infinite loops
 				to_chat(user, "It looks bottomless.")
 				return
@@ -111,7 +111,7 @@ var/list/open_overlay_depths
 	vis_contents.Cut()
 	var/turf/bottom
 	var/list/checked_belows = list()
-	for(bottom = GetBelow(src); isopenspace(bottom); bottom = GetBelow(bottom))
+	for(bottom = GetBelowTurf(src); isopenspace(bottom); bottom = GetBelowTurf(bottom))
 		alpha_to_use /= 2
 		if(bottom.z in checked_belows) // To stop getting caught on this in infinite loops
 			return // Don't even render anything
@@ -150,13 +150,13 @@ var/list/open_overlay_depths
 		ignore_blizzard_updates = FALSE
 
 /turf/simulated/floor/ChangeTurf(var/turf/N, var/tell_universe=1, var/force_lighting_update = 0, var/allow = 1, var/defer_edges = FALSE)
-	var/turf/simulated/open/BS = GetBelow(src)
+	var/turf/simulated/open/BS = GetBelowTurf(src)
 	if(BS && (istype(BS,/turf/simulated/wall) || istype(BS,/turf/unsimulated/wall)) && isopenspace(N))
 		return
 	return ..()
 
 /turf/unsimulated/floor/ChangeTurf(var/turf/N, var/tell_universe=1, var/force_lighting_update = 0, var/allow = 1, var/defer_edges = FALSE)
-	var/turf/simulated/open/BS = GetBelow(src)
+	var/turf/simulated/open/BS = GetBelowTurf(src)
 	if(BS && (istype(BS,/turf/simulated/wall) || istype(BS,/turf/unsimulated/wall)) && isopenspace(N))
 		return
 	return ..()
@@ -202,12 +202,12 @@ var/list/open_overlay_depths
 	return TRUE
 
 /turf/simulated/open/is_space()
-	var/turf/below = GetBelow(src)
+	var/turf/below = GetBelowTurf(src)
 	return !below || below.is_space()
 
 /turf/simulated/open/suicide_act(var/mob/living/user)
 	if(user.can_fall() && Cross(user) && CanZPass(user) && get_gravity() > 0.667)
-		var/turf/below = GetBelow(src)
+		var/turf/below = GetBelowTurf(src)
 		if(!below || below.can_prevent_fall(user,src))
 			return
 		for(var/obj/O in src)

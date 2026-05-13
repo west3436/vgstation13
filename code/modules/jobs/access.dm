@@ -132,9 +132,9 @@
 			condition |= A.x > src.x
 		if(req_access_dir & WEST)
 			condition |= A.x < src.x
-		if(HasAbove(z) && (req_access_dir & UP))
+		if(HasAboveAt(get_turf(src)) && (req_access_dir & UP))
 			condition |= A.z > src.z
-		if(HasBelow(z) && (req_access_dir & DOWN))
+		if(HasBelowAt(get_turf(src)) && (req_access_dir & DOWN))
 			condition |= A.z < src.z
 		if(condition)
 			return can_access(ACL,req_access,req_one_access)

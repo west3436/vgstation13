@@ -216,12 +216,12 @@ var/global/list/datum/stack_recipe/cable_recipes = list ( \
 		C.d2 = DOWN // It's an X-32 node cable
 		var/turf/simulated/current_turf = F
 		while(use(1)) // Toss this down the open space for as much as we can
-			current_turf = GetBelow(current_turf)
+			current_turf = GetBelowTurf(current_turf)
 			if(!current_turf)
 				break
 			var/obj/structure/cable/C2 = new /obj/structure/cable(current_turf)
 			C2.color = color
-			var/turf/to_check = GetBelow(current_turf)
+			var/turf/to_check = GetBelowTurf(current_turf)
 			if(to_check && (to_check.intact || !to_check.can_place_cables())) // Can the turf below have cables on it? Important to know if the cable should hang here.
 				to_check = null
 			var/leave_hanging = FALSE

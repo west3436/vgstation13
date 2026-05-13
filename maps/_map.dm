@@ -219,18 +219,153 @@
 	new_vz.set_status(FALSE)
 	return new_vz
 
-// Returns the vLevel with the given ID
+// Returns the vLevel with the given ID. When multiple vlevels share the same
+// id (i.e. a multi-floor group), the anchor (floor == 1) is returned.
 /datum/map/proc/getVLevel(var/vlevel_id)
 	if(!vlevel_id)
 		return null
-	if(vlevel_id > SYSTEM_VLEVEL_OFFSET)
-		var/system_index = vlevel_id - SYSTEM_VLEVEL_OFFSET
-		if(system_index >= 1 && system_index <= systemVLevels.len)
-			return systemVLevels[system_index]
-		return null
-	else if(vlevel_id >= 1 && vlevel_id <= vLevels.len)
-		return vLevels[vlevel_id]
+	for(var/datum/virtual_z/V in vLevels)
+		if(V.id == vlevel_id && V.floor == 1)
+			return V
+	for(var/datum/virtual_z/V in systemVLevels)
+		if(V.id == vlevel_id && V.floor == 1)
+			return V
 	return null
+
+// Returns the specific floor of a vlevel group. floor 1 = anchor.
+/datum/map/proc/getVLevelFloor(var/vlevel_id, var/target_floor = 1)
+	var/datum/virtual_z/anchor = getVLevel(vlevel_id)
+	if(!anchor)
+		return null
+	if(target_floor == 1)
+		return anchor
+	var/datum/virtual_z/cur = anchor
+	for(var/i in 2 to target_floor)
+		cur = cur.vlevel_above
+		if(!cur)
+			return null
+	return cur
+
+// Allocates a new vlevel on top of the given group anchor and wires it into
+// the chain. Returns the newly created floor, or null on failure.
+/datum/map/proc/addFloorAbove(var/datum/virtual_z/group_anchor)
+	if(!group_anchor || group_anchor.floor != 1)
+		return null
+	// Walk to current top floor.
+	var/datum/virtual_z/top = group_anchor
+	while(top.vlevel_above)
+		top = top.vlevel_above
+	// Allocate physical-z space sized to the anchor's full footprint.
+	var/datum/virtual_z/new_floor = addVLevel(group_anchor.size_x, group_anchor.size_y)
+	if(!new_floor)
+		return null
+	// Stamp group membership.
+	new_floor.id = group_anchor.id
+	new_floor.floor = top.floor + 1
+	new_floor.group_anchor = group_anchor
+	// Wire links.
+	top.vlevel_above = new_floor
+	new_floor.vlevel_below = top
+	// First transition to multi-floor: clear group-level fields that are forbidden.
+	if(top == group_anchor)
+		var/old_channel = group_anchor.transition_channel
+		if(old_channel && accessable_v_levels[old_channel])
+			accessable_v_levels[old_channel] -= "[group_anchor.id]"
+		group_anchor.transition_channel = null
+		group_anchor.transition_crosswrap_v = list(null, null, null, null)
+		log_admin("Multi-z: vlevel id=[group_anchor.id] became multi-floor; transition_channel and crosswrap cleared.")
+	// Non-anchor floors must have group-level fields cleared to avoid stale-read confusion.
+	new_floor.transition_channel = null
+	new_floor.transition_crosswrap_v = list(null, null, null, null)
+	new_floor.active = group_anchor.active
+	new_floor.planet = null
+	new_floor.linked_shuttle = null
+	return new_floor
+
+// Removes the top floor of a multi-floor group. Refuses if the top floor
+// contains mobs or /obj/structure instances unless force = TRUE. Returns
+// TRUE on success, FALSE on refusal or error.
+/datum/map/proc/removeTopFloor(var/datum/virtual_z/group_anchor, var/force = FALSE)
+	if(!group_anchor || group_anchor.floor != 1)
+		return FALSE
+	if(!group_anchor.vlevel_above)
+		return FALSE  // Single-floor group; use vlevel-delete instead.
+	// Walk to top floor.
+	var/datum/virtual_z/top = group_anchor
+	while(top.vlevel_above)
+		top = top.vlevel_above
+	if(!force)
+		// Scan top's footprint for mobs and non-default structures.
+		var/mob_count = 0
+		var/structure_count = 0
+		for(var/x in top.x_min to top.x_max)
+			for(var/y in top.y_min to top.y_max)
+				var/turf/T = locate(x, y, top.parent_z.z)
+				if(!T) continue
+				for(var/atom/movable/AM in T)
+					if(ismob(AM))
+						mob_count++
+					else if(istype(AM, /obj/structure))
+						structure_count++
+		if(mob_count > 0 || structure_count > 0)
+			log_admin("Multi-z: removeTopFloor refused on id=[group_anchor.id] floor=[top.floor]: [mob_count] mobs, [structure_count] structures.")
+			return FALSE
+	// Unlink.
+	top.vlevel_below.vlevel_above = null
+	// Unregister from global lists.
+	vLevels -= top
+	if(top.parent_z)
+		top.parent_z.virtual_z_levels -= top
+	qdel(top)
+	return TRUE
+
+// Multi-z aware map loader. Probes DMM dimensions, allocates an appropriately
+// sized vlevel (or extends an existing group), then defers to the existing
+// /dmm_suite/load_map placer. The lower-level load_map signature is NOT
+// modified; multi-z aware loading is opt-in via this entry point.
+//
+//  multiz_group == null              -> single-floor load (default).
+//  multiz_group == MULTIZ_NEW        -> allocate anchor (floor 1), return it.
+//  multiz_group is a /datum/virtual_z anchor -> stack a new floor above it.
+/datum/map/proc/load_map_into_vlevel(var/dmm_file, var/multiz_group = null)
+	var/file = isfile(dmm_file) ? dmm_file : file(dmm_file)
+	// get_map_dimensions returns list(width, height) as a positional list.
+	var/list/dims = maploader.get_map_dimensions(file)
+	if(!dims || dims.len < 2)
+		CRASH("load_map_into_vlevel: could not probe DMM dimensions for [dmm_file].")
+	var/dmm_size_x = dims[1]
+	var/dmm_size_y = dims[2]
+
+	if(multiz_group == MULTIZ_NEW)
+		var/datum/virtual_z/anchor = addVLevel(dmm_size_x, dmm_size_y)
+		if(!anchor)
+			return null
+		maploader.load_map(file, anchor.parent_z.z, anchor.x_min, anchor.y_min)
+		return anchor
+
+	if(istype(multiz_group, /datum/virtual_z))
+		var/datum/virtual_z/existing_anchor = multiz_group
+		if(existing_anchor.floor != 1)
+			CRASH("multiz_group must be a group anchor (floor 1), got floor [existing_anchor.floor]")
+		var/datum/virtual_z/new_floor = addFloorAbove(existing_anchor)
+		if(!new_floor)
+			return null
+		maploader.load_map(file, new_floor.parent_z.z, new_floor.x_min, new_floor.y_min)
+		new_floor.recompute_footprint()
+		// Discard any channel/crosswrap that came in from the DMM metadata.
+		if(new_floor.transition_channel != null \
+			|| (new_floor.transition_crosswrap_v && (new_floor.transition_crosswrap_v[1] || new_floor.transition_crosswrap_v[2] || new_floor.transition_crosswrap_v[3] || new_floor.transition_crosswrap_v[4])))
+			log_world("Multi-z: discarding channel/crosswrap from non-anchor DMM [dmm_file].")
+			new_floor.transition_channel = null
+			new_floor.transition_crosswrap_v = list(null, null, null, null)
+		return new_floor
+
+	// Default path: single-floor load.
+	var/datum/virtual_z/single = addVLevel(dmm_size_x, dmm_size_y)
+	if(!single)
+		return null
+	maploader.load_map(file, single.parent_z.z, single.x_min, single.y_min)
+	return single
 
 // Returns all vLevels (both system and regular) as a flat list
 /datum/map/proc/getAllVLevels()
@@ -279,8 +414,6 @@ var/global/list/accessable_v_levels = list(
 	var/base_turf //Our base turf, what shows under the station when destroyed. Defaults to space because it's fukken Space Station 13
 	var/base_area = null //default base area type, what blueprints erase into; if null, space; be careful with parent areas because locate() could find a child!
 	var/z //Number of the z-level (the z coordinate)
-	var/z_above //The linked zLevel Z above, for multiZ
-	var/z_below //Same, with below
 	var/list/transition_crosswrap_z=null // list(z_north,z_south,z_east,z_west). when you hit the edge, instead of drifting to a random zlevel or looping on the current one, teleports you to the corresponding edge on the z-level in the list.
 	var/planetside=FALSE //if the z-level is supposed to represent being on a planet, surface or underground.
 

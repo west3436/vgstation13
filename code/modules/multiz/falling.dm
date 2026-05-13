@@ -68,13 +68,13 @@
 			// TODO - handle fall on damage!
 
 /atom/movable/proc/check_below()
-	var/turf/below = GetBelow(src)
+	var/turf/below = GetBelowTurf(get_turf(src))
 	if(!below)
 		return 0
 
 	var/turf/bottom = null
 	var/list/checked_belows = list()
-	for(bottom = GetBelow(src); isopenspace(bottom); bottom = GetBelow(bottom))
+	for(bottom = GetBelowTurf(get_turf(src)); isopenspace(bottom); bottom = GetBelowTurf(bottom))
 		if(bottom.z in checked_belows) // To stop getting caught on this in infinite loops
 			break
 		checked_belows.Add(bottom.z)
@@ -99,7 +99,7 @@
 	return below
 
 /atom/movable/proc/check_above()
-	var/turf/above = GetAbove(src)
+	var/turf/above = GetAboveTurf(get_turf(src))
 	if(!above)
 		return 0
 

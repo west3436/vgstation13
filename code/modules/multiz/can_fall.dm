@@ -11,7 +11,7 @@
 	if(anchored)
 		return FALSE
 
-	var/turf/below = GetBelow(src)
+	var/turf/below = GetBelowTurf(get_turf(src))
 	if((locate(/obj/structure/disposalpipe/up) in below) || (locate(/obj/machinery/atmospherics/pipe/zpipe/up) in below))
 		return FALSE
 

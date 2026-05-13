@@ -16,12 +16,12 @@
 	set name = "Look Up"
 	set category = "IC"
 
-	if(HasAbove(src.z))
-		var/turf/T = GetAbove(src)
+	if(HasAboveAt(get_turf(src)))
+		var/turf/T = GetAboveTurf(get_turf(src))
 		if(client.eye == T)
 			lookup_reset_view()
 		else if(T && isvisiblespace(T))
-			reset_view(GetAbove(src))
+			reset_view(GetAboveTurf(get_turf(src)))
 			to_chat(src, "<span class='notice'>You look upwards.</span>")
 			register_event(/event/moved, src, nameof(src::lookup_reset_view()))
 		else
@@ -30,13 +30,13 @@
 		to_chat(src, "<span class='warning'>You don't feel like doing that.</span>")
 
 /mob/proc/update_multi_z_verbs(mob/user, to_z, from_z)
-	if(HasAbove(src.z))
+	if(HasAboveAt(get_turf(src)))
 		verbs += /mob/proc/up
 		verbs += /mob/proc/lookup
 	else
 		verbs -= /mob/proc/up
 		verbs -= /mob/proc/lookup
-	if(HasBelow(src.z))
+	if(HasBelowAt(get_turf(src)))
 		verbs += /mob/proc/down
 	else
 		verbs -= /mob/proc/down
@@ -58,7 +58,7 @@
 		to_chat(src, "<span class='notice'>You are unable to move from here.</span>")
 		return 0
 
-	var/turf/destination = (direction == UP) ? GetAbove(src) : GetBelow(src)
+	var/turf/destination = (direction == UP) ? GetAboveTurf(get_turf(src)) : GetBelowTurf(get_turf(src))
 	if(!destination)
 		to_chat(src, "<span class='notice'>There is nothing of interest in this direction.</span>")
 		return 0
@@ -118,14 +118,14 @@
 	return 1
 
 /mob/dead/observer/zMove(direction)
-	var/turf/destination = (direction == UP) ? GetAbove(src) : GetBelow(src)
+	var/turf/destination = (direction == UP) ? GetAboveTurf(get_turf(src)) : GetBelowTurf(get_turf(src))
 	if(destination)
 		forceMove(destination)
 	else
 		to_chat(src, "<span class='notice'>There is nothing of interest in this direction.</span>")
 
 /mob/camera/zMove(direction)
-	var/turf/destination = (direction == UP) ? GetAbove(src) : GetBelow(src)
+	var/turf/destination = (direction == UP) ? GetAboveTurf(get_turf(src)) : GetBelowTurf(get_turf(src))
 	if(destination)
 		forceMove(destination)
 	else

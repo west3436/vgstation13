@@ -58,6 +58,7 @@
 #include "__DEFINES\math_physics.dm"
 #include "__DEFINES\MC.dm"
 #include "__DEFINES\mobs.dm"
+#include "__DEFINES\multiz_vlevel.dm"
 #include "__DEFINES\nanoui.dm"
 #include "__DEFINES\obj_defines.dm"
 #include "__DEFINES\pai_software.dm"

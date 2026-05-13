@@ -25,7 +25,7 @@
 /obj/structure/z_ladder/initialize()
 	// the upper will connect to the lower
 	if(allowed_directions & DOWN) //we only want to do the top one, as it will initialize the ones before it.
-		for(var/obj/structure/z_ladder/L in GetBelow(src))
+		for(var/obj/structure/z_ladder/L in GetBelowTurf(get_turf(src)))
 			if(L.allowed_directions & UP)
 				target_down = L
 				L.target_up = src
@@ -147,7 +147,7 @@
 
 /obj/structure/stairs/initialize()
 	for(var/turf/turf in locs)
-		var/turf/simulated/open/above = GetAbove(turf)
+		var/turf/simulated/open/above = GetAboveTurf(turf)
 		if(!above)
 			warning("Stair created without level above: ([loc.x], [loc.y], [loc.z])")
 			return qdel(src)
@@ -157,7 +157,7 @@
 // And now the actual going, fail uncross to move up, hence bumped()
 /obj/structure/stairs/Bumped(atom/movable/A)
 	if(A.dir == dir)
-		var/turf/simulated/open/above = GetAbove(A)
+		var/turf/simulated/open/above = GetAboveTurf(get_turf(A))
 		if(!above || !istype(above))
 			return
 		var/turf/target = get_step(above, dir)

@@ -43,11 +43,14 @@
 	interact(user)
 
 /obj/machinery/pipedispenser/interact(mob/user)
-	var/multi_z_dat = HasAbove(z) || HasBelow(z) ? {"
+	var/turf/our_turf = get_turf(src)
+	var/has_above = HasAboveAt(our_turf)
+	var/has_below = HasBelowAt(our_turf)
+	var/multi_z_dat = has_above || has_below ? {"
 <b>Multi-floor pipes:</b>
 <ul>
-	[HasAbove(z) ? "<li><a href='?src=\ref[src];make=[PIPE_Z_UP];dir=1'>Up Pipe</a></li>" : ""]
-	[HasBelow(z) ? "<li><a href='?src=\ref[src];make=[PIPE_Z_DOWN];dir=1'>Down Pipe</a></li>" : ""]
+	[has_above ? "<li><a href='?src=\ref[src];make=[PIPE_Z_UP];dir=1'>Up Pipe</a></li>" : ""]
+	[has_below ? "<li><a href='?src=\ref[src];make=[PIPE_Z_DOWN];dir=1'>Down Pipe</a></li>" : ""]
 </ul>"} : ""
 	var/dat = {"
 <b>Regular pipes:</b>
