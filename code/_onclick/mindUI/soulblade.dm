@@ -14,10 +14,7 @@
 		)
 
 /datum/mind_ui/soulblade/Valid()
-	var/mob/M = mind.current
-	if (isshade(M) && istype(M.loc, /obj/item/weapon/melee/soulblade))
-		return TRUE
-	return FALSE
+	return GetUserAs(/mob/living/simple_animal/shade) && Valid_InsideItemOfType(/obj/item/weapon/melee/soulblade)
 
 //------------------------------------------------------------
 
@@ -29,8 +26,8 @@
 	offset_y = -119
 
 /obj/abstract/mind_ui_element/blood_gauge/UpdateIcon()
-	var/mob/living/simple_animal/shade/M = GetUser()
-	if(!istype(M) || !istype(M.loc, /obj/item/weapon/melee/soulblade))
+	var/mob/living/simple_animal/shade/M = GetUserAs(/mob/living/simple_animal/shade)
+	if (!M || !istype(M.loc, /obj/item/weapon/melee/soulblade))
 		return
 	var/obj/item/weapon/melee/soulblade/SB = M.loc
 	overlays.len = 0
@@ -56,8 +53,8 @@
 	mouse_opacity = 0
 
 /obj/abstract/mind_ui_element/blood_count/UpdateIcon()
-	var/mob/living/simple_animal/shade/M = GetUser()
-	if(!istype(M) || !istype(M.loc, /obj/item/weapon/melee/soulblade))
+	var/mob/living/simple_animal/shade/M = GetUserAs(/mob/living/simple_animal/shade)
+	if (!M || !istype(M.loc, /obj/item/weapon/melee/soulblade))
 		return
 	var/obj/item/weapon/melee/soulblade/SB = M.loc
 	overlays.len = 0

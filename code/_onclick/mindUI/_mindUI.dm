@@ -10,6 +10,11 @@
 */
 
 
+/client
+	var/mindui_inspect_mode = FALSE     // MindUI Inspect verb: overlay element types/parents
+	var/list/mindui_display_order        // most-recently-Displayed UIs first; oldest non-pinned evicted past mindui_max_visible
+	var/mindui_max_visible = 0           // 0 = no cap (default). Existing UIs like blob/cultist/adminbus open many sibling sub-UIs at once; capping silently auto-hides them. Opt in per-client by raising this above the expected sub-UI count.
+
 // During game setup we fill a list with the IDs and types of every /datum/mind_ui subtypes
 var/mind_ui_init = FALSE
 var/list/mind_ui_ID2type = list()
@@ -20,6 +25,9 @@ var/list/mind_ui_ID2type = list()
 	mind_ui_init = TRUE
 	for (var/mind_ui_type in subtypesof(/datum/mind_ui))
 		var/datum/mind_ui/ui = mind_ui_type
+		// Skip abstract bases so their uniqueID does not shadow a concrete subtype that reuses it.
+		if (initial(ui.abstract))
+			continue
 		mind_ui_ID2type[initial(ui.uniqueID)] = mind_ui_type
 
 //////////////////////MIND UI PROCS/////////////////////////////
@@ -122,6 +130,16 @@ var/list/mind_ui_ID2type = list()
 
 	var/obj/abstract/mind_ui_element/failsafe/failsafe	// All mind UI datums include one of those so we can detect if the elements somehow disappeared from client.screen
 
+	// Framework opt-in fields (_framework.dm, _components.dm, _layout.dm, _predicates.dm, _icon_gen.dm).
+	var/abstract = FALSE                  // when TRUE, structural validator + smoke tests skip this subtype; subclasses with concrete uniqueIDs run normally
+	var/theme = "default"                 // GetThemeColor() key into global mindui_theme_<name>
+	var/list/bindings                     // lazy-allocated by BindEvent
+	var/cleanup_when_invalid = FALSE      // SSmindui heartbeat: when TRUE, invalid UIs are Cleanup()ed instead of Hide()d
+	var/auto_display = FALSE              // SSmindui heartbeat: when TRUE, redisplay automatically when Valid() flips back to TRUE
+	var/lazy = FALSE                      // when TRUE, SpawnElements is deferred until first Display via EnsureSpawned
+	var/active_tab = ""                   // current tab id for /tab elements
+	var/callback/on_tab_change            // invoked after SetActiveTab
+
 /datum/mind_ui/New(var/datum/mind/M)
 	if (!istype(M))
 		qdel(src)
@@ -129,7 +147,8 @@ var/list/mind_ui_ID2type = list()
 	mind = M
 	mind.activeUIs[uniqueID] = src
 	..()
-	SpawnElements()
+	if (!lazy)
+		SpawnElements()
 	for (var/ui_type in sub_uis_to_spawn)
 		var/datum/mind_ui/child = new ui_type(mind)
 		subUIs += child
@@ -167,8 +186,13 @@ var/list/mind_ui_ID2type = list()
 // Makes every element visible
 /datum/mind_ui/proc/Display()
 	if (!Valid())
+		if (cleanup_when_invalid)
+			Cleanup()
+			return
 		Hide(TRUE)
 		return
+	if (lazy)
+		EnsureSpawned()
 	active = TRUE
 
 	var/mob/M = mind.current
@@ -184,10 +208,17 @@ var/list/mind_ui_ID2type = list()
 			else
 				child.Hide()
 
+	RegisterDisplayed()
+
 /datum/mind_ui/proc/Hide(var/override = FALSE)
 	active = FALSE
+	UnregisterDisplayed()
 	HideChildren(override)
 	HideElements(override)
+	// When the UI is configured to dispose itself on invalidation, finish the teardown here.
+	// Valid() is re-checked so a temporary user-initiated Hide on a still-valid UI is not destroyed.
+	if (cleanup_when_invalid && !Valid())
+		Cleanup()
 
 /datum/mind_ui/proc/HideChildren(var/override = FALSE)
 	for (var/datum/mind_ui/child in subUIs)
@@ -254,6 +285,15 @@ var/list/mind_ui_ID2type = list()
 
 	var/offset_x = 0
 	var/offset_y = 0
+
+	var/image/_inspector_overlay                    // handle held while MindUI Inspect is on, so toggle-off can pull it back
+	var/list/visible_to_roles                       // when non-empty, /datum/mind_ui/shared filters element visibility by viewer's role
+	var/obj/abstract/mind_ui_element/anchor_to      // target for ResolveAnchors
+	var/anchor_side = ""                            // "above" / "below" / "left" / "right"
+	var/can_receive_drops = FALSE                   // dispatch target for TryDispatchDrop
+	var/callback/on_drop                            // fired by TryDispatchDrop with the source element
+	var/process_interval = 0                        // ds between Tick() invocations through the throttled base process(); 0 == fire every tick
+	var/last_process = 0                            // last world.time the throttle let Tick() run
 
 /obj/abstract/mind_ui_element/New(turf/loc, var/datum/mind_ui/P)
 	if (!istype(P))
@@ -369,6 +409,10 @@ var/list/mind_ui_ID2type = list()
 	var/tooltip_theme = "default"
 	var/hover_state = TRUE
 
+	var/list/state_icons
+	var/current_state = MINDUI_STATE_IDLE
+	var/list/context_menu
+
 /obj/abstract/mind_ui_element/hoverable/MouseEntered(location,control,params)
 	StartHovering(location,control,params)
 	hovering = 1
@@ -388,7 +432,9 @@ var/list/mind_ui_ID2type = list()
 	hovering = 0
 
 /obj/abstract/mind_ui_element/hoverable/proc/StartHovering(var/location,var/control,var/params)
-	if (hover_state)
+	if (state_icons)
+		SetState(MINDUI_STATE_HOVER)
+	else if (hover_state)
 		icon_state = "[base_icon_state]-hover"
 	if (element_flags & MINDUI_FLAG_TOOLTIP)
 		var/mob/M = GetUser()
@@ -396,7 +442,9 @@ var/list/mind_ui_ID2type = list()
 			M.client?.tooltips.show(src,mouse=params,title = tooltip_title, content=tooltip_content, theme=tooltip_theme)
 
 /obj/abstract/mind_ui_element/hoverable/proc/StopHovering()
-	if (hover_state)
+	if (state_icons)
+		SetState(MINDUI_STATE_IDLE)
+	else if (hover_state)
 		icon_state = "[base_icon_state]"
 	if (element_flags & MINDUI_FLAG_TOOLTIP)
 		var/mob/M = GetUser()
@@ -412,6 +460,8 @@ var/list/mind_ui_ID2type = list()
 	var/move_whole_ui = FALSE
 	var/moving = FALSE
 	var/icon/movement
+	var/snap_to_edge = FALSE   // when TRUE, SnapToEdge() pulls tiny offsets to 0 so dragged elements re-align to a clean edge.
+	var/snap_threshold = 8     // pixels: offsets with abs() under this snap to 0.
 
 /obj/abstract/mind_ui_element/hoverable/movable/AltClick(mob/user) // Alt+Click defaults to reset the offset
 	ResetLoc()
@@ -525,4 +575,21 @@ var/list/mind_ui_ID2type = list()
 	else
 		offset_x = initial(offset_x)
 		offset_y = initial(offset_y)
+		UpdateUIScreenLoc()
+
+/obj/abstract/mind_ui_element/hoverable/movable/proc/SnapToEdge()
+	if (!snap_to_edge)
+		return
+	if (move_whole_ui)
+		if (parent && abs(parent.offset_x) < snap_threshold)
+			parent.offset_x = 0
+		if (parent && abs(parent.offset_y) < snap_threshold)
+			parent.offset_y = 0
+		if (parent)
+			parent.UpdateUIScreenLoc()
+	else
+		if (abs(offset_x) < snap_threshold)
+			offset_x = 0
+		if (abs(offset_y) < snap_threshold)
+			offset_y = 0
 		UpdateUIScreenLoc()

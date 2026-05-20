@@ -16,12 +16,7 @@
 	y = "BOTTOM"
 
 /datum/mind_ui/bloodcult_cultist/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(iscultist(M))
-		return TRUE
-	return FALSE
+	return Valid_HasRole(CULTIST)
 
 
 ////////////////////////////////////////////////////////////////////
@@ -46,13 +41,10 @@
 	y = "BOTTOM"
 
 /datum/mind_ui/bloodcult_cultist_panel/Valid()
-	var/mob/M = mind.current
-	if (!M)
+	if (!Valid_HasRole(CULTIST))
 		return FALSE
-	if(iscultist(M))
-		if(iscarbon(M) || istype(M, /mob/living/simple_animal/construct/harvester/perfect))
-			return TRUE
-	return FALSE
+	var/mob/M = mind.current
+	return iscarbon(M) || istype(M, /mob/living/simple_animal/construct/harvester/perfect)
 
 
 //------------------------------------------------------------
@@ -188,12 +180,7 @@
 	offset_layer = MIND_UI_GROUP_C
 
 /datum/mind_ui/bloodcult_right_panel/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(iscultist(M))
-		return TRUE
-	return FALSE
+	return Valid_HasRole(CULTIST)
 
 //------------------------------------------------------------
 
@@ -226,8 +213,7 @@
 	layer = MIND_UI_BACK
 
 /obj/abstract/mind_ui_element/bloodcult_spells_background_artificer/CanAppear()
-	var/mob/living/M = GetUser()
-	return istype(M, /mob/living/simple_animal/construct/builder/perfect)
+	return GetUserAs(/mob/living/simple_animal/construct/builder/perfect) ? TRUE : FALSE
 
 /obj/abstract/mind_ui_element/bloodcult_spells_background_artificer/Appear()
 	if(!CanAppear())
@@ -531,12 +517,7 @@
 	x = "LEFT"
 
 /datum/mind_ui/bloodcult_left_panel/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(iscultist(M))
-		return TRUE
-	return FALSE
+	return Valid_HasRole(CULTIST)
 
 //------------------------------------------------------------
 
@@ -634,6 +615,7 @@
 ////////////////////////////////////////////////////////////////////
 
 /datum/mind_ui/hex_controller
+	abstract = TRUE
 	uniqueID = "Hex Controller"
 	element_types_to_spawn = list(
 		/obj/abstract/mind_ui_element/hoverable/hex_controller/harm,
@@ -659,9 +641,11 @@
 	return FALSE
 
 /datum/mind_ui/hex_controller/first
+	uniqueID = "Hex Controller 1"
 	controller = 1
 
 /datum/mind_ui/hex_controller/second
+	uniqueID = "Hex Controller 2"
 	controller = 2
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller
@@ -686,7 +670,7 @@
 	icon_state = "hexcontrol_harm"
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/harm/Click()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -708,7 +692,7 @@
 			base_icon_state = icon_state
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/harm/UpdateIcon()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -728,7 +712,7 @@
 	icon_state = "hexcontrol_roam"
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/roam/Click()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -738,7 +722,7 @@
 			P.Display()
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/roam/UpdateIcon()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -757,7 +741,7 @@
 	icon_state = "hexcontrol_escort-off"
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/escort/Click()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -767,7 +751,7 @@
 			P.Display()
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/escort/UpdateIcon()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -786,7 +770,7 @@
 	icon_state = "hexcontrol_guard-off"
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/guard/Click()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -797,7 +781,7 @@
 			P.Display()
 
 /obj/abstract/mind_ui_element/hoverable/hex_controller/guard/UpdateIcon()
-	var/mob/living/simple_animal/construct/builder/perfect/M = GetUser()
+	var/mob/living/simple_animal/construct/builder/perfect/M = GetUserAs(/mob/living/simple_animal/construct/builder/perfect)
 	var/datum/mind_ui/hex_controller/P = parent
 	if (M && P && P.controller)
 		if (M.minions.len >= P.controller)
@@ -854,12 +838,7 @@
 	var/list/cultist_slots = list()
 
 /datum/mind_ui/bloodcult_panel/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(iscultist(M))
-		return TRUE
-	return FALSE
+	return Valid_HasRole(CULTIST)
 
 /datum/mind_ui/bloodcult_panel/SpawnElements()
 	..()
@@ -1637,14 +1616,10 @@
 
 
 /datum/mind_ui/bloodcult_rituals/Valid()
-	var/mob/M = mind.current
-	if (!M)
+	if (!Valid_HasRole(CULTIST))
 		return FALSE
-	if(iscultist(M))
-		var/datum/faction/bloodcult/cult = find_active_faction_by_type(/datum/faction/bloodcult)
-		if ((cult.stage == BLOODCULT_STAGE_NORMAL) || (cult.stage == BLOODCULT_STAGE_MISSED) || (cult.stage == BLOODCULT_STAGE_DEFEATED))
-			return TRUE
-	return FALSE
+	var/datum/faction/bloodcult/cult = find_active_faction_by_type(/datum/faction/bloodcult)
+	return cult && (cult.stage == BLOODCULT_STAGE_NORMAL || cult.stage == BLOODCULT_STAGE_MISSED || cult.stage == BLOODCULT_STAGE_DEFEATED)
 
 /obj/abstract/mind_ui_element/ritual_holder
 	icon = 'icons/ui/bloodcult/32x32.dmi'
@@ -1825,14 +1800,10 @@
 	display_with_parent = TRUE
 
 /datum/mind_ui/bloodcult_ritual_narsie/Valid()
-	var/mob/M = mind.current
-	if (!M)
+	if (!Valid_HasRole(CULTIST))
 		return FALSE
-	if(iscultist(M))
-		var/datum/faction/bloodcult/cult = find_active_faction_by_type(/datum/faction/bloodcult)
-		if ((cult.stage == BLOODCULT_STAGE_READY) || (cult.stage == BLOODCULT_STAGE_ECLIPSE) || (cult.stage == BLOODCULT_STAGE_NARSIE))
-			return TRUE
-	return FALSE
+	var/datum/faction/bloodcult/cult = find_active_faction_by_type(/datum/faction/bloodcult)
+	return cult && (cult.stage == BLOODCULT_STAGE_READY || cult.stage == BLOODCULT_STAGE_ECLIPSE || cult.stage == BLOODCULT_STAGE_NARSIE)
 
 /obj/abstract/mind_ui_element/hoverable/ritual_narsie
 	name = "Tear Reality"
@@ -1916,12 +1887,7 @@
 	var/selected_role = CULTIST_ROLE_NONE
 
 /datum/mind_ui/bloodcult_role/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(iscultist(M))
-		return TRUE
-	return FALSE
+	return Valid_HasRole(CULTIST)
 
 /datum/mind_ui/bloodcult_role/Display()
 	..()
@@ -2109,12 +2075,7 @@
 	display_with_parent = FALSE
 
 /datum/mind_ui/bloodcult_help/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(iscultist(M))
-		return TRUE
-	return FALSE
+	return Valid_HasRole(CULTIST)
 
 //------------------------------------------------------------
 

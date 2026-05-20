@@ -340,6 +340,10 @@
 
 /event/comp_ai_cmd_retaliate
 
+// Used by mindUI unit tests and integrations
+/event/mindui_test_refresh
+
+
 /datum
 	/// Associative list of type path -> list(),
 	/// where the type path is a descendant of /event_type.

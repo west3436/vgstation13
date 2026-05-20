@@ -12,8 +12,8 @@
 	initial_name = name
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
-	if(!istype(M))
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
+	if (!M)
 		return
 	if (M.blob_points >= required_points)
 		color = null
@@ -40,12 +40,7 @@
 		)
 
 /datum/mind_ui/blob/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(isovermind(M))
-		return TRUE
-	return FALSE
+	return GetUserAs(/mob/camera/blob) ? TRUE : FALSE
 
 ////////////////////////////////////////////////////////////////////
 //																  //
@@ -65,8 +60,8 @@
 
 /datum/mind_ui/blob_top_panel/Display() // Callin mob.DisplayUI("Blob Top Panel") or just mob.DisplayUI("Blob") will update the shortcut buttons
 	..()
-	var/mob/camera/blob/M = GetUser()
-	if(!istype(M))
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
+	if (!M)
 		return
 	var/i = 1
 	for (var/obj/abstract/mind_ui_element/hoverable/blob_thumbnail_shortcut/smallblob in elements)
@@ -104,8 +99,8 @@
 	var/datum/weakref/blob_weakref
 
 /obj/abstract/mind_ui_element/hoverable/blob_thumbnail_shortcut/Click()
-	var/mob/camera/blob/M = GetUser()
-	if(!istype(M) || !blob_weakref)
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
+	if (!M || !blob_weakref)
 		return
 	var/obj/effect/blob/B = blob_weakref.get()
 	if (B)
@@ -153,7 +148,7 @@
 	var/list/grad_images_large = list()
 
 /obj/abstract/mind_ui_element/blob_point_gauge/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	overlays.len = 0
@@ -216,7 +211,7 @@
 	mouse_opacity = 0
 
 /obj/abstract/mind_ui_element/blob_points_count/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	overlays.len = 0
@@ -240,7 +235,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/normal/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	offset_y = round(-96 + (BLOBATTCOST * 200 / M.max_blob_points))
@@ -257,7 +252,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/strong/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	offset_y = round(-96 + (BLOBSHICOST * 200 / M.max_blob_points))
@@ -274,7 +269,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/res/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	offset_y = round(-96 + (BLOBRESCOST * 200 / M.max_blob_points))
@@ -291,7 +286,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/fact/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	offset_y = round(-96 + (BLOBFACCOST * 200 / M.max_blob_points))
@@ -308,7 +303,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/node/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	offset_y = round(-96 + (BLOBNODCOST * 200 / M.max_blob_points))
@@ -325,7 +320,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/core/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M) || !M.blob_core)
 		return
 	var/required_points = BLOBCOREBASECOST + (BLOBCORECOSTINC * (blob_cores.len - 1))
@@ -346,7 +341,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/rally/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	offset_y = round(-96 + (BLOBRALCOST * 200 / M.max_blob_points))
@@ -363,7 +358,7 @@
 	offset_y = -96
 
 /obj/abstract/mind_ui_element/blob_mini/taunt/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	offset_y = round(-96 + (BLOBTAUNTCOST * 200 / M.max_blob_points))
@@ -379,7 +374,7 @@
 	offset_y = -102
 
 /obj/abstract/mind_ui_element/hoverable/blob_toggle_restraint/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	overlays.len = 0
@@ -390,7 +385,7 @@
 	overlays += I
 
 /obj/abstract/mind_ui_element/hoverable/blob_toggle_restraint/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.restrain_blob()
@@ -405,7 +400,7 @@
 	required_points = BLOBSHICOST
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_spawn_strong/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.create_shield_power()
@@ -420,7 +415,7 @@
 	required_points = BLOBRESCOST
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_spawn_resource/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.create_resource()
@@ -435,7 +430,7 @@
 	required_points = BLOBFACCOST
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_spawn_factory/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.create_factory()
@@ -450,7 +445,7 @@
 	required_points = BLOBNODCOST
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_spawn_node/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.create_node()
@@ -467,7 +462,7 @@
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_spawn_core/UpdateIcon()
 	required_points = BLOBCOREBASECOST + (BLOBCORECOSTINC * (blob_cores.len - 1))
 	..()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M) || !M.blob_core)
 		return
 	if (M.blob_core.has_been_created)
@@ -480,7 +475,7 @@
 		overlays += I
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_spawn_core/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.create_core()
@@ -519,7 +514,7 @@
 	offset_y = -117
 
 /obj/abstract/mind_ui_element/blob_health_gauge/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M) || !M.blob_core)
 		return
 	overlays.len = 0
@@ -541,7 +536,7 @@
 	overlays += cover
 
 /obj/abstract/mind_ui_element/blob_health_gauge/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	if (M.blob_core)
@@ -556,7 +551,7 @@
 	mouse_opacity = 0
 
 /obj/abstract/mind_ui_element/blob_health_count/UpdateIcon()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M) || !M.blob_core)
 		return
 	overlays.len = 0
@@ -602,7 +597,7 @@
 	required_points = BLOBTAUNTCOST
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_psionic/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	var/message = copytext(sanitize(input(M,"Send a message to the crew.","Psionic Message") as null|text),1,MAX_MESSAGE_LEN)
@@ -619,7 +614,7 @@
 	required_points = BLOBATTCOST
 
 /obj/abstract/mind_ui_element/hoverable/blob_power/blob_rally/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.rally_spores_power()
@@ -634,7 +629,7 @@
 	offset_y = 117
 
 /obj/abstract/mind_ui_element/hoverable/blob_call/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.callblobs()
@@ -649,7 +644,7 @@
 	offset_y = -141
 
 /obj/abstract/mind_ui_element/hoverable/blob_remove/Click()
-	var/mob/camera/blob/M = GetUser()
+	var/mob/camera/blob/M = GetUserAs(/mob/camera/blob)
 	if(!istype(M))
 		return
 	M.revert()

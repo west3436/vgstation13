@@ -11,6 +11,7 @@ var/unit_test_report = "Unit tests haven't been run yet."
 
 /datum/unit_test
 	//usable vars
+	var/name
 	var/turf/run_loc_bottom_left
 	var/turf/run_loc_top_right
 

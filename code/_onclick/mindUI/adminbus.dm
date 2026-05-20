@@ -8,12 +8,7 @@
 		)
 
 /datum/mind_ui/adminbus/Valid()
-	var/mob/M = mind.current
-	if (!M)
-		return FALSE
-	if(istype(M.locked_to, /obj/structure/bed/chair/vehicle/adminbus))
-		return TRUE
-	return FALSE
+	return Valid_LockedTo(/obj/structure/bed/chair/vehicle/adminbus)
 
 ////////////////////////////////////////////////////////////////////
 //																  //

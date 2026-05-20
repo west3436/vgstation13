@@ -15,22 +15,18 @@
 	display_with_parent = TRUE
 
 /datum/mind_ui/bloodcult_shade_timer/Valid()
-	var/mob/M = mind.current
-	if (!M)
+	if (!Valid_HasRole(CULTIST))
 		return FALSE
+	var/mob/M = mind.current
 	if (M.stat != DEAD)
 		return FALSE
-	if(!iscultist(M))
-		return FALSE
-	if(!(ishuman(M) || isconstruct(M) || isbrain(M) || istype(M, /mob/living/carbon/complex/gondola)))
+	if (!(ishuman(M) || isconstruct(M) || isbrain(M) || istype(M, /mob/living/carbon/complex/gondola)))
 		return FALSE
 	var/timetocheck = M.timeofdeath
 	if (isbrain(M))
 		var/mob/living/carbon/brain/brainmob = M
 		timetocheck = brainmob.timeofhostdeath
-	if ((timetocheck == 0) || (timetocheck >= (world.time - DEATH_SHADEOUT_TIMER)))
-		return TRUE
-	return FALSE
+	return (timetocheck == 0) || (timetocheck >= (world.time - DEATH_SHADEOUT_TIMER))
 
 
 //------------------------------------------------------------

@@ -144,13 +144,10 @@
 	var/datum/rune_spell/queued_rune = null
 
 /datum/mind_ui/bloodcult_runes/Valid()
-	var/mob/M = mind.current
-	if (!M)
+	if (!Valid_HasRole(CULTIST))
 		return FALSE
-	if(iscultist(M))
-		if(iscarbon(M) || istype(M, /mob/living/simple_animal/construct/harvester/perfect))
-			return TRUE
-	return FALSE
+	var/mob/M = mind.current
+	return iscarbon(M) || istype(M, /mob/living/simple_animal/construct/harvester/perfect)
 
 /datum/mind_ui/bloodcult_runes/Display()
 	..()

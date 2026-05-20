@@ -31,10 +31,7 @@
 		)
 
 /datum/mind_ui/zlevel_map/Valid()
-	var/mob/M = mind.current
-	if (M?.client?.holder?.rights & R_ADMIN)
-		return TRUE
-	return FALSE
+	return Valid_IsAdmin()
 
 /datum/mind_ui/zlevel_map/Display(var/z_id)
 	for(var/obj/abstract/mind_ui_element/hoverable/virtual_z_display/old_vz_disp in elements)

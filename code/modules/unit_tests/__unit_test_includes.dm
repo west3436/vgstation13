@@ -11,6 +11,7 @@
 #include "human.dm"
 #include "icons.dm"
 #include "events.dm"
+#include "mindui.dm"
 #include "names.dm"
 #include "reagent_recipe_collisions.dm"
 #include "turretid.dm"

@@ -9,12 +9,7 @@
 		)
 
 /datum/mind_ui/malf/Valid()
-	var/mob/living/silicon/A = mind.current
-	if (!istype(A))
-		return FALSE
-	if(ismalf(A))
-		return TRUE
-	return FALSE
+	return Valid_IsSilicon() && Valid_HasRole(MALF)
 
 ////////////////////////////////////////////////////////////////////
 //																  //
@@ -41,11 +36,11 @@
 	offset_y = -117
 
 /obj/abstract/mind_ui_element/malf_power_gauge/UpdateIcon()
-	var/mob/living/silicon/ai/A = GetUser()
+	var/mob/living/silicon/ai/A = GetUserAs(/mob/living/silicon/ai)
 	if (!A)
 		return
 	var/datum/role/malfAI/M = A.mind.GetRole(MALF)
-	if(!istype(A) || !istype(M))
+	if (!istype(M))
 		return
 
 	// cover
@@ -75,11 +70,11 @@
 	mouse_opacity = 0
 
 /obj/abstract/mind_ui_element/malf_power_count/UpdateIcon()
-	var/mob/living/silicon/ai/A = GetUser()
+	var/mob/living/silicon/ai/A = GetUserAs(/mob/living/silicon/ai)
 	if (!A)
 		return
 	var/datum/role/malfAI/M = A.mind.GetRole(MALF)
-	if(!istype(M) || !istype(A))
+	if (!istype(M))
 		return
 	overlays.len = 0
 	overlays += String2Image("[round(M.processing_power)]")
@@ -101,7 +96,7 @@
 ////////////////////////////////////////////////////////////////////
 
 /datum/mind_ui/malf_win_panel
-	uniqueID = "Malf Left Panel"
+	uniqueID = "Malf Win Panel"
 	x = "LEFT"
 	element_types_to_spawn = list(
 //		/obj/abstract/mind_ui_element/hoverable/malf_win/overload,
@@ -111,15 +106,13 @@
 
 
 /datum/mind_ui/malf_win_panel/Valid()
-	var/mob/living/silicon/ai/A = GetUser()
+	var/mob/living/silicon/ai/A = GetUserAs(/mob/living/silicon/ai)
 	if (!A)
-		return
+		return FALSE
 	var/datum/role/malfAI/M = A.mind.GetRole(MALF)
-	if(!istype(M) || !istype(A))
+	if (!istype(M))
 		return FALSE
-	if(!M.takeover)
-		return FALSE
-	return TRUE
+	return M.takeover ? TRUE : FALSE
 
 //------------------------------------------------------------
 
@@ -129,15 +122,16 @@
 	layer = MIND_UI_FRONT+1
 
 /obj/abstract/mind_ui_element/hoverable/malf_win/UpdateIcon()
-	var/mob/living/silicon/ai/A = GetUser()
+	var/mob/living/silicon/ai/A = GetUserAs(/mob/living/silicon/ai)
 	if (!A)
 		return
 	var/datum/role/malfAI/M = A.mind.GetRole(MALF)
-	if(M.destroyed_station)
-		color = grayscale
-	if(!istype(M) || !istype(A))
+	if (!istype(M))
 		Hide()
-	if(!M.takeover)
+		return
+	if (M.destroyed_station)
+		color = grayscale
+	if (!M.takeover)
 		Hide()
 
 /obj/abstract/mind_ui_element/hoverable/malf_win/StartHovering()
@@ -146,13 +140,13 @@
 
 
 /obj/abstract/mind_ui_element/hoverable/malf_win/Click()
-	var/mob/living/silicon/ai/A = GetUser()
+	var/mob/living/silicon/ai/A = GetUserAs(/mob/living/silicon/ai)
 	if (!A)
-		return
+		return FALSE
 	var/datum/role/malfAI/M = A.mind.GetRole(MALF)
-	if(!istype(M) || !istype(A))
+	if (!istype(M))
 		return FALSE			// HAHA NOPE
-	if(!M.takeover || M.destroyed_station == TRUE)
+	if (!M.takeover || M.destroyed_station == TRUE)
 		return FALSE			// NO WAY
 	return TRUE
 
@@ -207,7 +201,7 @@
 /obj/abstract/mind_ui_element/hoverable/malf_win/nuke/Click()
 	if(!..())
 		return
-	var/mob/living/silicon/ai/A = GetUser()
+	var/mob/living/silicon/ai/A = GetUserAs(/mob/living/silicon/ai)
 	if (!A)
 		return
 	var/datum/role/malfAI/M = A.mind.GetRole(MALF)
